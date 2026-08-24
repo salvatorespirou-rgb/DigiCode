@@ -450,6 +450,78 @@ section { padding: 100px 0; }
   .service-row { min-height: 0; }
 }
 
+/* ---------- Services: photo cards (Gaming / Business / Social only) ---------- */
+#services .service-row {
+  padding: 0;
+  overflow: hidden;
+}
+
+#services .service-photo {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 240px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#services .service-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(88, 28, 135, 0.35) 0%,
+    rgba(20, 10, 35, 0.6) 45%,
+    var(--bg-elevated) 100%);
+}
+
+#services .service-icon {
+  position: relative;
+  z-index: 1;
+  width: 110px;
+  height: 110px;
+  filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.75)) drop-shadow(0 0 40px rgba(147, 51, 234, 0.4));
+  transition: transform 0.4s cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (min-width: 861px) {
+  #services .service-row:hover .service-icon {
+    transform: scale(1.15) rotate(-3deg);
+  }
+}
+
+#services .service-text {
+  padding: 22px 26px 0;
+}
+
+#services .service-divider {
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin: 10px auto 16px;
+  background: var(--purple);
+  border-radius: 2px;
+}
+
+#services .service-cta {
+  padding: 0 26px 30px;
+  border-top: none;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  color: var(--purple);
+}
+
+@media (min-width: 861px) {
+  #services .service-row:hover .service-cta {
+    border-top-color: transparent;
+  }
+}
+
 /* ---------- About ---------- */
 .about-grid p { color: var(--text-muted); margin-bottom: 16px; max-width: 640px; }
 
