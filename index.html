@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Velora Digital — Web Design Studio</title>
+  <meta name="description" content="Velora Digital designs and builds modern, high-performing websites for small businesses and brands." />
+  <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="#top" class="logo">
+        <img src="assets/images/velora-logo.png" alt="Velora Digital" />
+        <span>Velora Digital</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact" class="btn btn-small">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="top" class="hero">
+      <div class="hero-glow"></div>
+      <div class="container hero-content">
+        <p class="eyebrow">Web Design &amp; Development</p>
+        <h1>We build websites that make small brands look <span class="gradient-text">unmistakably premium.</span></h1>
+        <p class="hero-sub">Velora Digital designs and codes fast, modern websites — from first sketch to a live, working site your customers can actually use.</p>
+        <div class="hero-actions">
+          <a href="#work" class="btn btn-primary">See the work</a>
+          <a href="#contact" class="btn btn-ghost">Start a project</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="services">
+      <div class="container">
+        <h2 class="section-title">What I do</h2>
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon">◆</div>
+            <h3>Web Design</h3>
+            <p>Clean, modern layouts built around your brand — designed to convert visitors into customers.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">◆</div>
+            <h3>Development</h3>
+            <p>Hand-coded, fast-loading sites with no bloat — built to work perfectly on any device.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">◆</div>
+            <h3>Ongoing Support</h3>
+            <p>Updates, fixes, and improvements after launch, so your site keeps working as your business grows.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="work" class="work">
+      <div class="container">
+        <h2 class="section-title">Selected work</h2>
+        <p class="section-sub">Your first projects will go here — real client work or personal builds you're proud to show.</p>
+        <div class="work-grid">
+          <div class="work-item placeholder">
+            <span>Project 01</span>
+          </div>
+          <div class="work-item placeholder">
+            <span>Project 02</span>
+          </div>
+          <div class="work-item placeholder">
+            <span>Project 03</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <div class="container about-grid">
+        <div>
+          <h2 class="section-title">About Velora Digital</h2>
+          <p>Velora Digital is a web design studio focused on giving small businesses a website that actually looks like it belongs to a real, established brand — without the agency price tag.</p>
+          <p>Every project starts with understanding what the business actually needs, then designing and building a site that's fast, clear, and easy to update.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <div class="container contact-inner">
+        <h2 class="section-title">Let's build something</h2>
+        <p class="section-sub">Have a project in mind? Reach out and let's talk about it.</p>
+        <a href="mailto:hello@veloradigital.com" class="btn btn-primary btn-large">hello@veloradigital.com</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
