@@ -303,8 +303,11 @@ const heroLogo = document.getElementById("heroLogo");
 const maxMove = 22;
 const maxTilt = 14;
 
+const isMobileViewport = () => window.matchMedia("(max-width: 860px)").matches;
+
 if (heroLogo) {
   heroLogo.addEventListener("mousemove", (e) => {
+    if (isMobileViewport()) return;
     const rect = heroLogo.getBoundingClientRect();
     const relX = (e.clientX - rect.left) / rect.width - 0.5;
     const relY = (e.clientY - rect.top) / rect.height - 0.5;

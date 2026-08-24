@@ -239,6 +239,17 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   }
 }
 
+/* Mobile: no glow, and the logo doesn't tilt/track touch input. */
+@media (max-width: 860px) {
+  .hero-logo-wrap::before {
+    display: none;
+  }
+
+  .hero-logo {
+    filter: none;
+  }
+}
+
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
@@ -371,13 +382,15 @@ section { padding: 100px 0; }
               border-color 0.4s ease;
 }
 
-.service-row:hover {
-  transform: scale(1.03) translateY(-8px);
-  border-color: rgba(147, 51, 234, 0.5);
-  box-shadow:
-    0 24px 60px rgba(147, 51, 234, 0.25),
-    0 8px 30px rgba(59, 130, 246, 0.2),
-    0 0 0 1px rgba(147, 51, 234, 0.15);
+@media (min-width: 861px) {
+  .service-row:hover {
+    transform: scale(1.03) translateY(-8px);
+    border-color: rgba(147, 51, 234, 0.5);
+    box-shadow:
+      0 24px 60px rgba(147, 51, 234, 0.25),
+      0 8px 30px rgba(59, 130, 246, 0.2),
+      0 0 0 1px rgba(147, 51, 234, 0.15);
+  }
 }
 
 .service-media {
@@ -395,8 +408,10 @@ section { padding: 100px 0; }
   transition: transform 0.4s cubic-bezier(.22, 1, .36, 1);
 }
 
-.service-row:hover .service-media img {
-  transform: scale(1.15) rotate(-3deg);
+@media (min-width: 861px) {
+  .service-row:hover .service-media img {
+    transform: scale(1.15) rotate(-3deg);
+  }
 }
 
 .service-text h3 {
@@ -424,8 +439,10 @@ section { padding: 100px 0; }
   transition: border-color 0.4s ease;
 }
 
-.service-row:hover .service-cta {
-  border-top-color: rgba(147, 51, 234, 0.4);
+@media (min-width: 861px) {
+  .service-row:hover .service-cta {
+    border-top-color: rgba(147, 51, 234, 0.4);
+  }
 }
 
 @media (max-width: 860px) {
