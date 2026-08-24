@@ -15,6 +15,50 @@ navLinks.querySelectorAll("a").forEach((link) => {
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// Background videos: skip entirely on slow/data-saver connections, and only
+// fetch the below-the-fold one once it's about to scroll into view.
+function isConstrainedConnection() {
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (!conn) return false;
+  if (conn.saveData) return true;
+  if (conn.effectiveType && ["slow-2g", "2g"].includes(conn.effectiveType)) return true;
+  return false;
+}
+
+function loadBackgroundVideo(video) {
+  if (!video || video.dataset.loaded) return;
+  video.dataset.loaded = "true";
+  const source = document.createElement("source");
+  source.src = video.dataset.src;
+  source.type = "video/mp4";
+  video.appendChild(source);
+  video.load();
+  video.play().catch(() => {});
+}
+
+if (!isConstrainedConnection()) {
+  const heroBgVideo = document.getElementById("heroBgVideo");
+  if (heroBgVideo) loadBackgroundVideo(heroBgVideo);
+
+  const workBgVideo = document.getElementById("workBgVideo");
+  if (workBgVideo && "IntersectionObserver" in window) {
+    const workVideoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadBackgroundVideo(workBgVideo);
+            workVideoObserver.disconnect();
+          }
+        });
+      },
+      { rootMargin: "300px" }
+    );
+    workVideoObserver.observe(workBgVideo);
+  } else if (workBgVideo) {
+    loadBackgroundVideo(workBgVideo);
+  }
+}
+
 const CART_KEY = "veloraCart";
 const CUSTOMER_KEY = "veloraCustomerInfo";
 
