@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Portal — Velora Digital</title>
+  <meta name="description" content="The Velora Digital client portal — coming soon." />
+  <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <img src="assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#work">Management</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+      <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span class="cart-badge" hidden>0</span>
+    </a>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Coming Soon</p>
+        <h1>Client <span class="gradient-text">Portal</span></h1>
+        <p class="hero-sub">Once you've purchased a build or a management plan, this is where you'll track your project, message your assigned developer, and manage your account. We're building it now.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container">
+        <div class="portal-card">
+          <div class="portal-lock">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6" />
+              <path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </div>
+          <form id="portalLoginForm" class="portal-login-form">
+            <div class="form-group">
+              <label for="loginUser">Email or Username</label>
+              <input type="text" id="loginUser" autocomplete="username" />
+            </div>
+            <div class="form-group">
+              <label for="loginPass">Password</label>
+              <input type="password" id="loginPass" autocomplete="current-password" />
+            </div>
+            <p class="portal-login-error" id="loginError" hidden>That email/username and password combination isn't recognized.</p>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+          </form>
+          <p class="portal-note">Just purchased a build or a management plan and don't have login details yet? Real client accounts are coming soon — email <a href="mailto:hello@veloradigital.com">hello@veloradigital.com</a> in the meantime and we'll get you sorted.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

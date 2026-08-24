@@ -1,0 +1,48 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="hostGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="hostGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="hostGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- glow layer -->
+  <g opacity="0.45" filter="url(#hostGlow)">
+    <rect x="110" y="120" width="180" height="52" rx="10" fill="url(#hostGradSoft)"/>
+    <rect x="110" y="182" width="180" height="52" rx="10" fill="url(#hostGradSoft)"/>
+    <rect x="110" y="244" width="180" height="52" rx="10" fill="url(#hostGradSoft)"/>
+  </g>
+
+  <!-- server stack -->
+  <g>
+    <rect x="110" y="120" width="180" height="52" rx="10" fill="#0f0620" stroke="url(#hostGrad)" stroke-width="5"/>
+    <circle cx="132" cy="146" r="7" fill="url(#hostGrad)"/>
+    <rect x="155" y="140" width="90" height="6" rx="3" fill="url(#hostGrad)" opacity="0.6"/>
+    <line x1="122" y1="130" x2="270" y2="130" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2"/>
+  </g>
+
+  <g>
+    <rect x="110" y="182" width="180" height="52" rx="10" fill="#0f0620" stroke="url(#hostGrad)" stroke-width="5"/>
+    <circle cx="132" cy="208" r="7" fill="#4ade80"/>
+    <rect x="155" y="202" width="90" height="6" rx="3" fill="url(#hostGrad)" opacity="0.6"/>
+    <line x1="122" y1="192" x2="270" y2="192" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2"/>
+  </g>
+
+  <g>
+    <rect x="110" y="244" width="180" height="52" rx="10" fill="#0f0620" stroke="url(#hostGrad)" stroke-width="5"/>
+    <circle cx="132" cy="270" r="7" fill="url(#hostGrad)"/>
+    <rect x="155" y="264" width="90" height="6" rx="3" fill="url(#hostGrad)" opacity="0.6"/>
+    <line x1="122" y1="254" x2="270" y2="254" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2"/>
+  </g>
+</svg>

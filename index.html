@@ -14,74 +14,125 @@
 <body>
 
   <header class="site-header">
-    <nav class="nav container">
-      <a href="#top" class="logo">
-        <img src="assets/images/velora-logo.png" alt="Velora Digital" />
-        <span>Velora Digital</span>
-      </a>
+    <div class="nav-left">
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#services">Services</a></li>
-        <li><a href="#work">Work</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#contact" class="btn btn-small">Contact</a></li>
-      </ul>
-    </nav>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#work">Work</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+      <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span class="cart-badge" hidden>0</span>
+    </a>
   </header>
 
   <main>
     <section id="top" class="hero">
-      <div class="hero-glow"></div>
+      <video class="hero-bg-video" autoplay muted loop playsinline>
+        <source src="assets/video/velora-intro.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-overlay"></div>
       <div class="container hero-content">
+        <div class="hero-logo-wrap">
+          <img src="assets/images/velora-logo-transparent.png" alt="Velora Digital" class="hero-logo" id="heroLogo" />
+        </div>
         <p class="eyebrow">Web Design &amp; Development</p>
-        <h1>We build websites that make small brands look <span class="gradient-text">unmistakably premium.</span></h1>
+        <h1>Websites built to carry your brand into a <span class="gradient-text">smarter digital future.</span></h1>
         <p class="hero-sub">Velora Digital designs and codes fast, modern websites — from first sketch to a live, working site your customers can actually use.</p>
-        <div class="hero-actions">
-          <a href="#work" class="btn btn-primary">See the work</a>
-          <a href="#contact" class="btn btn-ghost">Start a project</a>
+        <div class="quick-links-row">
+          <a href="builds.html" class="quick-link-tab">Builds</a>
+          <a href="subscription.html" class="quick-link-tab">Subscriptions</a>
+          <a href="signin.html" class="quick-link-tab">Sign In</a>
         </div>
       </div>
     </section>
 
     <section id="services" class="services">
       <div class="container">
-        <h2 class="section-title">What I do</h2>
-        <div class="cards">
-          <div class="card">
-            <div class="card-icon">◆</div>
-            <h3>Web Design</h3>
-            <p>Clean, modern layouts built around your brand — designed to convert visitors into customers.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon">◆</div>
-            <h3>Development</h3>
-            <p>Hand-coded, fast-loading sites with no bloat — built to work perfectly on any device.</p>
-          </div>
-          <div class="card">
-            <div class="card-icon">◆</div>
-            <h3>Ongoing Support</h3>
-            <p>Updates, fixes, and improvements after launch, so your site keeps working as your business grows.</p>
-          </div>
+        <div class="service-list">
+          <a href="services/gaming.html" class="service-row">
+            <div class="service-media">
+              <img src="assets/images/service-gaming.svg" alt="Gaming website icon" />
+            </div>
+            <div class="service-text">
+              <h3>Gaming Websites</h3>
+              <p>Bold, high-energy sites for gaming brands, clans, and creators — built to keep players engaged and coming back.</p>
+            </div>
+            <span class="service-cta">Click To Start</span>
+          </a>
+          <a href="services/business.html" class="service-row">
+            <div class="service-media">
+              <img src="assets/images/service-business.svg" alt="Business website icon" />
+            </div>
+            <div class="service-text">
+              <h3>Business Websites</h3>
+              <p>Clean, professional sites that make small businesses look established, trustworthy, and easy to work with.</p>
+            </div>
+            <span class="service-cta">Click To Start</span>
+          </a>
+          <a href="services/social.html" class="service-row">
+            <div class="service-media">
+              <img src="assets/images/service-social.svg" alt="Social platform icon" />
+            </div>
+            <div class="service-text">
+              <h3>Social Platforms</h3>
+              <p>Community-driven sites and social experiences designed to connect people and keep the conversation going.</p>
+            </div>
+            <span class="service-cta">Click To Start</span>
+          </a>
         </div>
       </div>
     </section>
 
     <section id="work" class="work">
+      <video class="work-bg-video" autoplay muted loop playsinline>
+        <source src="assets/video/Veloradigi.mp4" type="video/mp4" />
+      </video>
+      <div class="work-overlay"></div>
       <div class="container">
-        <h2 class="section-title">Selected work</h2>
-        <p class="section-sub">Your first projects will go here — real client work or personal builds you're proud to show.</p>
-        <div class="work-grid">
-          <div class="work-item placeholder">
-            <span>Project 01</span>
-          </div>
-          <div class="work-item placeholder">
-            <span>Project 02</span>
-          </div>
-          <div class="work-item placeholder">
-            <span>Project 03</span>
-          </div>
+        <h2 class="section-title">Website Management</h2>
+        <p class="section-sub">We don't just build your site and walk away — we can manage everything around it too, from the server it lives on to the content on the page. One team handling your whole online presence, so you can focus on running your business.</p>
+        <div class="service-list">
+          <a href="services/seo.html" class="service-row">
+            <div class="service-media">
+              <img src="assets/images/service-seo.svg" alt="SEO icon" />
+            </div>
+            <div class="service-text">
+              <h3>SEO</h3>
+              <p>On-page optimization, keyword targeting, and search performance tracking so customers can actually find you online.</p>
+            </div>
+            <span class="service-cta">Click To Start</span>
+          </a>
+          <a href="services/updates.html" class="service-row">
+            <div class="service-media">
+              <img src="assets/images/service-updates.svg" alt="Website update management icon" />
+            </div>
+            <div class="service-text">
+              <h3>Update Management</h3>
+              <p>Ongoing content edits, security patches, and software updates handled for you — your site stays current without you lifting a finger.</p>
+            </div>
+            <span class="service-cta">Click To Start</span>
+          </a>
+          <a href="services/hosting.html" class="service-row">
+            <div class="service-media">
+              <img src="assets/images/service-hosting.svg" alt="Website hosting icon" />
+            </div>
+            <div class="service-text">
+              <h3>Website Hosting</h3>
+              <p>Fast, secure, reliable hosting with uptime monitoring — one less account, one less bill, one less thing to manage yourself.</p>
+            </div>
+            <span class="service-cta">Click To Start</span>
+          </a>
         </div>
       </div>
     </section>
@@ -107,7 +158,7 @@
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <p>&copy; <span id="year"></span> Velora Digital. All rights reserved.</p>
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
     </div>
   </footer>
 

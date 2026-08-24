@@ -2,3 +2,8 @@
 Thumbs.db
 node_modules/
 .vscode/
+
+# Contact email storage — real data must never be committed.
+# The README documenting this folder's purpose is explicitly kept.
+data/emails/*
+!data/emails/README.md

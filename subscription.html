@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Management Subscriptions — Velora Digital</title>
+  <meta name="description" content="Compare Velora Digital's ongoing website management plans — Silver, Gold, and Platinum." />
+  <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <img src="assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#work">Management</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+      <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span class="cart-badge" hidden>0</span>
+    </a>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Website Management</p>
+        <h1>Keep your site <span class="gradient-text">running itself.</span></h1>
+        <p class="hero-sub">Ongoing care for a site that's already live — updates, design, and support on a rhythm that suits you. Pick Monthly or Weekly billing below.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container">
+        <p class="info-intro">Every plan includes ongoing management from a real developer, not an automated system. The difference between tiers comes down to how often we touch your site, and how much extra support comes with it.</p>
+
+        <div class="request-form">
+          <div class="subscription-panel" id="tierGrid">
+            <div class="billing-toggle-center">
+              <div class="billing-toggle">
+                <button type="button" class="billing-tab active" data-billing="monthly">Monthly</button>
+                <button type="button" class="billing-tab" data-billing="weekly">Weekly</button>
+              </div>
+            </div>
+
+            <div class="tier-grid">
+              <div class="tier-card tier-silver info-only">
+                <div class="tier-card-inner">
+                  <span class="tier-name">Silver</span>
+                  <p class="tier-subtitle">Steady, reliable upkeep for a site that's already live. The right starting point once your build is finished and you just want it looked after — content kept current, domain handled, nothing falling through the cracks.</p>
+                  <div class="tier-price">
+                    <span class="price-amount" data-monthly="$80" data-weekly="$20">$80</span><span class="price-period">/mo</span>
+                  </div>
+                  <ul class="tier-features">
+                    <li>Monthly management check-up — we review your site every month</li>
+                    <li>Up to 5 content updates per page, every month</li>
+                    <li>Domain managed and renewed by the Velora domain team</li>
+                    <li>Direct email support for update requests</li>
+                    <li>Basic uptime monitoring</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tier-card tier-gold info-only">
+                <div class="tier-card-inner">
+                  <span class="tier-name">Gold</span>
+                  <p class="tier-subtitle">More updates, real design support, and a photographer in your corner. Built for businesses whose site needs to keep evolving, not just stay online — new content, fresh visuals, and faster turnaround on requests.</p>
+                  <div class="tier-price">
+                    <span class="price-amount" data-monthly="$125" data-weekly="$31.25">$125</span><span class="price-period">/mo</span>
+                  </div>
+                  <ul class="tier-features">
+                    <li>Monthly management check-up, with the option to upgrade to weekly</li>
+                    <li>Up to 10 content updates per page, every month</li>
+                    <li>Domain managed and renewed by the Velora domain team</li>
+                    <li>Graphic design included — no need to source your own images</li>
+                    <li>1 hour of professional photography included</li>
+                    <li>Priority email support</li>
+                    <li>Uptime monitoring with alerts</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="tier-card tier-platinum info-only">
+                <div class="tier-card-inner">
+                  <span class="tier-name">Platinum</span>
+                  <p class="tier-subtitle">Everything, on a weekly rhythm — the full Velora team behind your site. For businesses that treat their website as core infrastructure, not an afterthought.</p>
+                  <div class="tier-price">
+                    <span class="price-amount" data-monthly="$500" data-weekly="$125">$500</span><span class="price-period">/mo</span>
+                  </div>
+                  <ul class="tier-features">
+                    <li>Weekly management check-ups as standard</li>
+                    <li>Unlimited content updates</li>
+                    <li>Domain managed and renewed by the Velora domain team</li>
+                    <li>Graphic design included — no need to source your own images</li>
+                    <li>1 hour of professional photography included</li>
+                    <li>SEO monitoring included</li>
+                    <li>Website hosting included</li>
+                    <li>Priority support and faster turnaround on every request</li>
+                    <li>Direct line to your assigned developer</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-cta">
+          <p>Ready to add a plan to your project? Pick the service you need, and you'll choose your management tier as part of that request.</p>
+          <a href="index.html#services" class="quick-link-tab">Go to Services</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

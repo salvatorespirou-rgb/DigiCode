@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEO Request — Velora Digital</title>
+  <meta name="description" content="Tell Velora Digital about your SEO project." />
+  <link rel="icon" href="../assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../index.html#services">Services</a></li>
+          <li><a href="../index.html#work">Management</a></li>
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <a href="../cart.html" class="cart-icon-link" aria-label="View cart">
+      <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span class="cart-badge" hidden>0</span>
+    </a>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">SEO</p>
+        <h1>Let's improve your <span class="gradient-text">search visibility.</span></h1>
+        <p class="hero-sub">Tell us a bit about your site and goals — everything below is optional, fill in whatever's useful.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container">
+        <form class="request-form" data-service="SEO">
+          <div class="form-card">
+            <h2>Contact Details</h2>
+            <p class="form-hint">All optional — fill in whatever's easiest for us to reach you.</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" data-label="Name" placeholder="Your name" />
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" data-label="Email" placeholder="you@example.com" />
+              </div>
+              <div class="form-group">
+                <label for="discord">Discord Username</label>
+                <input type="text" id="discord" name="discord" data-label="Discord" placeholder="yourname" />
+              </div>
+              <div class="form-group">
+                <label for="mobile">Mobile Number</label>
+                <input type="tel" id="mobile" name="mobile" data-label="Mobile" placeholder="Optional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>About Your Project</h2>
+            <div class="form-group">
+              <label for="style">Style &amp; content</label>
+              <textarea id="style" name="style" data-label="Style &amp; content" rows="4" placeholder="Any brand tone, keywords, or focus areas that matter to you? (optional)"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="existingSite">Do you have an existing website?</label>
+              <input type="text" id="existingSite" name="existingSite" data-label="Existing website" placeholder="e.g. mysite.com, or 'not yet'" />
+            </div>
+            <div class="form-group">
+              <label for="serviceQ">What are your main SEO goals?</label>
+              <textarea id="serviceQ" name="serviceQ" data-label="SEO goals" rows="3" placeholder="e.g. want to rank higher for 'plumber in [city]'"></textarea>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Domain</h2>
+            <div class="form-group">
+              <span class="form-label">Do you already have a domain name?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="hasDomain" value="yes" data-label="Has a domain: Yes" /> Yes, I have one</label>
+                <label class="radio-option"><input type="radio" name="hasDomain" value="no" data-label="Has a domain: No" /> No, not yet</label>
+              </div>
+            </div>
+            <div class="form-group domain-followup" id="domainFollowup" hidden>
+              <label class="checkbox-option">
+                <input type="checkbox" id="domainInterest" name="domainInterest" data-label="Interested in Velora's domain management (coming soon)" />
+                I'd like to learn about Velora's domain management service (coming soon)
+              </label>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Website Management Subscription</h2>
+            <p class="form-hint">Keep your SEO momentum going long after the initial optimization — totally optional.</p>
+            <div class="form-group">
+              <span class="form-label">Would you like to add ongoing website management?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="wantsSubscription" value="yes" data-label="Interested in management subscription: Yes" /> Yes, tell me more</label>
+                <label class="radio-option"><input type="radio" name="wantsSubscription" value="no" data-label="Interested in management subscription: No" /> No, not right now</label>
+              </div>
+            </div>
+
+            <div class="subscription-panel" id="tierGrid" hidden>
+              <div class="billing-toggle">
+                <button type="button" class="billing-tab active" data-billing="monthly">Monthly</button>
+                <button type="button" class="billing-tab" data-billing="weekly">Weekly</button>
+              </div>
+              <input type="hidden" id="billingCycle" name="billingCycle" data-label="Billing preference" value="" />
+
+              <div class="tier-grid">
+                <div class="tier-card tier-silver" data-tier="silver">
+                  <input type="radio" name="subscriptionTier" value="silver" data-label="Preferred tier: Silver" class="tier-radio" id="tierSilver" />
+                  <div class="tier-card-inner">
+                    <span class="tier-name">Silver</span>
+                    <div class="tier-price">
+                      <span class="price-amount" data-monthly="$80" data-weekly="$20">$80</span><span class="price-period">/mo</span>
+                    </div>
+                    <ul class="tier-features">
+                      <li>Monthly management check-up</li>
+                      <li>Up to 5 updates per page, every month</li>
+                      <li>Domain managed by the Velora domain team</li>
+                      <li>Monthly SEO health check</li>
+                    </ul>
+                    <button type="button" class="tier-purchase-btn" data-tier="Silver">Add to Cart</button>
+                  </div>
+                </div>
+
+                <div class="tier-card tier-gold" data-tier="gold">
+                  <input type="radio" name="subscriptionTier" value="gold" data-label="Preferred tier: Gold" class="tier-radio" id="tierGold" />
+                  <div class="tier-card-inner">
+                    <span class="tier-name">Gold</span>
+                    <div class="tier-price">
+                      <span class="price-amount" data-monthly="$125" data-weekly="$31.25">$125</span><span class="price-period">/mo</span>
+                    </div>
+                    <ul class="tier-features">
+                      <li>Monthly management check-up</li>
+                      <li>Up to 10 updates per page, every month</li>
+                      <li>Domain managed by the Velora domain team</li>
+                      <li>Graphic design included — no need to source your own images</li>
+                      <li>1 hour of professional photography included</li>
+                      <li>Fortnightly SEO health check</li>
+                    </ul>
+                    <button type="button" class="tier-purchase-btn" data-tier="Gold">Add to Cart</button>
+                  </div>
+                </div>
+
+                <div class="tier-card tier-platinum" data-tier="platinum">
+                  <input type="radio" name="subscriptionTier" value="platinum" data-label="Preferred tier: Platinum" class="tier-radio" id="tierPlatinum" />
+                  <div class="tier-card-inner">
+                    <span class="tier-name">Platinum</span>
+                    <div class="tier-price">
+                      <span class="price-amount" data-monthly="$500" data-weekly="$125">$500</span><span class="price-period">/mo</span>
+                    </div>
+                    <ul class="tier-features">
+                      <li>Weekly management check-ups</li>
+                      <li>Unlimited content updates</li>
+                      <li>Domain managed by the Velora domain team</li>
+                      <li>Graphic design included — no need to source your own images</li>
+                      <li>1 hour of professional photography included</li>
+                      <li>Weekly SEO monitoring &amp; reporting</li>
+                      <li>Website hosting included</li>
+                      <li>Priority support &amp; faster turnaround</li>
+                    </ul>
+                    <button type="button" class="tier-purchase-btn" data-tier="Platinum">Add to Cart</button>
+                  </div>
+                </div>
+              </div>
+              <p class="form-note">Prices shown reflect Stripe checkout, coming soon. For now, "Add to Cart" saves your pick to your cart for review.</p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="checkoutBtn" class="btn btn-primary btn-large" data-cart-url="../cart.html">Checkout</button>
+            <p class="form-note">Add a management plan to your cart above, then checkout to review your order and contact details.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="../privacy-policy.html">Privacy Policy</a> · <a href="../terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="seoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="seoGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="seoGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- glow layer -->
+  <g opacity="0.45" filter="url(#seoGlow)">
+    <polygon points="130,255 165,255 165,205 130,220" fill="url(#seoGradSoft)"/>
+    <polygon points="177,255 212,255 212,175 177,190" fill="url(#seoGradSoft)"/>
+    <polygon points="224,255 259,255 259,145 224,160" fill="url(#seoGradSoft)"/>
+    <circle cx="185" cy="150" r="62" fill="none" stroke="url(#seoGradSoft)" stroke-width="14"/>
+    <line x1="228" y1="193" x2="290" y2="255" stroke="url(#seoGradSoft)" stroke-width="16" stroke-linecap="round"/>
+  </g>
+
+  <!-- bars behind the glass -->
+  <polygon points="130,255 165,255 165,205 130,220" fill="url(#seoGrad)" stroke="#1a0a2e" stroke-width="2"/>
+  <polygon points="177,255 212,255 212,175 177,190" fill="url(#seoGrad)" stroke="#1a0a2e" stroke-width="2"/>
+
+  <!-- magnifying glass -->
+  <circle cx="185" cy="150" r="62" fill="#0f0620" stroke="url(#seoGrad)" stroke-width="14"/>
+  <line x1="228" y1="193" x2="290" y2="255" stroke="url(#seoGrad)" stroke-width="16" stroke-linecap="round"/>
+
+  <!-- gloss arc -->
+  <path d="M 150 108 A 62 62 0 0 1 225 118" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- trend line inside the glass -->
+  <polyline points="155,170 175,150 195,162 218,120" fill="none" stroke="#c084fc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

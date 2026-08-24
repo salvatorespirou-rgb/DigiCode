@@ -1,0 +1,41 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bizGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="bizGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="bizGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- glow layer -->
+  <g opacity="0.45" filter="url(#bizGlow)">
+    <polygon points="95,300 150,300 150,235 95,255" fill="url(#bizGradSoft)"/>
+    <polygon points="163,300 218,300 218,175 163,195" fill="url(#bizGradSoft)"/>
+    <polygon points="231,300 286,300 286,110 231,130" fill="url(#bizGradSoft)"/>
+    <polyline points="90,240 175,180 235,205 305,95" fill="none" stroke="url(#bizGradSoft)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- bars -->
+  <polygon points="95,300 150,300 150,235 95,255" fill="url(#bizGrad)" stroke="#1a0a2e" stroke-width="2"/>
+  <polygon points="163,300 218,300 218,175 163,195" fill="url(#bizGrad)" stroke="#1a0a2e" stroke-width="2"/>
+  <polygon points="231,300 286,300 286,110 231,130" fill="url(#bizGrad)" stroke="#1a0a2e" stroke-width="2"/>
+
+  <!-- bar top gloss -->
+  <polyline points="95,255 150,235" stroke="#ffffff" stroke-opacity="0.5" stroke-width="3"/>
+  <polyline points="163,195 218,175" stroke="#ffffff" stroke-opacity="0.5" stroke-width="3"/>
+  <polyline points="231,130 286,110" stroke="#ffffff" stroke-opacity="0.5" stroke-width="3"/>
+
+  <!-- trend arrow -->
+  <polyline points="90,240 175,180 235,205 305,95" fill="none" stroke="url(#bizGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="305,95 275,100 300,125" fill="#c084fc"/>
+</svg>

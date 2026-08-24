@@ -1,0 +1,40 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="updGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="updGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="updGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- glow layer -->
+  <polygon points="120,120 280,120 280,260 120,260" opacity="0.4" filter="url(#updGlow)" fill="url(#updGradSoft)"/>
+
+  <!-- browser window -->
+  <polygon points="120,120 280,120 280,260 120,260" fill="#0f0620" stroke="url(#updGrad)" stroke-width="6"/>
+  <rect x="120" y="120" width="160" height="28" fill="url(#updGrad)"/>
+  <circle cx="136" cy="134" r="5" fill="#0f0620"/>
+  <circle cx="152" cy="134" r="5" fill="#0f0620"/>
+  <circle cx="168" cy="134" r="5" fill="#0f0620"/>
+
+  <!-- refresh / sync arrows -->
+  <g fill="none" stroke="url(#updGrad)" stroke-width="12" stroke-linecap="round">
+    <path d="M 158 178 A 42 42 0 1 1 152 224"/>
+    <path d="M 242 202 A 42 42 0 1 1 248 156"/>
+  </g>
+  <polygon points="150,164 172,172 156,190" fill="url(#updGrad)"/>
+  <polygon points="250,216 228,208 244,190" fill="url(#updGrad)"/>
+
+  <!-- gloss highlight -->
+  <line x1="132" y1="128" x2="200" y2="128" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
+</svg>

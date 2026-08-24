@@ -1,0 +1,46 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="socGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="socGradSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <filter id="socGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- connecting lines -->
+  <g stroke="url(#socGrad)" stroke-width="4" opacity="0.85">
+    <line x1="200" y1="150" x2="140" y2="260"/>
+    <line x1="200" y1="150" x2="260" y2="260"/>
+    <line x1="140" y1="260" x2="260" y2="260"/>
+    <line x1="200" y1="150" x2="298" y2="188"/>
+  </g>
+
+  <!-- glow layer -->
+  <g opacity="0.5" filter="url(#socGlow)">
+    <rect x="182" y="132" width="36" height="36" rx="8" transform="rotate(45 200 150)" fill="url(#socGradSoft)"/>
+    <rect x="122" y="242" width="36" height="36" rx="8" transform="rotate(45 140 260)" fill="url(#socGradSoft)"/>
+    <rect x="242" y="242" width="36" height="36" rx="8" transform="rotate(45 260 260)" fill="url(#socGradSoft)"/>
+    <rect x="282" y="172" width="28" height="28" rx="6" transform="rotate(45 296 186)" fill="url(#socGradSoft)"/>
+  </g>
+
+  <!-- nodes -->
+  <rect x="182" y="132" width="36" height="36" rx="8" transform="rotate(45 200 150)" fill="url(#socGrad)" stroke="#1a0a2e" stroke-width="2"/>
+  <rect x="122" y="242" width="36" height="36" rx="8" transform="rotate(45 140 260)" fill="url(#socGrad)" stroke="#1a0a2e" stroke-width="2"/>
+  <rect x="242" y="242" width="36" height="36" rx="8" transform="rotate(45 260 260)" fill="url(#socGrad)" stroke="#1a0a2e" stroke-width="2"/>
+  <rect x="282" y="172" width="28" height="28" rx="6" transform="rotate(45 296 186)" fill="url(#socGrad)" stroke="#1a0a2e" stroke-width="2"/>
+
+  <!-- node gloss dots -->
+  <circle cx="192" cy="140" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="132" cy="250" r="4" fill="#ffffff" opacity="0.6"/>
+  <circle cx="252" cy="250" r="4" fill="#ffffff" opacity="0.6"/>
+</svg>

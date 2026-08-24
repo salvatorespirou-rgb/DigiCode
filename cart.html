@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Cart — Velora Digital</title>
+  <meta name="description" content="Review your Velora Digital order before checkout." />
+  <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#work">Management</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+      <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <span class="cart-badge" hidden>0</span>
+    </a>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow">Your Order</p>
+        <h1>Your <span class="gradient-text">Cart</span></h1>
+        <p class="hero-sub">Review what you've added below. Want to add another service? Head back to the homepage — everything you've already added stays right here.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container cart-container">
+        <div id="cartEmpty" class="cart-empty">
+          <p>Your cart is empty.</p>
+          <a href="index.html" class="btn btn-primary">Browse Services</a>
+        </div>
+
+        <div id="cartItems" class="cart-items"></div>
+
+        <div id="cartSummary" class="cart-summary" hidden>
+          <div class="cart-totals">
+            <div class="cart-total-row">
+              <span>One-time total</span>
+              <span id="oneTimeTotal">$0</span>
+            </div>
+            <div class="cart-total-row" id="subscriptionRow" hidden>
+              <span>Subscription</span>
+              <span id="subscriptionTotal">—</span>
+            </div>
+          </div>
+
+          <div class="cart-actions">
+            <a href="index.html" class="btn btn-ghost">← Add Another Service</a>
+            <button type="button" id="confirmOrderBtn" class="btn btn-primary btn-large">Confirm &amp; Send Order</button>
+          </div>
+          <p class="form-note">Secure card payment via Stripe is coming soon. For now, this sends your full order and details straight to us.</p>
+          <button type="button" id="clearCartBtn" class="clear-cart-link">Clear cart</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
