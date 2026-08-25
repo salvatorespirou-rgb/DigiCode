@@ -18,9 +18,11 @@
   const MAX_FALL_SPEED = 720; // px/s
   const PYLON_SPEED = 190; // px/s
   const PYLON_GAP = 185; // px, vertical gap the dragon flies through — base value at level 1
-  const PYLON_GAP_MIN = 138; // floor so late levels stay flyable
+  const PYLON_GAP_MIN = 150; // floor so late levels stay flyable
+  const PYLON_GAP_STEP = 2; // narrows this many px per level
   const PYLON_MARGIN = 60; // px, how close a gap can sit to the very top/bottom — base value at level 1
-  const PYLON_MARGIN_MIN = 32;
+  const PYLON_MARGIN_MIN = 48; // never closer than this to the very top/bottom, at any level
+  const PYLON_MARGIN_STEP = 1; // tightens this many px per level
   const PYLON_WIDTH = 76;
   const PYLON_SPACING = 260; // horizontal distance between pylon pairs
   const DRAGON_X = WIDTH * 0.28;
@@ -213,8 +215,8 @@
   // flying the accurate line through the middle, and it can never overlap
   // the stonework since it's placed inside the open gap by construction.
   function spawnPylon() {
-    const gap = Math.max(PYLON_GAP_MIN, PYLON_GAP - (level - 1) * 4);
-    const margin = Math.max(PYLON_MARGIN_MIN, PYLON_MARGIN - (level - 1) * 2);
+    const gap = Math.max(PYLON_GAP_MIN, PYLON_GAP - (level - 1) * PYLON_GAP_STEP);
+    const margin = Math.max(PYLON_MARGIN_MIN, PYLON_MARGIN - (level - 1) * PYLON_MARGIN_STEP);
     const gapCenter = margin + gap / 2 + Math.random() * (HEIGHT - GROUND_HEIGHT - margin * 2 - gap);
     const pylonX = WIDTH + PYLON_WIDTH;
     pylons.push({ x: pylonX, gapCenter, gap, scored: false });
@@ -551,18 +553,43 @@
     }
   }
 
-  function drawBackground() {
-    const theme = currentTheme || SKY_THEMES[0];
+  // Gradients that never change frame to frame, built once instead of on
+  // every draw call — canvas gradients aren't free, and this runs at up to
+  // 60fps, so recreating a dozen of them every frame is real, avoidable
+  // work on weaker mobile GPUs.
+  const GROUND_GRADIENT = ctx.createLinearGradient(0, HEIGHT - GROUND_HEIGHT, 0, HEIGHT);
+  GROUND_GRADIENT.addColorStop(0, "#6b3f38");
+  GROUND_GRADIENT.addColorStop(1, "#3a2320");
+
+  const PYLON_STONE_GRADIENT = ctx.createLinearGradient(0, 0, PYLON_WIDTH, 0);
+  PYLON_STONE_GRADIENT.addColorStop(0, "#6b6459");
+  PYLON_STONE_GRADIENT.addColorStop(0.5, "#8c8375");
+  PYLON_STONE_GRADIENT.addColorStop(1, "#6b6459");
+
+  // Sky/orb-glow gradients only depend on which theme is active (there are
+  // only 5), not on any per-frame state, so build each one once and reuse.
+  const skyGradientCache = new Map();
+  function getThemeGradients(theme) {
+    let cached = skyGradientCache.get(theme);
+    if (cached) return cached;
     const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
     theme.sky.forEach((color, i) => sky.addColorStop(theme.skyStops[i], color));
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-    // Sun / moon.
     const sunY = HEIGHT * 0.42;
     const sunGlow = ctx.createRadialGradient(WIDTH * 0.7, sunY, 4, WIDTH * 0.7, sunY, 90);
     sunGlow.addColorStop(0, `rgba(${theme.orbGlowRGB}, 0.9)`);
     sunGlow.addColorStop(1, `rgba(${theme.orbGlowRGB}, 0)`);
+    cached = { sky, sunGlow, sunY };
+    skyGradientCache.set(theme, cached);
+    return cached;
+  }
+
+  function drawBackground() {
+    const theme = currentTheme || SKY_THEMES[0];
+    const { sky, sunGlow, sunY } = getThemeGradients(theme);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    // Sun / moon.
     ctx.fillStyle = sunGlow;
     ctx.fillRect(WIDTH * 0.7 - 90, sunY - 90, 180, 180);
     ctx.fillStyle = theme.orbColor;
@@ -580,10 +607,7 @@
     }
 
     // Ground.
-    const groundGrad = ctx.createLinearGradient(0, HEIGHT - GROUND_HEIGHT, 0, HEIGHT);
-    groundGrad.addColorStop(0, "#6b3f38");
-    groundGrad.addColorStop(1, "#3a2320");
-    ctx.fillStyle = groundGrad;
+    ctx.fillStyle = GROUND_GRADIENT;
     ctx.fillRect(0, HEIGHT - GROUND_HEIGHT, WIDTH, GROUND_HEIGHT);
     ctx.fillStyle = "rgba(255, 200, 132, 0.4)";
     ctx.fillRect(0, HEIGHT - GROUND_HEIGHT, WIDTH, 3);
@@ -592,35 +616,37 @@
   function drawPylon(p) {
     const gapTop = p.gapCenter - p.gap / 2;
     const gapBottom = p.gapCenter + p.gap / 2;
-    const stone = ctx.createLinearGradient(p.x, 0, p.x + PYLON_WIDTH, 0);
-    stone.addColorStop(0, "#6b6459");
-    stone.addColorStop(0.5, "#8c8375");
-    stone.addColorStop(1, "#6b6459");
+    // Drawn in local (0..PYLON_WIDTH) space via translate so every pylon —
+    // and every frame — can share the same cached gradient instead of each
+    // building its own.
+    ctx.save();
+    ctx.translate(p.x, 0);
 
     // Top tower.
-    ctx.fillStyle = stone;
-    ctx.fillRect(p.x, 0, PYLON_WIDTH, gapTop);
-    drawCrenellations(p.x, gapTop, PYLON_WIDTH, true);
+    ctx.fillStyle = PYLON_STONE_GRADIENT;
+    ctx.fillRect(0, 0, PYLON_WIDTH, gapTop);
+    drawCrenellations(0, gapTop, PYLON_WIDTH, true);
 
     // Bottom tower.
-    ctx.fillRect(p.x, gapBottom, PYLON_WIDTH, HEIGHT - GROUND_HEIGHT - gapBottom);
-    drawCrenellations(p.x, gapBottom - 12, PYLON_WIDTH, false);
+    ctx.fillRect(0, gapBottom, PYLON_WIDTH, HEIGHT - GROUND_HEIGHT - gapBottom);
+    drawCrenellations(0, gapBottom - 12, PYLON_WIDTH, false);
 
     // Mortar lines for a stone-block feel.
     ctx.strokeStyle = "rgba(40, 30, 25, 0.35)";
     ctx.lineWidth = 1;
     for (let y = 16; y < gapTop; y += 24) {
       ctx.beginPath();
-      ctx.moveTo(p.x, y);
-      ctx.lineTo(p.x + PYLON_WIDTH, y);
+      ctx.moveTo(0, y);
+      ctx.lineTo(PYLON_WIDTH, y);
       ctx.stroke();
     }
     for (let y = gapBottom + 16; y < HEIGHT - GROUND_HEIGHT; y += 24) {
       ctx.beginPath();
-      ctx.moveTo(p.x, y);
-      ctx.lineTo(p.x + PYLON_WIDTH, y);
+      ctx.moveTo(0, y);
+      ctx.lineTo(PYLON_WIDTH, y);
       ctx.stroke();
     }
+    ctx.restore();
   }
 
   function drawCrenellations(x, y, width, pointingDown) {
@@ -637,14 +663,20 @@
     }
   }
 
+  // Fixed feather lengths/spreads/widths — shared between the draw call and
+  // the gradient cache below so the two stay in sync.
+  const FEATHERS = [
+    { len: 38, spreadAngle: -0.62, width: 7 },
+    { len: 33, spreadAngle: -0.34, width: 8 },
+    { len: 27, spreadAngle: -0.06, width: 8 },
+    { len: 20, spreadAngle: 0.2, width: 7 },
+  ];
+
   // One tapered feather, drawn in the wing's local (already hinge-rotated)
   // space: a thin leaf shape fanned out at `spreadAngle` from the hinge.
-  function drawFeather(len, spreadAngle, width, colorTop, colorBottom, outline) {
+  function drawFeather(grad, spreadAngle, width, len, outline) {
     ctx.save();
     ctx.rotate(spreadAngle);
-    const grad = ctx.createLinearGradient(0, 0, -len, 0);
-    grad.addColorStop(0, colorTop);
-    grad.addColorStop(1, colorBottom);
     ctx.fillStyle = grad;
     ctx.strokeStyle = outline;
     ctx.lineWidth = 0.8;
@@ -689,6 +721,42 @@
     ctx.restore();
   }
 
+  // All of a skin's gradients are fully static — same local coordinates and
+  // colors every frame — so build them once per skin and cache them on the
+  // skin object itself instead of rebuilding ~9 gradients every frame.
+  function getDragonGradients(skin) {
+    if (skin._grad) return skin._grad;
+    const tailGrad = ctx.createLinearGradient(-40, 0, -2, 0);
+    tailGrad.addColorStop(0, skin.body[1]);
+    tailGrad.addColorStop(1, skin.body[0]);
+
+    const wingGrad = ctx.createLinearGradient(0, 0, -37, -30);
+    wingGrad.addColorStop(0, skin.wing);
+    wingGrad.addColorStop(1, skin.body[1]);
+
+    const featherGrads = FEATHERS.map((f) => {
+      const g = ctx.createLinearGradient(0, 0, -f.len, 0);
+      g.addColorStop(0, skin.wing);
+      g.addColorStop(1, skin.body[1]);
+      return g;
+    });
+
+    const bodyGrad = ctx.createRadialGradient(-4, -5, 2, 0, 0, DRAGON_RADIUS);
+    bodyGrad.addColorStop(0, skin.body[0]);
+    bodyGrad.addColorStop(1, skin.body[1]);
+
+    const gloss = ctx.createRadialGradient(-7, -8, 0, -7, -8, 11);
+    gloss.addColorStop(0, "rgba(255, 255, 255, 0.55)");
+    gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+    const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, DRAGON_HIT_RADIUS * 1.7);
+    glow.addColorStop(0, `rgba(${skin.glowRGB}, ${skin.glowAlpha * 0.7})`);
+    glow.addColorStop(1, `rgba(${skin.glowRGB}, 0)`);
+
+    skin._grad = { tailGrad, wingGrad, featherGrads, bodyGrad, gloss, glow };
+    return skin._grad;
+  }
+
   // A Japanese-style dragon: a long, sinuous serpent with a feathered,
   // fan-edged wing, twin antler-like horns, and a trailing whisker. Still
   // pure vector shapes on the same small canvas budget as before — no
@@ -696,37 +764,34 @@
   // circle (DRAGON_RADIUS), unchanged from before.
   function drawDragon() {
     const skin = (currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN;
+    const g = getDragonGradients(skin);
     const now = performance.now();
     const outline = "rgba(20, 15, 10, 0.35)";
     const pulse = 1 + flapPulse * 0.16; // a quick "pop" right on each flap
-
-    // Ambient glow drawn first, behind everything — drawing it last (as
-    // before) additively brightened the whole dragon and washed the
-    // linework out into a fuzzy blob.
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    const glow = ctx.createRadialGradient(DRAGON_X, dragonY, 2, DRAGON_X, dragonY, DRAGON_HIT_RADIUS * 1.7);
-    glow.addColorStop(0, `rgba(${skin.glowRGB}, ${skin.glowAlpha * 0.7})`);
-    glow.addColorStop(1, `rgba(${skin.glowRGB}, 0)`);
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(DRAGON_X, dragonY, DRAGON_HIT_RADIUS * 1.7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
 
     ctx.save();
     ctx.translate(DRAGON_X, dragonY);
     const tilt = Math.max(-0.35, Math.min(0.8, dragonVY / 650));
     ctx.rotate(tilt);
+
+    // Ambient glow drawn first, behind everything — drawing it last (as
+    // before) additively brightened the whole dragon and washed the
+    // linework out into a fuzzy blob. Drawn before the scale below since
+    // its cached radius already accounts for DRAGON_SCALE.
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = g.glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, DRAGON_HIT_RADIUS * 1.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.scale(DRAGON_SCALE, DRAGON_SCALE); // shrinks the whole dragon uniformly
 
     // Serpentine tail — three tapering segments trailing the head, swaying
     // gently so the body reads as sinuous rather than a round blob.
     const sway = Math.sin(wingPhase) * 3.5;
-    const tailGrad = ctx.createLinearGradient(-40, 0, -2, 0);
-    tailGrad.addColorStop(0, skin.body[1]);
-    tailGrad.addColorStop(1, skin.body[0]);
-    ctx.fillStyle = tailGrad;
+    ctx.fillStyle = g.tailGrad;
     ctx.strokeStyle = outline;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -750,10 +815,7 @@
     ctx.save();
     ctx.translate(-7, -6);
     ctx.rotate(wingAngle);
-    const wingGrad = ctx.createLinearGradient(0, 0, -37, -30);
-    wingGrad.addColorStop(0, skin.wing);
-    wingGrad.addColorStop(1, skin.body[1]);
-    ctx.fillStyle = wingGrad;
+    ctx.fillStyle = g.wingGrad;
     ctx.strokeStyle = outline;
     ctx.lineWidth = 1.3;
     ctx.beginPath();
@@ -770,19 +832,13 @@
 
     // Individual feathers layered over the membrane for texture, fanned
     // out from the same hinge.
-    drawFeather(38, -0.62, 7, skin.wing, skin.body[1], outline);
-    drawFeather(33, -0.34, 8, skin.wing, skin.body[1], outline);
-    drawFeather(27, -0.06, 8, skin.wing, skin.body[1], outline);
-    drawFeather(20, 0.2, 7, skin.wing, skin.body[1], outline);
+    FEATHERS.forEach((f, i) => drawFeather(g.featherGrads[i], f.spreadAngle, f.width, f.len, outline));
     ctx.restore();
 
     // Head.
     const headRX = DRAGON_RADIUS * pulse;
     const headRY = DRAGON_RADIUS * 0.82 * pulse;
-    const bodyGrad = ctx.createRadialGradient(-4, -5, 2, 0, 0, headRX);
-    bodyGrad.addColorStop(0, skin.body[0]);
-    bodyGrad.addColorStop(1, skin.body[1]);
-    ctx.fillStyle = bodyGrad;
+    ctx.fillStyle = g.bodyGrad;
     ctx.strokeStyle = outline;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -791,10 +847,7 @@
     ctx.stroke();
 
     // Glossy specular highlight, for a polished rather than flat-shaded look.
-    const gloss = ctx.createRadialGradient(-7, -8, 0, -7, -8, 11);
-    gloss.addColorStop(0, "rgba(255, 255, 255, 0.55)");
-    gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
-    ctx.fillStyle = gloss;
+    ctx.fillStyle = g.gloss;
     ctx.beginPath();
     ctx.ellipse(-7, -8, 11, 7.5, -0.3, 0, Math.PI * 2);
     ctx.fill();
