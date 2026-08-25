@@ -92,6 +92,61 @@
     coins.push({ x: pylonX + PYLON_WIDTH / 2, y: gapCenter, collected: false });
   }
 
+  // Synthesized 8-bit-style effects (no audio files to download — an
+  // AudioContext is created lazily on the first real user gesture, since
+  // browsers block audio from starting on its own).
+  let audioCtx = null;
+  function getAudioCtx() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    if (!audioCtx) audioCtx = new Ctx();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playTone(ctx, freq, startTime, duration, peakGain) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, startTime);
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+  }
+
+  function playFlapSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(320, t);
+      osc.frequency.exponentialRampToValueAtTime(640, t + 0.09);
+      gain.gain.setValueAtTime(0.14, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.1);
+    } catch (err) {}
+  }
+
+  function playCoinSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      playTone(ctx, 988, t, 0.11, 0.16); // B5
+      playTone(ctx, 1319, t + 0.07, 0.2, 0.16); // E6
+    } catch (err) {}
+  }
+
   // Spacebar is the only control needed to play — restarting after a crash
   // never waits on the registration form, so it's never a hard blocker.
   function flap() {
@@ -109,6 +164,7 @@
       return;
     }
     dragonVY = FLAP_VELOCITY;
+    playFlapSound();
   }
 
   async function endGame() {
@@ -283,6 +339,7 @@
           c.collected = true;
           score += COIN_VALUE;
           if (scoreEl) scoreEl.textContent = String(score);
+          playCoinSound();
         }
       }
     }
