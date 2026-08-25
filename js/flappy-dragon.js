@@ -34,6 +34,13 @@
   const COIN_VALUE = 5; // bonus on top of the +1 per pylon passed
   const LEVEL_SCORE_STEP = 50; // score needed per level
 
+  // Missile/jet tuning for the level 10 Jet Chase event.
+  const MISSILE_SPEED = 260; // px/s, a little faster than the pylons ever scroll
+  const MISSILE_INTERVAL = 1.0; // seconds between missiles
+  const MISSILE_RADIUS = 7;
+  const JET_X = WIDTH * 0.12; // fixed on the left, behind the dragon, "chasing" it
+  const JET_CHASE_REWARD = 5000; // flat coin bonus for surviving the whole event
+
   // Each level cycles through these skies; a couple of them also reskin the
   // dragon so the "world" feels like it's actually progressing, not just a
   // number going up. Body/wing/glow colors are the only things that change —
@@ -311,22 +318,25 @@
     return DEFAULT_FLAP_PROFILE;
   }
 
-  // Coin Rush — a one-time bonus event the first time a run reaches level
-  // 10. Every pylon shakes, then the top half lifts into the ceiling and
-  // the bottom half sinks into the ground, clearing the sky; for 10 open
-  // seconds coins rain in instead (worth 1 each, far less than a normal
-  // in-flight coin) before normal pylons resume.
-  const COIN_RUSH_LEVEL = 10;
-  const COIN_RUSH_SHAKE_DURATION = 0.5;
-  const COIN_RUSH_RETRACT_DURATION = 0.6;
-  const COIN_RUSH_COLLECT_DURATION = 10;
-  const COIN_RUSH_COIN_VALUE = 1;
+  // Level events — one-time set pieces the first time a run reaches
+  // certain levels. Every one opens the same way (pylons shake, then the
+  // top half lifts into the ceiling and the bottom half sinks into the
+  // ground, clearing the sky) so they read as one family of moments, then
+  // branches into whatever that level's event actually is.
+  const LEVEL_EVENTS = {
+    5: { type: "coinRush", duration: 10 },
+    10: { type: "jetChase", duration: 10 },
+    15: { type: "coinRush", duration: 20 },
+  };
+  const EVENT_SHAKE_DURATION = 0.5;
+  const EVENT_RETRACT_DURATION = 0.6;
+  const COIN_RUSH_COIN_VALUE = 1; // a normal in-flight coin is worth COIN_VALUE (5)
 
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
   let level, currentTheme, lastGapCenter;
   let flapPulse, trail, trailTimer;
-  let coinRush;
+  let levelEvent, jet, missiles, jetChaseRewardFlash;
   let lastTime = null;
 
   function resetGame() {
@@ -344,7 +354,10 @@
     flapPulse = 0;
     trail = [];
     trailTimer = 0;
-    coinRush = { triggered: false, active: false, phase: "idle", timer: 0, collectTimeLeft: 0 };
+    levelEvent = { triggeredLevels: new Set(), active: false, type: null, phase: "idle", timer: 0, duration: 0, timeLeft: 0 };
+    jet = null;
+    missiles = [];
+    jetChaseRewardFlash = 0;
     if (scoreEl) scoreEl.textContent = "0";
     if (levelEl) levelEl.textContent = String(level);
   }
@@ -358,26 +371,35 @@
     level = newLevel;
     currentTheme = themeForLevel(level);
     if (levelEl) levelEl.textContent = String(level);
-    if (level === COIN_RUSH_LEVEL && !coinRush.triggered) startCoinRush();
+    const config = LEVEL_EVENTS[level];
+    if (config && !levelEvent.triggeredLevels.has(level)) startLevelEvent(level, config);
   }
 
-  function startCoinRush() {
-    coinRush.triggered = true;
-    coinRush.active = true;
-    coinRush.phase = "shake";
-    coinRush.timer = 0;
-    playCoinRushStartSound();
+  function startLevelEvent(lvl, config) {
+    levelEvent.triggeredLevels.add(lvl);
+    levelEvent.active = true;
+    levelEvent.type = config.type;
+    levelEvent.phase = "shake";
+    levelEvent.timer = 0;
+    levelEvent.duration = config.duration;
+    if (config.type === "jetChase") {
+      jet = { x: JET_X, y: dragonY, missileTimer: 0 };
+      missiles = [];
+      playJetChaseStartSound();
+    } else {
+      playCoinRushStartSound();
+    }
   }
 
-  // Scatters a wide band of coins ahead of the dragon — wider than one
-  // screen — so as some scroll off the left edge over the full 10 seconds,
-  // fresh ones are still arriving from the right the whole time.
-  function spawnCoinRushField() {
+  // Scatters a band of coins ahead of the dragon — wider than one screen —
+  // so as some scroll off the left edge, fresh ones are still arriving from
+  // the right for the whole event.
+  function spawnCoinRushField(duration) {
     const topBound = 50;
     const bottomBound = HEIGHT - GROUND_HEIGHT - 50;
     const spanStart = 60;
-    const spanEnd = WIDTH + PYLON_SPEED * COIN_RUSH_COLLECT_DURATION;
-    const count = 46;
+    const spanEnd = WIDTH + PYLON_SPEED * duration;
+    const count = Math.round(duration * 4.6);
     for (let i = 0; i < count; i++) {
       const x = spanStart + (i / count) * (spanEnd - spanStart) + (Math.random() - 0.5) * 40;
       const y = topBound + Math.random() * (bottomBound - topBound);
@@ -496,6 +518,70 @@
       playTone(ctx, 660, t, 0.12, 0.15, "square");
       playTone(ctx, 880, t + 0.1, 0.12, 0.15, "square");
       playTone(ctx, 1320, t + 0.2, 0.22, 0.17, "square");
+    } catch (err) {}
+  }
+
+  // A short descending alarm-style blare for the Jet Chase's arrival —
+  // deliberately tenser than the coin rush's cheerful fanfare.
+  function playJetChaseStartSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      playTone(ctx, 200, t, 0.16, 0.16, "sawtooth");
+      playTone(ctx, 160, t + 0.18, 0.16, 0.16, "sawtooth");
+      playTone(ctx, 120, t + 0.36, 0.22, 0.17, "sawtooth");
+    } catch (err) {}
+  }
+
+  // A quick, punchy blip for a missile whizzing past unharmed.
+  function playMissileDodgeSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(900, t);
+      osc.frequency.exponentialRampToValueAtTime(300, t + 0.08);
+      g.gain.setValueAtTime(0.1, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.09);
+    } catch (err) {}
+  }
+
+  // A brief explosion burst for a missile impact (game over) or when the
+  // jet itself peels off at the end of a successful dodge.
+  function playExplosionSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(180, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+      g.gain.setValueAtTime(0.22, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.32);
+    } catch (err) {}
+  }
+
+  // A bright ascending flourish when the Jet Chase reward lands.
+  function playRewardSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      [660, 880, 1100, 1320].forEach((f, i) => playTone(ctx, f, t + i * 0.08, 0.16, 0.15, "square"));
     } catch (err) {}
   }
 
@@ -694,29 +780,82 @@
     return String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
-  // Advances the shake -> retract -> collect phases and handles the
-  // hand-off between them (clearing the pylons and dropping the coin field
-  // the instant retract finishes, resuming normal spawning once collect
-  // runs out).
-  function updateCoinRush(dt) {
-    if (!coinRush.active) return;
-    coinRush.timer += dt;
-    if (coinRush.phase === "shake" && coinRush.timer >= COIN_RUSH_SHAKE_DURATION) {
-      coinRush.phase = "retract";
-      coinRush.timer = 0;
-    } else if (coinRush.phase === "retract" && coinRush.timer >= COIN_RUSH_RETRACT_DURATION) {
-      coinRush.phase = "collect";
-      coinRush.timer = 0;
-      coinRush.collectTimeLeft = COIN_RUSH_COLLECT_DURATION;
-      pylons = [];
-      spawnCoinRushField();
-    } else if (coinRush.phase === "collect") {
-      coinRush.collectTimeLeft -= dt;
-      if (coinRush.collectTimeLeft <= 0) {
-        coinRush.active = false;
-        coinRush.phase = "idle";
-        distanceSinceSpawn = 0; // a clean breather before pylons resume
+  // The jet hovers on the left, easing toward the dragon's altitude (with
+  // its own drift on top) so it visually "chases," then fires missiles on
+  // a fixed interval that fly a dead-straight line across the screen.
+  function updateJetChase(dt) {
+    jet.y += (dragonY - jet.y) * 1.1 * dt + Math.sin(performance.now() / 480) * 26 * dt;
+    jet.y = Math.max(46, Math.min(HEIGHT - GROUND_HEIGHT - 46, jet.y));
+
+    jet.missileTimer += dt;
+    if (jet.missileTimer >= MISSILE_INTERVAL) {
+      jet.missileTimer = 0;
+      missiles.push({ x: jet.x + 22, y: jet.y, passed: false });
+    }
+
+    for (const m of missiles) {
+      m.x += MISSILE_SPEED * dt;
+      if (!m.passed && m.x > DRAGON_X + DRAGON_HIT_RADIUS) {
+        m.passed = true;
+        score += 2;
+        if (scoreEl) scoreEl.textContent = String(score);
+        playMissileDodgeSound();
       }
+    }
+    missiles = missiles.filter((m) => m.x < WIDTH + 30);
+  }
+
+  // Advances the shake -> retract -> active phases shared by every level
+  // event, then hands off to whatever that event actually does once the
+  // pylons are gone, and cleans up when its timer runs out.
+  function updateLevelEvent(dt) {
+    if (!levelEvent.active) return;
+    levelEvent.timer += dt;
+    if (levelEvent.phase === "shake" && levelEvent.timer >= EVENT_SHAKE_DURATION) {
+      levelEvent.phase = "retract";
+      levelEvent.timer = 0;
+    } else if (levelEvent.phase === "retract" && levelEvent.timer >= EVENT_RETRACT_DURATION) {
+      levelEvent.phase = "active";
+      levelEvent.timer = 0;
+      levelEvent.timeLeft = levelEvent.duration;
+      pylons = [];
+      if (levelEvent.type === "coinRush") spawnCoinRushField(levelEvent.duration);
+    } else if (levelEvent.phase === "active") {
+      levelEvent.timeLeft -= dt;
+      if (levelEvent.type === "jetChase") updateJetChase(dt);
+      if (levelEvent.timeLeft <= 0) finishLevelEvent();
+    }
+  }
+
+  async function awardJetChaseBonus() {
+    if (!playerId || !playerEditKey) return;
+    try {
+      const { data: newBalance, error } = await veloraSupabase.rpc("credit_coins", {
+        p_id: playerId,
+        p_edit_key: playerEditKey,
+        p_amount: JET_CHASE_REWARD,
+      });
+      if (!error && typeof newBalance === "number") {
+        walletCoins = newBalance;
+        updateCoinDisplays();
+        jetChaseRewardFlash = 2.5;
+        playRewardSound();
+      }
+    } catch (err) {
+      // A failed credit shouldn't block the run from continuing.
+    }
+  }
+
+  function finishLevelEvent() {
+    const wasJetChase = levelEvent.type === "jetChase";
+    levelEvent.active = false;
+    levelEvent.phase = "idle";
+    distanceSinceSpawn = 0; // a clean breather before pylons resume
+    jet = null;
+    missiles = [];
+    if (wasJetChase) {
+      playExplosionSound(); // the jet peeling off in a burst, not a hit
+      awardJetChaseBonus();
     }
   }
 
@@ -725,7 +864,9 @@
     dragonY += dragonVY * dt;
     wingPhase += dt * 14;
     flapPulse = Math.max(0, flapPulse - dt * 5);
-    updateCoinRush(dt);
+    jetChaseRewardFlash = Math.max(0, jetChaseRewardFlash - dt);
+    updateLevelEvent(dt);
+    if (state !== "playing") return; // a missile hit inside updateLevelEvent may have already ended the run
 
     // A short comet trail of sparks streaming off the tail — spawned at a
     // fixed rate and then swept backward with the rest of the world so it
@@ -741,7 +882,7 @@
     }
     trail = trail.filter((p) => p.life > 0);
 
-    if (!coinRush.active) {
+    if (!levelEvent.active) {
       distanceSinceSpawn += PYLON_SPEED * dt;
       if (distanceSinceSpawn >= PYLON_SPACING) {
         distanceSinceSpawn = 0;
@@ -751,7 +892,7 @@
 
     for (const p of pylons) {
       p.x -= PYLON_SPEED * dt;
-      if (!coinRush.active && !p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
+      if (!levelEvent.active && !p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
         p.scored = true;
         score++;
         if (scoreEl) scoreEl.textContent = String(score);
@@ -787,15 +928,26 @@
       return;
     }
 
-    // No pylon collision during Coin Rush — they're visibly retracting or
-    // already gone, so a hit here would feel like a bug, not a fair loss.
-    if (!coinRush.active) {
+    // No pylon collision during a level event — the pylons are visibly
+    // retracting or already gone, so a hit here would feel like a bug, not
+    // a fair loss.
+    if (!levelEvent.active) {
       for (const p of pylons) {
         const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
         if (!withinX) continue;
         const gapTop = p.gapCenter - p.gap / 2;
         const gapBottom = p.gapCenter + p.gap / 2;
         if (dragonY - DRAGON_HIT_RADIUS < gapTop || dragonY + DRAGON_HIT_RADIUS > gapBottom) {
+          endGame();
+          return;
+        }
+      }
+    } else if (levelEvent.type === "jetChase" && levelEvent.phase === "active") {
+      for (const m of missiles) {
+        const dx = m.x - DRAGON_X;
+        const dy = m.y - dragonY;
+        if (Math.sqrt(dx * dx + dy * dy) < MISSILE_RADIUS + DRAGON_HIT_RADIUS) {
+          playExplosionSound();
           endGame();
           return;
         }
@@ -898,16 +1050,17 @@
     let gapBottom = p.gapCenter + p.gap / 2;
     let jitterX = 0;
 
-    // Coin Rush: pylons shake in place (a ramping jitter, per-pylon offset
-    // via its x position so they don't all judder in lockstep), then the
-    // top tower retreats up into the ceiling and the bottom sinks into the
-    // ground on an ease-out curve, opening the whole gap over ~0.6s.
-    if (coinRush.active) {
-      if (coinRush.phase === "shake") {
-        const intensity = Math.min(1, coinRush.timer / 0.15);
+    // Every level event opens the same way: pylons shake in place (a
+    // ramping jitter, per-pylon offset via its x position so they don't
+    // all judder in lockstep), then the top tower retreats up into the
+    // ceiling and the bottom sinks into the ground on an ease-out curve,
+    // opening the whole gap over ~0.6s.
+    if (levelEvent.active) {
+      if (levelEvent.phase === "shake") {
+        const intensity = Math.min(1, levelEvent.timer / 0.15);
         jitterX = Math.sin(performance.now() / 35 + p.x * 0.3) * 4 * intensity;
-      } else if (coinRush.phase === "retract" || coinRush.phase === "collect") {
-        const t = coinRush.phase === "collect" ? 1 : Math.min(1, coinRush.timer / COIN_RUSH_RETRACT_DURATION);
+      } else if (levelEvent.phase === "retract" || levelEvent.phase === "active") {
+        const t = levelEvent.phase === "active" ? 1 : Math.min(1, levelEvent.timer / EVENT_RETRACT_DURATION);
         const eased = 1 - Math.pow(1 - t, 3);
         gapTop = gapTop * (1 - eased);
         gapBottom = gapBottom + (HEIGHT - GROUND_HEIGHT - gapBottom) * eased;
@@ -1204,25 +1357,23 @@
     ctx.restore();
   }
 
-  // Coin Rush pickups are smaller and cool-toned (silver/cyan) instead of
-  // gold, so mid-event it's visually obvious these are the 1-coin bonus
-  // pickups and not the normal 5-value in-flight coins.
-  const EVENT_COIN_SCALE = 0.72;
-
+  // Coin Rush pickups look exactly like a normal in-flight coin — only
+  // their value differs (1 instead of 5) — so the visual stays consistent
+  // and the only new thing to learn during the event is "there are a lot
+  // of these now."
   function drawCoin(c) {
     // A cheap "spinning" look: squash the ellipse's width with a sine wave.
     const spin = Math.abs(Math.sin(performance.now() / 260 + c.x * 0.04));
-    const scale = c.isEventCoin ? EVENT_COIN_SCALE : 1;
-    const radius = COIN_RADIUS * scale;
+    const radius = COIN_RADIUS;
     const rx = radius * (0.25 + spin * 0.75);
     ctx.save();
     ctx.translate(c.x, c.y);
 
     // A dark ring plus a drop shadow so the coin reads against the sunset
-    // sky even where the fill is close in hue to the background.
+    // sky even where the gold fill is close in hue to the background.
     ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
     ctx.shadowBlur = 6;
-    ctx.fillStyle = c.isEventCoin ? "#0f2a33" : "#3a2010";
+    ctx.fillStyle = "#3a2010";
     ctx.beginPath();
     ctx.ellipse(0, 0, rx + 2.5, radius + 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -1230,15 +1381,9 @@
     ctx.shadowBlur = 0;
 
     const coinGrad = ctx.createRadialGradient(-rx * 0.3, -radius * 0.3, 1, 0, 0, radius);
-    if (c.isEventCoin) {
-      coinGrad.addColorStop(0, "#f4fdff");
-      coinGrad.addColorStop(0.55, "#8fe3ff");
-      coinGrad.addColorStop(1, "#1fa8c9");
-    } else {
-      coinGrad.addColorStop(0, "#fffbe6");
-      coinGrad.addColorStop(0.55, "#ffd54f");
-      coinGrad.addColorStop(1, "#e8a317");
-    }
+    coinGrad.addColorStop(0, "#fffbe6");
+    coinGrad.addColorStop(0.55, "#ffd54f");
+    coinGrad.addColorStop(1, "#e8a317");
     ctx.fillStyle = coinGrad;
     ctx.beginPath();
     ctx.ellipse(0, 0, rx, radius, 0, 0, Math.PI * 2);
@@ -1253,44 +1398,148 @@
   }
 
   const HEADING_FONT = '"Space Grotesk", sans-serif';
+  const EVENT_TITLES = { coinRush: "COIN RUSH!", jetChase: "INCOMING!" };
+  const EVENT_TITLE_COLORS = { coinRush: "#f0c14b", jetChase: "#ff4d4d" };
+
+  const JET_BODY_GRADIENT = ctx.createLinearGradient(-26, 0, 28, 0);
+  JET_BODY_GRADIENT.addColorStop(0, "#4a4f57");
+  JET_BODY_GRADIENT.addColorStop(0.5, "#8a8f99");
+  JET_BODY_GRADIENT.addColorStop(1, "#2b2f36");
 
   // A quick handheld-camera jolt while the pylons shake — makes the buildup
   // read as an "event," not just an obstacle quietly fading out.
   function getScreenShakeOffset() {
-    if (!coinRush.active || coinRush.phase !== "shake") return null;
-    const intensity = Math.min(1, coinRush.timer / 0.15);
+    if (!levelEvent.active || levelEvent.phase !== "shake") return null;
+    const intensity = Math.min(1, levelEvent.timer / 0.15);
     const now = performance.now();
     return { x: Math.sin(now / 28) * 5 * intensity, y: Math.cos(now / 33) * 4 * intensity };
   }
 
-  function drawCoinRushBanner() {
-    if (!coinRush.active) return;
+  function drawJet() {
+    if (!jet) return;
+    const growIn = Math.min(1, levelEvent.timer / 0.3);
     ctx.save();
-    if (coinRush.phase === "shake" || coinRush.phase === "retract") {
-      const elapsed = coinRush.phase === "shake" ? coinRush.timer : COIN_RUSH_SHAKE_DURATION + coinRush.timer;
-      const total = COIN_RUSH_SHAKE_DURATION + COIN_RUSH_RETRACT_DURATION;
-      const p = Math.min(1, elapsed / total);
-      const scale = 0.7 + Math.min(1, p * 3) * 0.3; // pops in fast, then holds
-      const alpha = p < 0.85 ? 1 : Math.max(0, 1 - (p - 0.85) / 0.15);
-      ctx.translate(WIDTH / 2, HEIGHT * 0.3);
-      ctx.scale(scale, scale);
+    ctx.translate(jet.x, jet.y);
+    ctx.scale(growIn, growIn);
+    const tilt = Math.max(-0.2, Math.min(0.2, (dragonY - jet.y) * 0.002));
+    ctx.rotate(tilt);
+
+    // Engine flame, drawn first so the body overlaps its base.
+    const flicker = 0.7 + Math.random() * 0.3;
+    ctx.fillStyle = `rgba(255, 150, 40, ${flicker})`;
+    ctx.beginPath();
+    ctx.moveTo(-26, -5);
+    ctx.lineTo(-26 - 14 * flicker, 0);
+    ctx.lineTo(-26, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fuselage, facing right toward the dragon.
+    ctx.fillStyle = JET_BODY_GRADIENT;
+    ctx.beginPath();
+    ctx.moveTo(28, 0);
+    ctx.lineTo(-10, -9);
+    ctx.lineTo(-26, -5);
+    ctx.lineTo(-26, 5);
+    ctx.lineTo(-10, 9);
+    ctx.closePath();
+    ctx.fill();
+
+    // Swept wings.
+    ctx.fillStyle = "#3a3f47";
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(-14, -26);
+    ctx.lineTo(-4, -8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.lineTo(-14, 26);
+    ctx.lineTo(-4, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cockpit canopy + a red accent stripe.
+    ctx.fillStyle = "#c81d1d";
+    ctx.fillRect(-6, -3, 14, 6);
+    ctx.fillStyle = "rgba(120, 220, 255, 0.85)";
+    ctx.beginPath();
+    ctx.ellipse(14, 0, 6, 3.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawMissile(m) {
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    ctx.fillStyle = "rgba(255, 140, 60, 0.6)";
+    ctx.beginPath();
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(-22, 0);
+    ctx.lineTo(-10, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#4a4f57";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#c81d1d";
+    ctx.beginPath();
+    ctx.moveTo(9, 0);
+    ctx.lineTo(4, -3);
+    ctx.lineTo(4, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawLevelEventBanner() {
+    if (levelEvent.active) {
+      ctx.save();
+      if (levelEvent.phase === "shake" || levelEvent.phase === "retract") {
+        const elapsed = levelEvent.phase === "shake" ? levelEvent.timer : EVENT_SHAKE_DURATION + levelEvent.timer;
+        const total = EVENT_SHAKE_DURATION + EVENT_RETRACT_DURATION;
+        const p = Math.min(1, elapsed / total);
+        const scale = 0.7 + Math.min(1, p * 3) * 0.3; // pops in fast, then holds
+        const alpha = p < 0.85 ? 1 : Math.max(0, 1 - (p - 0.85) / 0.15);
+        ctx.translate(WIDTH / 2, HEIGHT * 0.3);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = alpha;
+        ctx.textAlign = "center";
+        ctx.font = `900 36px ${HEADING_FONT}`;
+        const title = EVENT_TITLES[levelEvent.type] || "EVENT!";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillText(title, 3, 3);
+        ctx.fillStyle = EVENT_TITLE_COLORS[levelEvent.type] || "#f0c14b";
+        ctx.fillText(title, 0, 0);
+      } else if (levelEvent.phase === "active") {
+        const secs = Math.max(0, Math.ceil(levelEvent.timeLeft));
+        const label = levelEvent.type === "jetChase" ? `🚀 Dodge! — ${secs}s` : `🪙 Coin Rush — ${secs}s`;
+        ctx.fillStyle = "rgba(10, 6, 20, 0.55)";
+        ctx.fillRect(WIDTH / 2 - 110, 46, 220, 34);
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.font = `700 19px ${HEADING_FONT}`;
+        ctx.fillText(label, WIDTH / 2, 69);
+      }
+      ctx.restore();
+    }
+
+    if (jetChaseRewardFlash > 0) {
+      const alpha = Math.min(1, jetChaseRewardFlash / 0.4);
+      ctx.save();
       ctx.globalAlpha = alpha;
       ctx.textAlign = "center";
-      ctx.font = `900 36px ${HEADING_FONT}`;
+      ctx.font = `900 28px ${HEADING_FONT}`;
+      ctx.translate(WIDTH / 2, HEIGHT * 0.3);
       ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-      ctx.fillText("COIN RUSH!", 3, 3);
+      ctx.fillText("🪙 +5,000 Coins!", 3, 3);
       ctx.fillStyle = "#f0c14b";
-      ctx.fillText("COIN RUSH!", 0, 0);
-    } else if (coinRush.phase === "collect") {
-      const secs = Math.max(0, Math.ceil(coinRush.collectTimeLeft));
-      ctx.fillStyle = "rgba(10, 6, 20, 0.55)";
-      ctx.fillRect(WIDTH / 2 - 110, 46, 220, 34);
-      ctx.fillStyle = "#fff";
-      ctx.textAlign = "center";
-      ctx.font = `700 19px ${HEADING_FONT}`;
-      ctx.fillText(`🪙 Coin Rush — ${secs}s`, WIDTH / 2, 69);
+      ctx.fillText("🪙 +5,000 Coins!", 0, 0);
+      ctx.restore();
     }
-    ctx.restore();
   }
 
   function render() {
@@ -1301,9 +1550,13 @@
     drawTrail(getActiveSkin());
     for (const c of coins) drawCoin(c);
     for (const p of pylons) drawPylon(p);
+    if (levelEvent.type === "jetChase" && levelEvent.phase === "active") {
+      for (const m of missiles) drawMissile(m);
+      drawJet();
+    }
     drawDragon();
     ctx.restore();
-    drawCoinRushBanner();
+    drawLevelEventBanner();
   }
 
   function loop(t) {
