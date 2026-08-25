@@ -703,11 +703,11 @@
 
   async function endGame() {
     state = "gameover";
-    const beatOwnBest = score > best;
-    if (beatOwnBest) {
-      best = score;
-      if (bestEl) bestEl.textContent = best;
-    }
+    // Optimistic only — this tab's cached `best` can be stale (another tab,
+    // or now another signed-in device, may have already saved a higher
+    // score). The write below is what actually decides "new best," guarded
+    // so it can never downgrade a value that's already higher in the DB.
+    const looksLikeNewBest = score > best;
 
     if (playerId && playerEditKey) {
       const coinsEarned = score * COIN_EARN_RATE;
@@ -729,18 +729,40 @@
         }
       }
 
-      if (beatOwnBest) {
-        showOverlay("gameover", "New Best!", `Score: <strong>${score}</strong> — that's a new personal best, ${escapeHtml(playerName || "")}!${coinLine}`);
+      let confirmedNewBest = false;
+      if (looksLikeNewBest) {
         try {
-          await veloraSupabase
+          const { data: updated } = await veloraSupabase
             .from("game_players")
             .update({ best_score: score, updated_at: new Date().toISOString() })
             .eq("id", playerId)
-            .eq("edit_key", playerEditKey);
+            .eq("edit_key", playerEditKey)
+            .lt("best_score", score) // never overwrite a higher score set elsewhere
+            .select("best_score")
+            .maybeSingle();
+          if (updated) {
+            confirmedNewBest = true;
+            best = updated.best_score;
+          } else {
+            // Something else (another tab, another device) already holds a
+            // best_score >= this run's — pull the real value instead of
+            // trusting our stale local one.
+            const { data: latest } = await veloraSupabase
+              .from("game_players")
+              .select("best_score")
+              .eq("id", playerId)
+              .single();
+            if (latest) best = Math.max(best, latest.best_score);
+          }
+          if (bestEl) bestEl.textContent = best;
           await loadLeaderboard();
         } catch (err) {
           // Leaderboard being unreachable shouldn't block replaying.
         }
+      }
+
+      if (confirmedNewBest) {
+        showOverlay("gameover", "New Best!", `Score: <strong>${score}</strong> — that's a new personal best, ${escapeHtml(playerName || "")}!${coinLine}`);
       } else {
         showOverlay("gameover", "You Crashed!", `Score: <strong>${score}</strong> · Your best: <strong>${best}</strong>${coinLine}`);
       }
