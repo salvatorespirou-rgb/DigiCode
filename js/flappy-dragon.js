@@ -567,6 +567,13 @@
   let flapPulse, trail, trailTimer;
   let levelEvent, jet, missiles, jetChaseRewardFlash;
   let lastTime = null;
+  // A brief window after death where the dragon stays frozen exactly where
+  // it was hit and no tap/space restarts the run — long enough for the
+  // crash sound to actually be heard instead of getting cut off by a
+  // reflex tap. Restart input just checks Date.now() against this, so it
+  // needs no timer of its own to clean up.
+  let restartLockedUntil = 0;
+  const DEFAULT_CRASH_LOCK_MS = 350; // no dragon-specific crash sound to wait out
 
   function resetGame() {
     dragonY = HEIGHT / 2;
@@ -870,6 +877,7 @@
       return;
     }
     if (state === "gameover") {
+      if (Date.now() < restartLockedUntil) return; // still letting the crash sound play out
       state = "start";
       flap();
       return;
@@ -883,12 +891,23 @@
 
   async function endGame() {
     state = "gameover";
-    // Cosmic dragons get their own crash sound on every death (ground,
-    // pylon, or missile) — everyone else stays exactly as before (silent on
-    // ground/pylon, the generic explosion on missile, handled at the
-    // missile-collision site so the two don't play on top of each other).
+    // The dragon freezes exactly where it was hit for free — render() just
+    // stops getting called once state leaves "playing" (see loop()), so
+    // the last-drawn frame (the moment of impact) simply stays on screen.
+    // What it didn't have was a floor under how soon a reflex tap could
+    // restart: flap() only checked `state`, so a tap a frame after impact
+    // could flip state back to "start"/"playing" before the crash sound —
+    // scheduled independently on the Web Audio timeline, unaffected by
+    // game state — had any real chance to be heard. restartLockedUntil
+    // gives it that chance, sized to the actual sound playing.
     const crashProfile = getActiveSkin().crash;
-    if (crashProfile) playCrashSound(crashProfile);
+    if (crashProfile) {
+      playCrashSound(crashProfile);
+      const soundMs = crashProfile.reduce((max, s) => Math.max(max, ((s.delay || 0) + s.duration) * 1000), 0);
+      restartLockedUntil = Date.now() + Math.max(DEFAULT_CRASH_LOCK_MS, soundMs + 80);
+    } else {
+      restartLockedUntil = Date.now() + DEFAULT_CRASH_LOCK_MS;
+    }
     // Optimistic only — this tab's cached `best` can be stale (another tab,
     // or now another signed-in device, may have already saved a higher
     // score). The write below is what actually decides "new best," guarded
