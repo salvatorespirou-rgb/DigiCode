@@ -1183,10 +1183,42 @@
   GROUND_GRADIENT.addColorStop(0, "#6b3f38");
   GROUND_GRADIENT.addColorStop(1, "#3a2320");
 
-  const PYLON_STONE_GRADIENT = ctx.createLinearGradient(0, 0, PYLON_WIDTH, 0);
-  PYLON_STONE_GRADIENT.addColorStop(0, "#6b6459");
-  PYLON_STONE_GRADIENT.addColorStop(0.5, "#8c8375");
-  PYLON_STONE_GRADIENT.addColorStop(1, "#6b6459");
+  // A real running-bond brick texture, drawn once onto a tiny offscreen
+  // canvas and reused everywhere as a repeating CanvasPattern — patterns
+  // are cheap to paint (same cost as a plain fill), so every pylon gets
+  // proper individual bricks without the per-frame cost of drawing them
+  // one at a time. A cached low-alpha gradient adds the rounded-tower
+  // shading on top, same one-fillRect-extra cost as before.
+  function buildBrickTile() {
+    const brickW = 18;
+    const brickH = 9;
+    const mortar = 1.6;
+    const tile = document.createElement("canvas");
+    tile.width = brickW * 2;
+    tile.height = brickH * 2;
+    const tctx = tile.getContext("2d");
+    tctx.fillStyle = "rgba(40, 30, 25, 0.9)";
+    tctx.fillRect(0, 0, tile.width, tile.height);
+    const shades = ["#6b6459", "#79705f", "#8c8375", "#726a5c"];
+    let shadeIndex = 0;
+    const nextShade = () => shades[shadeIndex++ % shades.length];
+    // Two rows, second row offset by half a brick (running bond).
+    for (let x = 0; x < tile.width; x += brickW) {
+      tctx.fillStyle = nextShade();
+      tctx.fillRect(x + mortar / 2, mortar / 2, brickW - mortar, brickH - mortar);
+    }
+    for (let x = -brickW / 2; x < tile.width; x += brickW) {
+      tctx.fillStyle = nextShade();
+      tctx.fillRect(x + mortar / 2, brickH + mortar / 2, brickW - mortar, brickH - mortar);
+    }
+    return tile;
+  }
+  const PYLON_BRICK_PATTERN = ctx.createPattern(buildBrickTile(), "repeat");
+
+  const PYLON_SHADE_GRADIENT = ctx.createLinearGradient(0, 0, PYLON_WIDTH, 0);
+  PYLON_SHADE_GRADIENT.addColorStop(0, "rgba(20, 15, 10, 0.4)");
+  PYLON_SHADE_GRADIENT.addColorStop(0.45, "rgba(20, 15, 10, 0)");
+  PYLON_SHADE_GRADIENT.addColorStop(1, "rgba(20, 15, 10, 0.4)");
 
   // Sky/orb-glow gradients only depend on which theme is active (there are
   // only 5), not on any per-frame state, so build each one once and reuse.
@@ -1263,44 +1295,37 @@
     ctx.save();
     ctx.translate(p.x + jitterX, 0);
 
-    // Top tower.
-    ctx.fillStyle = PYLON_STONE_GRADIENT;
+    // Top tower — a real repeating brick pattern (built once, painted like
+    // any other fillStyle) plus a cached shading gradient for rounded-tower
+    // depth. Both cost the same one fillRect() each, same as the old flat
+    // gradient did, but the per-frame mortar-line stroke loop this used to
+    // need is gone entirely — the bricks already carry their own mortar.
+    ctx.fillStyle = PYLON_BRICK_PATTERN;
+    ctx.fillRect(0, 0, PYLON_WIDTH, gapTop);
+    ctx.fillStyle = PYLON_SHADE_GRADIENT;
     ctx.fillRect(0, 0, PYLON_WIDTH, gapTop);
     drawCrenellations(0, gapTop, PYLON_WIDTH, true);
 
     // Bottom tower.
+    ctx.fillStyle = PYLON_BRICK_PATTERN;
+    ctx.fillRect(0, gapBottom, PYLON_WIDTH, HEIGHT - GROUND_HEIGHT - gapBottom);
+    ctx.fillStyle = PYLON_SHADE_GRADIENT;
     ctx.fillRect(0, gapBottom, PYLON_WIDTH, HEIGHT - GROUND_HEIGHT - gapBottom);
     drawCrenellations(0, gapBottom - 12, PYLON_WIDTH, false);
-
-    // Mortar lines for a stone-block feel.
-    ctx.strokeStyle = "rgba(40, 30, 25, 0.35)";
-    ctx.lineWidth = 1;
-    for (let y = 16; y < gapTop; y += 24) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(PYLON_WIDTH, y);
-      ctx.stroke();
-    }
-    for (let y = gapBottom + 16; y < HEIGHT - GROUND_HEIGHT; y += 24) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(PYLON_WIDTH, y);
-      ctx.stroke();
-    }
     ctx.restore();
   }
 
   function drawCrenellations(x, y, width, pointingDown) {
     const teeth = 4;
     const toothWidth = width / (teeth * 2 - 1);
-    ctx.fillStyle = "#8c8375";
+    ctx.strokeStyle = "rgba(40, 30, 25, 0.5)";
+    ctx.lineWidth = 1;
     for (let i = 0; i < teeth; i++) {
       const tx = x + i * toothWidth * 2;
-      if (pointingDown) {
-        ctx.fillRect(tx, y - 10, toothWidth, 10);
-      } else {
-        ctx.fillRect(tx, y, toothWidth, 10);
-      }
+      const ty = pointingDown ? y - 10 : y;
+      ctx.fillStyle = PYLON_BRICK_PATTERN;
+      ctx.fillRect(tx, ty, toothWidth, 10);
+      ctx.strokeRect(tx + 0.5, ty + 0.5, toothWidth - 1, 9);
     }
   }
 
