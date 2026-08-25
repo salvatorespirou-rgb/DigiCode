@@ -2584,6 +2584,21 @@ body.custom-cursor-active button {
 
 .coin-store-open-btn { border-color: rgba(240, 193, 75, 0.6); }
 
+.quest-open-btn {
+  position: relative;
+  border-color: rgba(74, 222, 128, 0.6);
+  color: #4ade80;
+}
+.quest-open-btn:hover { background: rgba(74, 222, 128, 0.16); border-color: rgba(74, 222, 128, 0.9); }
+.quest-open-btn .cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  margin-left: 0;
+  background: linear-gradient(180deg, #fde047, #f0c14b);
+  color: #3a2408;
+}
+
 .coin-store-message {
   text-align: center;
   font-size: 0.85rem;
@@ -2685,6 +2700,94 @@ body.custom-cursor-active button {
 .coin-purchase-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(240, 193, 75, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
 .coin-purchase-btn:hover::after { left: 130%; }
 .coin-purchase-btn:active { transform: translateY(0); }
+
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+  /* Same flex:1 + min-height:0 pattern as .dragon-store-grid/.coin-bundle-grid
+     above — without it this scrolls the whole panel instead of itself. */
+  flex: 1;
+  min-height: 0;
+}
+
+.quest-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.quest-row.is-claimed { opacity: 0.6; }
+
+.quest-row-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.quest-name { font-family: var(--font-heading); font-weight: 700; color: #fff; font-size: 0.95rem; }
+.quest-desc { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+.quest-reward { font-weight: 700; color: #f0c14b; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
+
+.quest-progress-row { display: flex; align-items: center; gap: 10px; }
+
+.quest-progress-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.quest-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  transition: width 0.3s ease;
+}
+.quest-progress-pct {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 38px;
+  text-align: right;
+}
+
+.quest-claim-btn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.quest-claim-btn.is-locked {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+  cursor: not-allowed;
+}
+.quest-claim-btn.is-claimable {
+  background: linear-gradient(180deg, #fff3c4 0%, #f0c14b 45%, #d9a52e 100%);
+  border-color: #8a6d2f;
+  color: #3a2408;
+  box-shadow: 0 4px 14px rgba(240, 193, 75, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.quest-claim-btn.is-claimable:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(240, 193, 75, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.quest-claim-btn.is-claimable:active { transform: translateY(0); }
+.quest-claim-btn.is-claimed {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+}
 
 @media (max-width: 560px) {
   .dragon-store-panel { padding: 18px; }

@@ -92,6 +92,7 @@
               <p class="dragon-start-hint" id="dragonStartHint">Space, click, or tap to start</p>
               <button type="button" class="dragon-store-open-btn" id="dragonStoreOpenBtn">🐉 Dragon Store</button>
               <button type="button" class="dragon-store-open-btn coin-store-open-btn" id="coinStoreOpenBtn">🪙 Coin Store</button>
+              <button type="button" class="dragon-store-open-btn quest-open-btn" id="weeklyQuestOpenBtn">📜 Weekly Quests<span class="cart-badge" id="questClaimBadge" hidden>0</span></button>
               <form id="dragonRegisterForm" class="dragon-name-form" hidden>
                 <input type="text" id="dragonNameInput" placeholder="Your name" maxlength="24" autocomplete="off" required />
                 <label class="dragon-avatar-upload" id="dragonAvatarLabel">
@@ -134,6 +135,18 @@
           </div>
         </div>
 
+        <div class="dragon-store-modal" id="weeklyQuestModal" hidden>
+          <div class="dragon-store-panel">
+            <div class="dragon-store-header">
+              <h3>Weekly Quests</h3>
+              <button type="button" class="dragon-store-close-btn" id="weeklyQuestCloseBtn" aria-label="Close">&times;</button>
+            </div>
+            <p class="dragon-store-sub" id="weeklyQuestSub">Complete quests to earn bonus coins — everything resets every Monday.</p>
+            <p class="coin-store-message" id="weeklyQuestMessage" hidden></p>
+            <div class="quest-list" id="weeklyQuestList"></div>
+          </div>
+        </div>
+
         <div class="dragon-store-modal" id="dragonAuthModal" hidden>
           <div class="dragon-store-panel dragon-auth-panel">
             <div class="dragon-store-header">
@@ -164,6 +177,6 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/flappy-dragon.js?v=30"></script>
+  <script src="js/flappy-dragon.js?v=31"></script>
 </body>
 </html>
