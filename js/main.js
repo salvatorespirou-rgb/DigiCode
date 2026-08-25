@@ -15,6 +15,14 @@ navLinks.querySelectorAll("a").forEach((link) => {
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// The homepage's animated Flappy Dragon thumbnail uses native SVG SMIL
+// animation (not CSS), which doesn't respect prefers-reduced-motion on its
+// own — pause it manually for anyone who's asked for less motion.
+const flappyThumbSvg = document.querySelector(".fd-thumb-svg");
+if (flappyThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  flappyThumbSvg.pauseAnimations();
+}
+
 // Custom cursor — a marketing-facing touch for desktop mouse users only.
 // Skipped on touch devices, when the user prefers reduced motion, and on the
 // Dev portal (a working tool, not something visitors see).

@@ -1127,6 +1127,38 @@ section { padding: 100px 0; }
   background: rgba(147, 51, 234, 0.12);
 }
 
+.fd-thumb {
+  display: block;
+  position: relative;
+  max-width: 460px;
+  margin: 40px auto 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(255, 126, 95, 0.15);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.fd-thumb:hover { transform: translateY(-4px); box-shadow: 0 26px 70px rgba(255, 126, 95, 0.25); }
+
+.fd-thumb-svg { display: block; width: 100%; height: auto; }
+
+.fd-thumb-label {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(10, 6, 20, 0.6);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+}
+
 /* ---------- Custom cursor (desktop with a mouse, motion allowed, marketing pages only) ---------- */
 /* cursor:none only applies once JS confirms it has a live mouse position — see
    main.js. This way the native cursor is always the fallback, never a gap. */
