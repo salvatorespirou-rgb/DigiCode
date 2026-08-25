@@ -246,6 +246,7 @@
   const authSwitchModeText = document.getElementById("dragonAuthSwitchModeText");
   const authSwitchModeBtn = document.getElementById("dragonAuthSwitchModeBtn");
   const authForgotBtn = document.getElementById("dragonAuthForgotBtn");
+  const muteBtn = document.getElementById("dragonMuteBtn");
 
   // A registered player is remembered on this browser only (no login) — an
   // id + a per-row secret returned once at registration, used together so
@@ -532,14 +533,34 @@
 
   // Synthesized 8-bit-style effects (no audio files to download — an
   // AudioContext is created lazily on the first real user gesture, since
-  // browsers block audio from starting on its own).
+  // browsers block audio from starting on its own). Every sound routes
+  // through one shared masterGain instead of straight to the destination,
+  // so muting is a single gain change rather than gating every play call.
+  const MUTE_KEY = "veloraGameMuted";
+  let isMuted = localStorage.getItem(MUTE_KEY) === "1";
   let audioCtx = null;
+  let masterGain = null;
   function getAudioCtx() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
-    if (!audioCtx) audioCtx = new Ctx();
+    if (!audioCtx) {
+      audioCtx = new Ctx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = isMuted ? 0 : 1;
+      masterGain.connect(audioCtx.destination);
+    }
     if (audioCtx.state === "suspended") audioCtx.resume();
     return audioCtx;
+  }
+
+  function setMuted(muted) {
+    isMuted = muted;
+    localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
+    if (masterGain) masterGain.gain.value = muted ? 0 : 1;
+    if (muteBtn) {
+      muteBtn.textContent = muted ? "🔇" : "🔊";
+      muteBtn.setAttribute("aria-label", muted ? "Unmute game sound" : "Mute game sound");
+    }
   }
 
   function playTone(ctx, freq, startTime, duration, peakGain, type) {
@@ -551,7 +572,7 @@
     gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.008);
     gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(masterGain);
     osc.start(startTime);
     osc.stop(startTime + duration);
   }
@@ -579,7 +600,7 @@
       g.gain.setValueAtTime(gain, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + duration + 0.01);
       osc.connect(g);
-      g.connect(ctx.destination);
+      g.connect(masterGain);
       osc.start(t);
       osc.stop(t + duration + 0.01);
     } catch (err) {}
@@ -635,7 +656,7 @@
       g.gain.setValueAtTime(0.1, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
       osc.connect(g);
-      g.connect(ctx.destination);
+      g.connect(masterGain);
       osc.start(t);
       osc.stop(t + 0.09);
     } catch (err) {}
@@ -656,7 +677,7 @@
       g.gain.setValueAtTime(0.22, t);
       g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
       osc.connect(g);
-      g.connect(ctx.destination);
+      g.connect(masterGain);
       osc.start(t);
       osc.stop(t + 0.32);
     } catch (err) {}
@@ -887,7 +908,7 @@
   // or picking a photo doesn't restart the game out from under you.
   const stage = document.querySelector(".dragon-game-stage");
   stage?.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn")) return;
+    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn, #dragonMuteBtn")) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.preventDefault();
     flap();
@@ -1759,6 +1780,17 @@
   function closeStore() {
     if (storeModal) storeModal.hidden = true;
   }
+  // Set the button's icon to match the saved preference, and warm up (or
+  // resume) audio on every press — a second guaranteed user-gesture point
+  // beyond the first flap, since some browsers (iOS Safari especially)
+  // only reliably unlock audio on a gesture that actually touches it.
+  setMuted(isMuted);
+  muteBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    getAudioCtx();
+    setMuted(!isMuted);
+  });
+
   storeOpenBtn?.addEventListener("click", openStore);
   storeCloseBtn?.addEventListener("click", closeStore);
   storeModal?.addEventListener("click", (e) => {
@@ -1872,19 +1904,6 @@
       showAuthMessage(message, true);
     }
     if (authSubmitBtn) authSubmitBtn.disabled = false;
-  });
-
-  document.querySelectorAll(".dragon-oauth-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      try {
-        await veloraSupabase.auth.signInWithOAuth({
-          provider: btn.dataset.provider,
-          options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
-        });
-      } catch (err) {
-        showAuthMessage("That sign-in method isn't set up yet — try email instead.", true);
-      }
-    });
   });
 
   // Equip writes are a simple, low-risk overwrite (the store is only open
