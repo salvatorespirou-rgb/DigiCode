@@ -2069,13 +2069,17 @@ body.custom-cursor-active button {
   /* The stage is a tap target (flap on click) — without this, mobile
      WebKit/Chrome paint their default blue highlight over it on every tap. */
   -webkit-tap-highlight-color: transparent;
+  /* Flap fires on pointerdown for instant response — this stops the browser
+     from also trying to pan/scroll from a touch that starts here, which is
+     what makes an immediate pointerdown-based flap safe to use on mobile. */
+  touch-action: none;
 }
 
 .dragon-game-stage canvas {
   display: block;
   width: 100%;
   height: auto;
-  touch-action: manipulation;
+  touch-action: none;
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -2133,6 +2137,11 @@ body.custom-cursor-active button {
   justify-content: center;
   gap: 8px;
   margin-top: 16px;
+  /* The stage disables touch gestures (see .dragon-game-stage) so a tap-to-
+     flap can fire instantly — restore normal touch handling for the form
+     and everything in it so typing, focusing, and tapping buttons still
+     works normally on mobile. */
+  touch-action: manipulation;
 }
 .dragon-name-form[hidden] { display: none; }
 
@@ -2146,8 +2155,13 @@ body.custom-cursor-active button {
   /* 16px+ stops iOS Safari auto-zooming the page when this gets focused. */
   font-size: 16px;
   width: 160px;
+  touch-action: manipulation;
 }
 .dragon-name-form input:focus { outline: none; border-color: rgba(147, 51, 234, 0.6); }
+
+.dragon-name-form button {
+  touch-action: manipulation;
+}
 
 .dragon-avatar-upload {
   display: inline-flex;
@@ -2160,6 +2174,7 @@ body.custom-cursor-active button {
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
+  touch-action: manipulation;
 }
 .dragon-avatar-upload:hover { border-color: rgba(240, 160, 75, 0.6); color: var(--text); }
 .dragon-avatar-upload.has-file { border-style: solid; border-color: #f0a04b; color: var(--text); }

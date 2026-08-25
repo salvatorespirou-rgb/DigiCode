@@ -14,7 +14,7 @@
   const IS_TOUCH = "ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0;
 
   const GRAVITY = 1500; // px/s^2
-  const FLAP_VELOCITY = IS_TOUCH ? -375 : -440; // px/s
+  const FLAP_VELOCITY = IS_TOUCH ? -345 : -440; // px/s
   const MAX_FALL_SPEED = 720; // px/s
   const PYLON_SPEED = 190; // px/s
   const PYLON_GAP = 185; // px, vertical gap the dragon flies through — base value at level 1
@@ -423,15 +423,22 @@
   // Listens on the whole stage, not just the canvas — the start/game-over
   // overlay is a separate element sitting visually on top of the canvas, so
   // a real tap on it (as opposed to a script calling canvas.click() directly)
-  // never actually reaches the canvas itself. "click" (not pointerdown/
-  // touchstart) so scrolling the page with a finger that happens to start
-  // over the game never gets mistaken for a flap — click only fires for a
-  // genuine tap, never for a touch that becomes a drag. Clicks inside the
-  // registration form are excluded so typing a name or picking a photo
-  // doesn't restart the game out from under you.
+  // never actually reaches the canvas itself.
+  //
+  // pointerdown, not click: click only fires after the finger lifts back
+  // off, which reads as input lag in a game where every millisecond of
+  // fall time matters. pointerdown fires the instant a finger/mouse makes
+  // contact. This used to be a real risk with a page-scroll gesture that
+  // happens to start over the game, but the stage now has touch-action:
+  // none (see style.css), so the browser never attempts to pan from a
+  // touch that starts there — there's no gesture left to race against.
+  // Taps inside the registration form are still excluded so typing a name
+  // or picking a photo doesn't restart the game out from under you.
   const stage = document.querySelector(".dragon-game-stage");
-  stage?.addEventListener("click", (e) => {
+  stage?.addEventListener("pointerdown", (e) => {
     if (e.target.closest("#dragonRegisterForm")) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
     flap();
   });
 
