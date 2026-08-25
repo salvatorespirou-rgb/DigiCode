@@ -110,6 +110,81 @@
     glowAlpha: 0.35,
     eyeIris: "#e8a317",
   };
+  const DEFAULT_FLAP_PROFILE = { type: "square", f0: 320, f1: 640, duration: 0.09, gain: 0.14 };
+
+  // The Dragon Store catalog — 10 purchasable dragons. Everyone starts with
+  // the free jade dragon above; these are bought with coins earned from
+  // play. A dragon's `skin` is the exact same shape drawDragon() already
+  // consumes for the level-based reskins, and its `wing` color doubles as
+  // its trail color for free (drawTrail keys off skin.wing). `flap` is its
+  // own flap-sound profile (see playFlapSound below) — either a pitch sweep
+  // {type, f0, f1} or a two-note {chime: [f1, f2]}.
+  const DRAGON_CATALOG = [
+    {
+      id: "ember-fang", name: "Ember Fang", rarity: "Common", price: 100000,
+      blurb: "Quick-tempered and always warm to the touch.",
+      skin: { body: ["#ffcf8f", "#c23616"], snout: "#c23616", horn: "#5c1a0a", wing: "#ff7f3f", glowRGB: "255, 110, 50", glowAlpha: 0.4, eyeIris: "#2a1810" },
+      flap: { type: "square", f0: 380, f1: 720, duration: 0.09, gain: 0.14 },
+    },
+    {
+      id: "storm-serpent", name: "Storm Serpent", rarity: "Common", price: 100000,
+      blurb: "Crackles with static before every wingbeat.",
+      skin: { body: ["#dbe9f4", "#3d5a73"], snout: "#3d5a73", horn: "#1b2b38", wing: "#7fd8ff", glowRGB: "120, 200, 255", glowAlpha: 0.4, eyeIris: "#eafcff" },
+      flap: { type: "sawtooth", f0: 300, f1: 650, duration: 0.09, gain: 0.12 },
+    },
+    {
+      id: "frostbite", name: "Frostbite", rarity: "Uncommon", price: 150000,
+      blurb: "Leaves a trail of frost in the warm sunset air.",
+      skin: { body: ["#eaf9ff", "#4fa8c9"], snout: "#4fa8c9", horn: "#1c5a70", wing: "#bdf2ff", glowRGB: "150, 230, 255", glowAlpha: 0.45, eyeIris: "#0d3a4a" },
+      flap: { type: "triangle", f0: 420, f1: 780, duration: 0.11, gain: 0.14 },
+    },
+    {
+      id: "sakura-bloom", name: "Sakura Bloom", rarity: "Uncommon", price: 150000,
+      blurb: "Petals drift from its wings on every flap.",
+      skin: { body: ["#ffe6f0", "#e8789f"], snout: "#e8789f", horn: "#7a3552", wing: "#ffc2da", glowRGB: "255, 190, 220", glowAlpha: 0.4, eyeIris: "#5a2036" },
+      flap: { type: "sine", f0: 340, f1: 560, duration: 0.12, gain: 0.13 },
+    },
+    {
+      id: "venom-coil", name: "Venom Coil", rarity: "Uncommon", price: 200000,
+      blurb: "Best admired from a respectful distance.",
+      skin: { body: ["#d4ff7a", "#4a6b1a"], snout: "#4a6b1a", horn: "#1f2e0a", wing: "#9aeb3f", glowRGB: "170, 255, 60", glowAlpha: 0.4, eyeIris: "#1a0f00" },
+      flap: { type: "square", f0: 200, f1: 380, duration: 0.13, gain: 0.14 },
+    },
+    {
+      id: "obsidian-fang", name: "Obsidian Fang", rarity: "Rare", price: 250000,
+      blurb: "Carved from midnight stone, or so the legend goes.",
+      skin: { body: ["#4a4a52", "#0d0d10"], snout: "#0d0d10", horn: "#8c1c1c", wing: "#b02020", glowRGB: "200, 30, 30", glowAlpha: 0.45, eyeIris: "#ff3b3b" },
+      flap: { type: "square", f0: 150, f1: 300, duration: 0.16, gain: 0.15 },
+    },
+    {
+      id: "solar-flare", name: "Solar Flare", rarity: "Rare", price: 350000,
+      blurb: "Outshines the very sun it flies past.",
+      skin: { body: ["#fffbe0", "#f0b429"], snout: "#f0b429", horn: "#8a5a00", wing: "#ffe066", glowRGB: "255, 210, 90", glowAlpha: 0.5, eyeIris: "#7a4a00" },
+      flap: { type: "triangle", f0: 480, f1: 860, duration: 0.09, gain: 0.15 },
+    },
+    {
+      id: "void-wyrm", name: "Void Wyrm", rarity: "Epic", price: 500000,
+      blurb: "Something about it makes the air feel colder.",
+      skin: { body: ["#9b6bd1", "#231041"], snout: "#231041", horn: "#0f0821", wing: "#c084fc", glowRGB: "180, 90, 255", glowAlpha: 0.5, eyeIris: "#e8d4ff" },
+      flap: { type: "sine", f0: 520, f1: 180, duration: 0.18, gain: 0.14 },
+    },
+    {
+      id: "phoenix-ash", name: "Phoenix Ash", rarity: "Epic", price: 750000,
+      blurb: "Reborn from embers every time it takes flight.",
+      skin: { body: ["#ffd27a", "#a3151a"], snout: "#a3151a", horn: "#4a0c0c", wing: "#ff9d3d", glowRGB: "255, 120, 40", glowAlpha: 0.5, eyeIris: "#ffd27a" },
+      flap: { type: "square", chime: [520, 780], duration: 0.09, gain: 0.13 },
+    },
+    {
+      id: "celestial-wyrm", name: "Celestial Wyrm", rarity: "Legendary", price: 1000000,
+      blurb: "The rarest dragon in Velora skies. Own the sky.",
+      skin: { body: ["#ffffff", "#d9c27a"], snout: "#e8dcae", horn: "#f0c14b", wing: "#fff2c2", glowRGB: "255, 240, 190", glowAlpha: 0.55, eyeIris: "#c9a53a" },
+      flap: { type: "sine", chime: [1100, 1500], duration: 0.1, gain: 0.15 },
+    },
+  ];
+  const RARITY_COLORS = { Common: "#9ca3af", Uncommon: "#4ade80", Rare: "#60a5fa", Epic: "#c084fc", Legendary: "#f0c14b" };
+  function findDragon(id) {
+    return DRAGON_CATALOG.find((d) => d.id === id) || null;
+  }
 
   // Fixed positions computed once, not re-randomized per frame, so the sky
   // decoration doesn't visibly "swim" between frames.
@@ -144,6 +219,14 @@
   const avatarLabelText = document.getElementById("dragonAvatarLabelText");
   const startHint = document.getElementById("dragonStartHint");
   const playingAsEl = document.getElementById("dragonPlayingAs");
+  const coinBalanceEl = document.getElementById("dragonCoinBalance");
+  const coinAmountEl = document.getElementById("dragonCoinAmount");
+  const storeOpenBtn = document.getElementById("dragonStoreOpenBtn");
+  const storeModal = document.getElementById("dragonStoreModal");
+  const storeCloseBtn = document.getElementById("dragonStoreCloseBtn");
+  const storeGrid = document.getElementById("dragonStoreGrid");
+  const storeCoinAmountEl = document.getElementById("dragonStoreCoinAmount");
+  const storeSubEl = document.getElementById("dragonStoreSub");
 
   // A registered player is remembered on this browser only (no login) — an
   // id + a per-row secret returned once at registration, used together so
@@ -176,9 +259,61 @@
     }
   }
 
+  // The player's wallet — coins and which dragons they own/fly, all stored
+  // on their existing game_players row (same identity the leaderboard
+  // uses). Unregistered players have nowhere to persist this, so the store
+  // just asks them to join the leaderboard first.
+  let walletCoins = 0;
+  let ownedDragons = [];
+  let equippedDragonId = null; // null = the free default dragon
+
+  function updateCoinDisplays() {
+    const text = walletCoins.toLocaleString();
+    if (coinAmountEl) coinAmountEl.textContent = text;
+    if (coinBalanceEl) coinBalanceEl.hidden = !playerId;
+    if (storeCoinAmountEl) storeCoinAmountEl.textContent = text;
+  }
+
+  async function loadWallet() {
+    if (!playerId) {
+      updateCoinDisplays();
+      return;
+    }
+    const { data } = await veloraSupabase
+      .from("game_players")
+      .select("coins, owned_dragons, equipped_dragon")
+      .eq("id", playerId)
+      .single();
+    if (data) {
+      walletCoins = data.coins || 0;
+      ownedDragons = data.owned_dragons || [];
+      equippedDragonId = data.equipped_dragon || null;
+    }
+    updateCoinDisplays();
+  }
+
+  // What the dragon actually looks/sounds like right now — the equipped
+  // store dragon if the player has one, otherwise the level-based reskin
+  // free players have always had, otherwise the plain default.
+  function getActiveSkin() {
+    if (equippedDragonId) {
+      const dragon = findDragon(equippedDragonId);
+      if (dragon) return dragon.skin;
+    }
+    return (currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN;
+  }
+
+  function getActiveFlapProfile() {
+    if (equippedDragonId) {
+      const dragon = findDragon(equippedDragonId);
+      if (dragon) return dragon.flap;
+    }
+    return DEFAULT_FLAP_PROFILE;
+  }
+
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
-  let level, currentTheme;
+  let level, currentTheme, lastGapCenter;
   let flapPulse, trail, trailTimer;
   let lastTime = null;
 
@@ -193,6 +328,7 @@
     lastScoredIndex = -1;
     level = 1;
     currentTheme = themeForLevel(level);
+    lastGapCenter = HEIGHT / 2;
     flapPulse = 0;
     trail = [];
     trailTimer = 0;
@@ -211,13 +347,27 @@
     if (levelEl) levelEl.textContent = String(level);
   }
 
+  // The actual "impossible pylon" bug: each gap's vertical position used to
+  // be picked completely independently of the one before it, so nothing
+  // stopped two consecutive pylons from landing at opposite extremes (one
+  // hugging the ceiling, the next hugging the ground) with only ~1.4s of
+  // travel time between them — a swing no amount of skill can make. Gaps
+  // now walk from the previous one within a bounded step, so every pair of
+  // consecutive pylons is always physically reachable.
+  const PYLON_MAX_GAP_DELTA = 240; // px a gap center may move from the previous one
+
   // A coin sits at the centre of each pylon's gap — collecting one rewards
   // flying the accurate line through the middle, and it can never overlap
   // the stonework since it's placed inside the open gap by construction.
   function spawnPylon() {
     const gap = Math.max(PYLON_GAP_MIN, PYLON_GAP - (level - 1) * PYLON_GAP_STEP);
     const margin = Math.max(PYLON_MARGIN_MIN, PYLON_MARGIN - (level - 1) * PYLON_MARGIN_STEP);
-    const gapCenter = margin + gap / 2 + Math.random() * (HEIGHT - GROUND_HEIGHT - margin * 2 - gap);
+    const minCenter = margin + gap / 2;
+    const maxCenter = HEIGHT - GROUND_HEIGHT - margin - gap / 2;
+    const low = Math.max(minCenter, lastGapCenter - PYLON_MAX_GAP_DELTA);
+    const high = Math.min(maxCenter, lastGapCenter + PYLON_MAX_GAP_DELTA);
+    const gapCenter = low + Math.random() * (high - low);
+    lastGapCenter = gapCenter;
     const pylonX = WIDTH + PYLON_WIDTH;
     pylons.push({ x: pylonX, gapCenter, gap, scored: false });
     coins.push({ x: pylonX + PYLON_WIDTH / 2, y: gapCenter, collected: false });
@@ -235,10 +385,10 @@
     return audioCtx;
   }
 
-  function playTone(ctx, freq, startTime, duration, peakGain) {
+  function playTone(ctx, freq, startTime, duration, peakGain, type) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "square";
+    osc.type = type || "square";
     osc.frequency.setValueAtTime(freq, startTime);
     gain.gain.setValueAtTime(0, startTime);
     gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.008);
@@ -249,22 +399,32 @@
     osc.stop(startTime + duration);
   }
 
+  // Each store dragon has its own flap sound — either a pitch sweep or a
+  // two-note chime — so buying one changes more than just how it looks.
   function playFlapSound() {
     try {
       const ctx = getAudioCtx();
       if (!ctx) return;
+      const profile = getActiveFlapProfile();
       const t = ctx.currentTime;
+      const duration = profile.duration || 0.09;
+      const gain = profile.gain || 0.14;
+      if (profile.chime) {
+        playTone(ctx, profile.chime[0], t, duration, gain, profile.type);
+        playTone(ctx, profile.chime[1], t + duration * 0.55, duration + 0.03, gain, profile.type);
+        return;
+      }
       const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "square";
-      osc.frequency.setValueAtTime(320, t);
-      osc.frequency.exponentialRampToValueAtTime(640, t + 0.09);
-      gain.gain.setValueAtTime(0.14, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      const g = ctx.createGain();
+      osc.type = profile.type || "square";
+      osc.frequency.setValueAtTime(profile.f0, t);
+      osc.frequency.exponentialRampToValueAtTime(profile.f1, t + duration);
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + duration + 0.01);
+      osc.connect(g);
+      g.connect(ctx.destination);
       osc.start(t);
-      osc.stop(t + 0.1);
+      osc.stop(t + duration + 0.01);
     } catch (err) {}
   }
 
@@ -299,6 +459,8 @@
     playFlapSound();
   }
 
+  const COIN_EARN_RATE = 10; // wallet coins per point of score, credited every registered run
+
   async function endGame() {
     state = "gameover";
     const beatOwnBest = score > best;
@@ -308,8 +470,27 @@
     }
 
     if (playerId && playerEditKey) {
+      const coinsEarned = score * COIN_EARN_RATE;
+      let coinLine = "";
+      if (coinsEarned > 0) {
+        try {
+          const { data: newBalance, error } = await veloraSupabase.rpc("credit_coins", {
+            p_id: playerId,
+            p_edit_key: playerEditKey,
+            p_amount: coinsEarned,
+          });
+          if (!error && typeof newBalance === "number") {
+            walletCoins = newBalance;
+            updateCoinDisplays();
+            coinLine = ` · +🪙 ${coinsEarned.toLocaleString()}`;
+          }
+        } catch (err) {
+          // Coins failing to credit shouldn't block replaying.
+        }
+      }
+
       if (beatOwnBest) {
-        showOverlay("gameover", "New Best!", `Score: <strong>${score}</strong> — that's a new personal best, ${escapeHtml(playerName || "")}!`);
+        showOverlay("gameover", "New Best!", `Score: <strong>${score}</strong> — that's a new personal best, ${escapeHtml(playerName || "")}!${coinLine}`);
         try {
           await veloraSupabase
             .from("game_players")
@@ -321,7 +502,7 @@
           // Leaderboard being unreachable shouldn't block replaying.
         }
       } else {
-        showOverlay("gameover", "You Crashed!", `Score: <strong>${score}</strong> · Your best: <strong>${best}</strong>`);
+        showOverlay("gameover", "You Crashed!", `Score: <strong>${score}</strong> · Your best: <strong>${best}</strong>${coinLine}`);
       }
     } else {
       showOverlay("gameover", "You Crashed!", `Score: <strong>${score}</strong>. Join the leaderboard with this run?`);
@@ -393,6 +574,10 @@
       localStorage.setItem(PLAYER_EDIT_KEY, playerEditKey);
       localStorage.setItem(PLAYER_NAME_KEY, playerName);
       updatePlayingAsIndicator();
+      walletCoins = data.coins || 0;
+      ownedDragons = data.owned_dragons || [];
+      equippedDragonId = data.equipped_dragon || null;
+      updateCoinDisplays();
 
       registerForm.hidden = true;
       if (overlayBody) {
@@ -438,7 +623,7 @@
   // or picking a photo doesn't restart the game out from under you.
   const stage = document.querySelector(".dragon-game-stage");
   stage?.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("#dragonRegisterForm")) return;
+    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn")) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.preventDefault();
     flap();
@@ -763,7 +948,7 @@
   // images, so it stays light — and the hitbox is still just the head
   // circle (DRAGON_RADIUS), unchanged from before.
   function drawDragon() {
-    const skin = (currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN;
+    const skin = getActiveSkin();
     const g = getDragonGradients(skin);
     const now = performance.now();
     const outline = "rgba(20, 15, 10, 0.35)";
@@ -943,7 +1128,7 @@
 
   function render() {
     drawBackground();
-    drawTrail((currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN);
+    drawTrail(getActiveSkin());
     for (const c of coins) drawCoin(c);
     for (const p of pylons) drawPylon(p);
     drawDragon();
@@ -993,9 +1178,114 @@
       .join("");
   }
 
+  function renderStore() {
+    if (!storeGrid) return;
+    if (storeSubEl) {
+      storeSubEl.textContent = playerId
+        ? "Spend coins you've earned from play on a new dragon."
+        : "Join the leaderboard to start earning coins and collecting dragons.";
+    }
+    storeGrid.innerHTML = DRAGON_CATALOG.map((d) => {
+      const owned = ownedDragons.includes(d.id);
+      const equipped = equippedDragonId === d.id;
+      const canAfford = walletCoins >= d.price;
+      let btnHtml;
+      if (equipped) {
+        btnHtml = `<button type="button" class="dragon-card-btn is-equipped" disabled>Equipped</button>`;
+      } else if (owned) {
+        btnHtml = `<button type="button" class="dragon-card-btn is-equip" data-action="equip" data-id="${d.id}">Equip</button>`;
+      } else {
+        const label = playerId ? `Buy · 🪙 ${d.price.toLocaleString()}` : "Join to buy";
+        btnHtml = `<button type="button" class="dragon-card-btn is-buy" data-action="buy" data-id="${d.id}" ${playerId && canAfford ? "" : "disabled"}>${label}</button>`;
+      }
+      return `
+      <div class="dragon-card${equipped ? " is-equipped" : ""}">
+        <div class="dragon-card-swatch" style="background: radial-gradient(circle at 35% 30%, ${d.skin.body[0]}, ${d.skin.body[1]});"></div>
+        <span class="dragon-card-name">${escapeHtml(d.name)}</span>
+        <span class="dragon-card-rarity" style="color: ${RARITY_COLORS[d.rarity]}">${d.rarity}</span>
+        <span class="dragon-card-blurb">${escapeHtml(d.blurb)}</span>
+        <span class="dragon-card-price">${owned ? "Owned" : "🪙 " + d.price.toLocaleString()}</span>
+        ${btnHtml}
+      </div>`;
+    }).join("");
+  }
+
+  function openStore() {
+    if (!storeModal) return;
+    renderStore();
+    storeModal.hidden = false;
+  }
+  function closeStore() {
+    if (storeModal) storeModal.hidden = true;
+  }
+  storeOpenBtn?.addEventListener("click", openStore);
+  storeCloseBtn?.addEventListener("click", closeStore);
+  storeModal?.addEventListener("click", (e) => {
+    if (e.target === storeModal) closeStore();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Escape" && storeModal && !storeModal.hidden) closeStore();
+  });
+
+  // Equip writes are a simple, low-risk overwrite (the store is only open
+  // between runs, never mid-flight). Purchases are guarded against a stale
+  // local balance by re-checking price against walletCoins right before
+  // writing, same value the button's disabled state was computed from.
+  let isPurchasing = false;
+  storeGrid?.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn || btn.disabled) return;
+    const dragon = findDragon(btn.dataset.id);
+    if (!dragon || !playerId || !playerEditKey) return;
+
+    if (btn.dataset.action === "equip") {
+      const previous = equippedDragonId;
+      equippedDragonId = dragon.id;
+      renderStore();
+      try {
+        const { error } = await veloraSupabase
+          .from("game_players")
+          .update({ equipped_dragon: dragon.id })
+          .eq("id", playerId)
+          .eq("edit_key", playerEditKey);
+        if (error) throw error;
+      } catch (err) {
+        equippedDragonId = previous;
+        renderStore();
+      }
+      return;
+    }
+
+    if (btn.dataset.action === "buy") {
+      if (isPurchasing || walletCoins < dragon.price) return;
+      isPurchasing = true;
+      btn.disabled = true;
+      btn.textContent = "Buying…";
+      try {
+        const nextOwned = [...ownedDragons, dragon.id];
+        const nextCoins = walletCoins - dragon.price;
+        const { error } = await veloraSupabase
+          .from("game_players")
+          .update({ coins: nextCoins, owned_dragons: nextOwned, equipped_dragon: dragon.id })
+          .eq("id", playerId)
+          .eq("edit_key", playerEditKey);
+        if (error) throw error;
+        walletCoins = nextCoins;
+        ownedDragons = nextOwned;
+        equippedDragonId = dragon.id;
+        updateCoinDisplays();
+      } catch (err) {
+        // Leave state as-is — the re-render below reflects reality either way.
+      }
+      isPurchasing = false;
+      renderStore();
+    }
+  });
+
   resetGame();
   render();
   showOverlay("start", "Flappy Dragon", "Keep the dragon airborne through the castle pylons.");
   loadOwnBest();
+  loadWallet();
   loadLeaderboard();
 })();
