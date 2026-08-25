@@ -282,24 +282,27 @@
     { id: "coins-250k", coins: 250000, price: 10.0, pileRows: [5, 4, 3, 2, 1], best: true },
   ];
 
-  // Weekly Quests — ten a week, all reset with the leaderboard every Monday
-  // (013_weekly_quests.sql). Rewards are deliberately modest against the
-  // Dragon Store's prices (100k-2.2M): everything here totals 4,700 coins
-  // if a player claims all ten, a nice supplementary trickle rather than a
-  // way to skip earning coins from actually playing. `get` reads whichever
-  // live variable tracks that quest's stat — `best` doubles as "highest
-  // score this run this week" since it already resets weekly on its own.
+  // Daily Quests — ten a day, all reset every day (013_daily_quests.sql),
+  // a completely separate cadence from best_score's weekly reset. Rewards
+  // are deliberately modest against the Dragon Store's prices (100k-2.2M):
+  // everything here totals 800 coins if a player claims all ten in a day,
+  // a nice bonus on top of actually playing rather than a way to skip
+  // earning coins from it. `get` reads whichever live variable tracks that
+  // quest's stat — score-threshold quests use `dailyBestScore` (its own
+  // daily high-water mark) rather than `best`, since `best` only resets
+  // weekly and would let a score set earlier in the week satisfy a quest
+  // again the moment it reset for the day.
   const QUEST_DEFINITIONS = [
-    { id: "first-flight", name: "First Flight", desc: "Play 1 run this week.", target: 1, reward: 100, get: () => weeklyRunsPlayed },
-    { id: "getting-airborne", name: "Getting Airborne", desc: "Reach a score of 50 in a single run.", target: 50, reward: 150, get: () => best },
-    { id: "coin-collector", name: "Coin Collector", desc: "Collect 200 in-flight coins this week.", target: 200, reward: 300, get: () => weeklyCoinsCollected },
-    { id: "pylon-pilot", name: "Pylon Pilot", desc: "Clear 75 pylons this week.", target: 75, reward: 300, get: () => weeklyPylonsCleared },
-    { id: "wall-breaker", name: "Wall Breaker", desc: "Break 5 pylons this week.", target: 5, reward: 400, get: () => weeklyPylonsBroken },
-    { id: "rush-hour", name: "Rush Hour", desc: "Survive a full Coin Rush event.", target: 1, reward: 350, get: () => weeklyCoinRushSurvived },
-    { id: "dodge-master", name: "Dodge Master", desc: "Survive a full Jet Chase event.", target: 1, reward: 500, get: () => weeklyJetChaseSurvived },
-    { id: "high-flyer", name: "High Flyer", desc: "Reach Level 10 in a single run.", target: 450, reward: 600, get: () => best },
-    { id: "enraged", name: "Enraged", desc: "Survive a full Rage Mode event.", target: 1, reward: 800, get: () => weeklyRageSurvived },
-    { id: "score-chaser", name: "Score Chaser", desc: "Reach a score of 1,000 in a single run.", target: 1000, reward: 1200, get: () => best },
+    { id: "first-flight", name: "First Flight", desc: "Play 1 run today.", target: 1, reward: 20, get: () => dailyRunsPlayed },
+    { id: "getting-airborne", name: "Getting Airborne", desc: "Reach a score of 50 in a single run.", target: 50, reward: 30, get: () => dailyBestScore },
+    { id: "coin-collector", name: "Coin Collector", desc: "Collect 40 in-flight coins today.", target: 40, reward: 50, get: () => dailyCoinsCollected },
+    { id: "pylon-pilot", name: "Pylon Pilot", desc: "Clear 15 pylons today.", target: 15, reward: 50, get: () => dailyPylonsCleared },
+    { id: "wall-breaker", name: "Wall Breaker", desc: "Break 2 pylons today.", target: 2, reward: 70, get: () => dailyPylonsBroken },
+    { id: "rush-hour", name: "Rush Hour", desc: "Survive a full Coin Rush event.", target: 1, reward: 60, get: () => dailyCoinRushSurvived },
+    { id: "dodge-master", name: "Dodge Master", desc: "Survive a full Jet Chase event.", target: 1, reward: 90, get: () => dailyJetChaseSurvived },
+    { id: "high-flyer", name: "High Flyer", desc: "Reach Level 10 in a single run.", target: 450, reward: 100, get: () => dailyBestScore },
+    { id: "enraged", name: "Enraged", desc: "Survive a full Rage Mode event.", target: 1, reward: 130, get: () => dailyRageSurvived },
+    { id: "score-chaser", name: "Score Chaser", desc: "Reach a score of 1,000 in a single run.", target: 1000, reward: 200, get: () => dailyBestScore },
   ];
 
   // Builds a simple gold-coin pyramid sized to the bundle — same coin
@@ -385,13 +388,14 @@
   const coinStoreCloseBtn = document.getElementById("coinStoreCloseBtn");
   const coinBundleGrid = document.getElementById("coinBundleGrid");
   const coinStoreMessageEl = document.getElementById("coinStoreMessage");
-  const weeklyQuestOpenBtn = document.getElementById("weeklyQuestOpenBtn");
-  const weeklyQuestModal = document.getElementById("weeklyQuestModal");
-  const weeklyQuestCloseBtn = document.getElementById("weeklyQuestCloseBtn");
-  const weeklyQuestList = document.getElementById("weeklyQuestList");
-  const weeklyQuestSubEl = document.getElementById("weeklyQuestSub");
-  const weeklyQuestMessageEl = document.getElementById("weeklyQuestMessage");
+  const dailyQuestOpenBtn = document.getElementById("dailyQuestOpenBtn");
+  const dailyQuestModal = document.getElementById("dailyQuestModal");
+  const dailyQuestCloseBtn = document.getElementById("dailyQuestCloseBtn");
+  const dailyQuestList = document.getElementById("dailyQuestList");
+  const dailyQuestSubEl = document.getElementById("dailyQuestSub");
+  const dailyQuestMessageEl = document.getElementById("dailyQuestMessage");
   const questClaimBadge = document.getElementById("questClaimBadge");
+  const questResetCountdownEl = document.getElementById("questResetCountdown");
   const authStatusEl = document.getElementById("dragonAuthStatus");
   const authModal = document.getElementById("dragonAuthModal");
   const authCloseBtn = document.getElementById("dragonAuthCloseBtn");
@@ -445,17 +449,17 @@
   let ownedDragons = [];
   let equippedDragonId = null; // null = the free default dragon
 
-  // This week's quest progress — reset by the same Monday cron job that
-  // zeroes best_score (see 013_weekly_quests.sql), so it lines up with the
-  // leaderboard reset instead of drifting on its own schedule.
-  let weeklyCoinsCollected = 0;
-  let weeklyPylonsCleared = 0;
-  let weeklyPylonsBroken = 0;
-  let weeklyCoinRushSurvived = 0;
-  let weeklyJetChaseSurvived = 0;
-  let weeklyRageSurvived = 0;
-  let weeklyRunsPlayed = 0;
-  let weeklyQuestsClaimed = [];
+  // Today's quest progress — its own cron reset (013_daily_quests.sql),
+  // completely separate from best_score's weekly reset.
+  let dailyCoinsCollected = 0;
+  let dailyPylonsCleared = 0;
+  let dailyPylonsBroken = 0;
+  let dailyCoinRushSurvived = 0;
+  let dailyJetChaseSurvived = 0;
+  let dailyRageSurvived = 0;
+  let dailyRunsPlayed = 0;
+  let dailyBestScore = 0;
+  let dailyQuestsClaimed = [];
 
   function updateCoinDisplays() {
     const text = walletCoins.toLocaleString();
@@ -472,7 +476,7 @@
     const { data } = await veloraSupabase
       .from("game_players")
       .select(
-        "coins, owned_dragons, equipped_dragon, weekly_coins_collected, weekly_pylons_cleared, weekly_pylons_broken, weekly_coin_rush_survived, weekly_jet_chase_survived, weekly_rage_survived, weekly_runs_played, weekly_quests_claimed"
+        "coins, owned_dragons, equipped_dragon, daily_coins_collected, daily_pylons_cleared, daily_pylons_broken, daily_coin_rush_survived, daily_jet_chase_survived, daily_rage_survived, daily_runs_played, daily_best_score, daily_quests_claimed"
       )
       .eq("id", playerId)
       .single();
@@ -480,14 +484,15 @@
       walletCoins = data.coins || 0;
       ownedDragons = data.owned_dragons || [];
       equippedDragonId = data.equipped_dragon || null;
-      weeklyCoinsCollected = data.weekly_coins_collected || 0;
-      weeklyPylonsCleared = data.weekly_pylons_cleared || 0;
-      weeklyPylonsBroken = data.weekly_pylons_broken || 0;
-      weeklyCoinRushSurvived = data.weekly_coin_rush_survived || 0;
-      weeklyJetChaseSurvived = data.weekly_jet_chase_survived || 0;
-      weeklyRageSurvived = data.weekly_rage_survived || 0;
-      weeklyRunsPlayed = data.weekly_runs_played || 0;
-      weeklyQuestsClaimed = data.weekly_quests_claimed || [];
+      dailyCoinsCollected = data.daily_coins_collected || 0;
+      dailyPylonsCleared = data.daily_pylons_cleared || 0;
+      dailyPylonsBroken = data.daily_pylons_broken || 0;
+      dailyCoinRushSurvived = data.daily_coin_rush_survived || 0;
+      dailyJetChaseSurvived = data.daily_jet_chase_survived || 0;
+      dailyRageSurvived = data.daily_rage_survived || 0;
+      dailyRunsPlayed = data.daily_runs_played || 0;
+      dailyBestScore = data.daily_best_score || 0;
+      dailyQuestsClaimed = data.daily_quests_claimed || [];
     }
     updateCoinDisplays();
     updateQuestBadge();
@@ -512,14 +517,15 @@
     walletCoins = row.coins || 0;
     ownedDragons = row.owned_dragons || [];
     equippedDragonId = row.equipped_dragon || null;
-    weeklyCoinsCollected = row.weekly_coins_collected || 0;
-    weeklyPylonsCleared = row.weekly_pylons_cleared || 0;
-    weeklyPylonsBroken = row.weekly_pylons_broken || 0;
-    weeklyCoinRushSurvived = row.weekly_coin_rush_survived || 0;
-    weeklyJetChaseSurvived = row.weekly_jet_chase_survived || 0;
-    weeklyRageSurvived = row.weekly_rage_survived || 0;
-    weeklyRunsPlayed = row.weekly_runs_played || 0;
-    weeklyQuestsClaimed = row.weekly_quests_claimed || [];
+    dailyCoinsCollected = row.daily_coins_collected || 0;
+    dailyPylonsCleared = row.daily_pylons_cleared || 0;
+    dailyPylonsBroken = row.daily_pylons_broken || 0;
+    dailyCoinRushSurvived = row.daily_coin_rush_survived || 0;
+    dailyJetChaseSurvived = row.daily_jet_chase_survived || 0;
+    dailyRageSurvived = row.daily_rage_survived || 0;
+    dailyRunsPlayed = row.daily_runs_played || 0;
+    dailyBestScore = row.daily_best_score || 0;
+    dailyQuestsClaimed = row.daily_quests_claimed || [];
     updatePlayingAsIndicator();
     updateCoinDisplays();
     updateQuestBadge();
@@ -665,8 +671,8 @@
   let impactShakeTimer = 0; // seconds left on the quick jolt from a break
   const IMPACT_SHAKE_DURATION = 0.25;
 
-  // This run's tallies toward Weekly Quests — batched and sent to
-  // record_weekly_progress() once at endGame() rather than one RPC call
+  // This run's tallies toward Daily Quests — batched and sent to
+  // record_daily_progress() once at endGame() rather than one RPC call
   // per coin/pylon, same "batch at the end" pattern the coin/best_score
   // writes already use.
   let runCoinsCollected = 0;
@@ -1136,7 +1142,7 @@
       // gate anything below it: a failed save here shouldn't block the
       // coin/best-score writes that matter more.
       try {
-        await veloraSupabase.rpc("record_weekly_progress", {
+        await veloraSupabase.rpc("record_daily_progress", {
           p_id: playerId,
           p_edit_key: playerEditKey,
           p_coins_collected: runCoinsCollected,
@@ -1146,14 +1152,16 @@
           p_jet_chase: runJetChaseSurvived,
           p_rage: runRageSurvived,
           p_runs: 1,
+          p_run_score: score,
         });
-        weeklyCoinsCollected += runCoinsCollected;
-        weeklyPylonsCleared += runPylonsCleared;
-        weeklyPylonsBroken += runPylonsBroken;
-        weeklyCoinRushSurvived += runCoinRushSurvived;
-        weeklyJetChaseSurvived += runJetChaseSurvived;
-        weeklyRageSurvived += runRageSurvived;
-        weeklyRunsPlayed += 1;
+        dailyCoinsCollected += runCoinsCollected;
+        dailyPylonsCleared += runPylonsCleared;
+        dailyPylonsBroken += runPylonsBroken;
+        dailyCoinRushSurvived += runCoinRushSurvived;
+        dailyJetChaseSurvived += runJetChaseSurvived;
+        dailyRageSurvived += runRageSurvived;
+        dailyRunsPlayed += 1;
+        dailyBestScore = Math.max(dailyBestScore, score);
         updateQuestBadge();
       } catch (err) {
         // Quest progress failing to save shouldn't block replaying.
@@ -1290,14 +1298,15 @@
       walletCoins = data.coins || 0;
       ownedDragons = data.owned_dragons || [];
       equippedDragonId = data.equipped_dragon || null;
-      weeklyCoinsCollected = data.weekly_coins_collected || 0;
-      weeklyPylonsCleared = data.weekly_pylons_cleared || 0;
-      weeklyPylonsBroken = data.weekly_pylons_broken || 0;
-      weeklyCoinRushSurvived = data.weekly_coin_rush_survived || 0;
-      weeklyJetChaseSurvived = data.weekly_jet_chase_survived || 0;
-      weeklyRageSurvived = data.weekly_rage_survived || 0;
-      weeklyRunsPlayed = data.weekly_runs_played || 0;
-      weeklyQuestsClaimed = data.weekly_quests_claimed || [];
+      dailyCoinsCollected = data.daily_coins_collected || 0;
+      dailyPylonsCleared = data.daily_pylons_cleared || 0;
+      dailyPylonsBroken = data.daily_pylons_broken || 0;
+      dailyCoinRushSurvived = data.daily_coin_rush_survived || 0;
+      dailyJetChaseSurvived = data.daily_jet_chase_survived || 0;
+      dailyRageSurvived = data.daily_rage_survived || 0;
+      dailyRunsPlayed = data.daily_runs_played || 0;
+      dailyBestScore = data.daily_best_score || 0;
+      dailyQuestsClaimed = data.daily_quests_claimed || [];
       updateCoinDisplays();
       updateQuestBadge();
 
@@ -1345,7 +1354,7 @@
   // or picking a photo doesn't restart the game out from under you.
   const stage = document.querySelector(".dragon-game-stage");
   stage?.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn, #coinStoreOpenBtn, #weeklyQuestOpenBtn, #dragonMuteBtn")) return;
+    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn, #coinStoreOpenBtn, #dailyQuestOpenBtn, #dragonMuteBtn")) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.preventDefault();
     flap();
@@ -1462,7 +1471,7 @@
     jet = null;
     missiles = [];
     // Only reachable by an event running its full timer down without the
-    // run ending first, so this counting as "survived it" for Weekly
+    // run ending first, so this counting as "survived it" for Daily
     // Quests is exactly right — a mid-event crash never calls this.
     if (wasJetChase) {
       runJetChaseSurvived++;
@@ -2476,26 +2485,26 @@
   });
 
   // How many quests are done and just waiting to be claimed — the number
-  // on the Weekly Quests button, kept current from every place wallet/quest
+  // on the Daily Quests button, kept current from every place wallet/quest
   // state loads or changes, not just while the modal happens to be open.
   function updateQuestBadge() {
     if (!questClaimBadge) return;
-    const count = QUEST_DEFINITIONS.filter((q) => q.get() >= q.target && !weeklyQuestsClaimed.includes(q.id)).length;
+    const count = QUEST_DEFINITIONS.filter((q) => q.get() >= q.target && !dailyQuestsClaimed.includes(q.id)).length;
     questClaimBadge.textContent = String(count);
     questClaimBadge.hidden = count === 0;
   }
 
-  function renderWeeklyQuests() {
-    if (!weeklyQuestList) return;
-    if (weeklyQuestSubEl) {
-      weeklyQuestSubEl.textContent = playerId
-        ? "Complete quests to earn bonus coins — everything resets every Monday."
-        : "Join the leaderboard to start tracking weekly quests.";
+  function renderDailyQuests() {
+    if (!dailyQuestList) return;
+    if (dailyQuestSubEl) {
+      dailyQuestSubEl.textContent = playerId
+        ? "Complete quests to earn bonus coins — everything resets every day."
+        : "Join the leaderboard to start tracking daily quests.";
     }
-    weeklyQuestList.innerHTML = QUEST_DEFINITIONS.map((q) => {
+    dailyQuestList.innerHTML = QUEST_DEFINITIONS.map((q) => {
       const progress = Math.min(q.target, q.get());
       const pct = Math.round((progress / q.target) * 100);
-      const claimed = weeklyQuestsClaimed.includes(q.id);
+      const claimed = dailyQuestsClaimed.includes(q.id);
       const claimable = progress >= q.target && !claimed;
       let btnClass, btnLabel;
       if (claimed) {
@@ -2528,38 +2537,77 @@
     updateQuestBadge();
   }
 
-  function openWeeklyQuestModal() {
-    if (!weeklyQuestModal) return;
-    if (weeklyQuestMessageEl) weeklyQuestMessageEl.hidden = true;
-    renderWeeklyQuests();
-    weeklyQuestModal.hidden = false;
+  // The reset itself runs server-side on a fixed cron schedule — "every
+  // day 20:00 UTC" (013_daily_quests.sql; that's always exactly 6am AEST,
+  // no seasonal drift since AEST doesn't observe daylight saving) — so
+  // this just has to find the next occurrence of that same instant from
+  // whatever timezone the player's browser is in.
+  function getNextDailyResetDate() {
+    const now = new Date();
+    const target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 20, 0, 0, 0));
+    if (target.getTime() <= now.getTime()) target.setUTCDate(target.getUTCDate() + 1);
+    return target;
   }
-  function closeWeeklyQuestModal() {
-    if (weeklyQuestModal) weeklyQuestModal.hidden = true;
+
+  function formatCountdown(ms) {
+    if (ms <= 0) return "resetting…";
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (days > 0) return `Resets in ${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `Resets in ${hours}h ${minutes}m ${seconds}s`;
+    return `Resets in ${minutes}m ${seconds}s`;
   }
-  weeklyQuestOpenBtn?.addEventListener("click", openWeeklyQuestModal);
-  weeklyQuestCloseBtn?.addEventListener("click", closeWeeklyQuestModal);
-  weeklyQuestModal?.addEventListener("click", (e) => {
-    if (e.target === weeklyQuestModal) closeWeeklyQuestModal();
+
+  let questCountdownInterval = null;
+  function tickQuestCountdown() {
+    if (!questResetCountdownEl) return;
+    questResetCountdownEl.textContent = formatCountdown(getNextDailyResetDate().getTime() - Date.now());
+  }
+
+  function openDailyQuestModal() {
+    if (!dailyQuestModal) return;
+    if (dailyQuestMessageEl) dailyQuestMessageEl.hidden = true;
+    renderDailyQuests();
+    tickQuestCountdown();
+    // Only ticks while the modal is actually visible — no point updating a
+    // hidden element once a second in the background.
+    if (questCountdownInterval) clearInterval(questCountdownInterval);
+    questCountdownInterval = setInterval(tickQuestCountdown, 1000);
+    dailyQuestModal.hidden = false;
+  }
+  function closeDailyQuestModal() {
+    if (dailyQuestModal) dailyQuestModal.hidden = true;
+    if (questCountdownInterval) {
+      clearInterval(questCountdownInterval);
+      questCountdownInterval = null;
+    }
+  }
+  dailyQuestOpenBtn?.addEventListener("click", openDailyQuestModal);
+  dailyQuestCloseBtn?.addEventListener("click", closeDailyQuestModal);
+  dailyQuestModal?.addEventListener("click", (e) => {
+    if (e.target === dailyQuestModal) closeDailyQuestModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.code === "Escape" && weeklyQuestModal && !weeklyQuestModal.hidden) closeWeeklyQuestModal();
+    if (e.code === "Escape" && dailyQuestModal && !dailyQuestModal.hidden) closeDailyQuestModal();
   });
 
-  // Claiming is a single atomic RPC (see claim_weekly_quest in
-  // 013_weekly_quests.sql) that credits the reward and records the claim
+  // Claiming is a single atomic RPC (see claim_daily_quest in
+  // 013_daily_quests.sql) that credits the reward and records the claim
   // together, guarded so the same quest can't pay out twice even from a
   // double-click or a second open tab. A null/error result means the guard
   // caught something (already claimed elsewhere) — resync from the real
   // row instead of trusting the optimistic UI.
-  weeklyQuestList?.addEventListener("click", async (e) => {
+  dailyQuestList?.addEventListener("click", async (e) => {
     const btn = e.target.closest('[data-action="claim-quest"]');
     if (!btn || btn.disabled || !playerId || !playerEditKey) return;
     const questId = btn.dataset.id;
     const reward = Number(btn.dataset.reward);
     btn.disabled = true;
     try {
-      const { data: newBalance, error } = await veloraSupabase.rpc("claim_weekly_quest", {
+      const { data: newBalance, error } = await veloraSupabase.rpc("claim_daily_quest", {
         p_id: playerId,
         p_edit_key: playerEditKey,
         p_quest_id: questId,
@@ -2567,23 +2615,23 @@
       });
       if (!error && typeof newBalance === "number") {
         walletCoins = newBalance;
-        weeklyQuestsClaimed = [...weeklyQuestsClaimed, questId];
+        dailyQuestsClaimed = [...dailyQuestsClaimed, questId];
         updateCoinDisplays();
-        if (weeklyQuestMessageEl) {
-          weeklyQuestMessageEl.textContent = `Claimed — 🪙 +${reward.toLocaleString()} coins!`;
-          weeklyQuestMessageEl.hidden = false;
+        if (dailyQuestMessageEl) {
+          dailyQuestMessageEl.textContent = `Claimed — 🪙 +${reward.toLocaleString()} coins!`;
+          dailyQuestMessageEl.hidden = false;
         }
       } else {
         await loadWallet();
-        if (weeklyQuestMessageEl) {
-          weeklyQuestMessageEl.textContent = "That quest was already claimed.";
-          weeklyQuestMessageEl.hidden = false;
+        if (dailyQuestMessageEl) {
+          dailyQuestMessageEl.textContent = "That quest was already claimed.";
+          dailyQuestMessageEl.hidden = false;
         }
       }
     } catch (err) {
       await loadWallet();
     }
-    renderWeeklyQuests();
+    renderDailyQuests();
   });
 
   // A dedicated email/password account for the game — separate from the
