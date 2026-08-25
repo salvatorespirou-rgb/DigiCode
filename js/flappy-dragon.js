@@ -547,6 +547,19 @@
     return DEFAULT_FLAP_PROFILE;
   }
 
+  // crash lives on the catalog entry itself (a sibling of skin/flap), not
+  // inside skin — getActiveSkin() only ever returns dragon.skin, so
+  // getActiveSkin().crash was silently always undefined. This is the
+  // dragon-level accessor crash actually needs, mirroring
+  // getActiveFlapProfile() above.
+  function getActiveCrashProfile() {
+    if (equippedDragonId) {
+      const dragon = findDragon(equippedDragonId);
+      if (dragon) return dragon.crash || null;
+    }
+    return null;
+  }
+
   // Level events — one-time set pieces the first time a run reaches
   // certain levels. Every one opens the same way (pylons shake, then the
   // top half lifts into the ceiling and the bottom half sinks into the
@@ -821,8 +834,9 @@
     } catch (err) {}
   }
 
-  // A dragon-specific crash — only the six Cosmic dragons define skin.crash
-  // (see DRAGON_CATALOG); every other dragon has none and plays no crash
+  // A dragon-specific crash — only the six Cosmic dragons define a crash
+  // array (see DRAGON_CATALOG, read via getActiveCrashProfile()); every
+  // other dragon has none and plays no crash
   // sound at all, same as before this existed. Each profile is an array of
   // independent pitch-sweep stages (own type/frequency range/timing), so
   // one dragon's crash can be a single sharp zap while another layers three
@@ -900,7 +914,7 @@
     // scheduled independently on the Web Audio timeline, unaffected by
     // game state — had any real chance to be heard. restartLockedUntil
     // gives it that chance, sized to the actual sound playing.
-    const crashProfile = getActiveSkin().crash;
+    const crashProfile = getActiveCrashProfile();
     if (crashProfile) {
       playCrashSound(crashProfile);
       const soundMs = crashProfile.reduce((max, s) => Math.max(max, ((s.delay || 0) + s.duration) * 1000), 0);
@@ -1270,7 +1284,7 @@
         if (Math.sqrt(dx * dx + dy * dy) < MISSILE_RADIUS + DRAGON_HIT_RADIUS) {
           // Cosmic dragons play their own crash sound instead (endGame()
           // handles it) — everyone else keeps the generic explosion here.
-          if (!getActiveSkin().crash) playExplosionSound();
+          if (!getActiveCrashProfile()) playExplosionSound();
           endGame();
           return;
         }
