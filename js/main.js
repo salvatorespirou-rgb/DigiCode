@@ -15,6 +15,62 @@ navLinks.querySelectorAll("a").forEach((link) => {
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
+// Custom cursor — a marketing-facing touch for desktop mouse users only.
+// Skipped on touch devices, when the user prefers reduced motion, and on the
+// Dev portal (a working tool, not something visitors see).
+(function initCustomCursor() {
+  const supportsCursor =
+    window.matchMedia("(pointer: fine)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!supportsCursor || document.querySelector(".dev-tabs")) return;
+
+  document.body.classList.add("custom-cursor-active");
+
+  const dot = document.createElement("div");
+  dot.className = "custom-cursor-dot";
+  const ring = document.createElement("div");
+  ring.className = "custom-cursor-ring";
+  document.body.append(dot, ring);
+
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let ringX = mouseX;
+  let ringY = mouseY;
+  let hasMoved = false;
+
+  document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    dot.style.transform = `translate3d(${mouseX - 3}px, ${mouseY - 3}px, 0)`;
+    if (!hasMoved) {
+      hasMoved = true;
+      dot.classList.add("is-visible");
+      ring.classList.add("is-visible");
+    }
+  });
+
+  function animateRing() {
+    ringX += (mouseX - ringX) * 0.18;
+    ringY += (mouseY - ringY) * 0.18;
+    ring.style.transform = `translate3d(${ringX - 16}px, ${ringY - 16}px, 0)`;
+    requestAnimationFrame(animateRing);
+  }
+  requestAnimationFrame(animateRing);
+
+  const hoverSelector = "a, button, input, textarea, select, .service-row, .tier-card";
+  document.addEventListener("mouseover", (e) => {
+    if (e.target.closest(hoverSelector)) ring.classList.add("is-hovering");
+  });
+  document.addEventListener("mouseout", (e) => {
+    if (e.target.closest(hoverSelector)) ring.classList.remove("is-hovering");
+  });
+
+  document.addEventListener("mouseleave", () => {
+    dot.classList.remove("is-visible");
+    ring.classList.remove("is-visible");
+  });
+})();
+
 // Background videos: skip entirely on slow/data-saver connections, and only
 // fetch the below-the-fold one once it's about to scroll into view.
 function isConstrainedConnection() {
@@ -98,97 +154,50 @@ function updateCartBadge() {
 
 updateCartBadge();
 
-const PROJECTS_KEY = "veloraDevProjects";
-const TEAM_KEY = "veloraDevTeam";
+// Dev pipeline data — backed by Supabase (projects/chats/developers tables,
+// row-level security scopes what each signed-in user can see/write).
+// getProjects()/getTeam()/getChats() stay synchronous, returning whatever was
+// last loaded, so the render functions below don't need to be async-aware.
+// loadProjects()/loadTeam()/loadChats() refresh that snapshot from the database.
+let projectsCache = [];
+let teamCache = [];
+let chatsCache = {};
+
+function mapProjectRow(row) {
+  return {
+    id: row.id,
+    status: row.status,
+    service: row.service,
+    buildTier: row.build_tier,
+    managementTier: row.management_tier,
+    clientName: row.client_name,
+    clientEmail: row.client_email,
+    clientDiscord: row.client_discord,
+    clientMobile: row.client_mobile,
+    details: row.details,
+    createdAt: row.created_at,
+    assignedDev: row.assigned_dev,
+    assignedAt: row.assigned_at,
+    progressNotes: row.progress_notes || [],
+    finishedAt: row.finished_at,
+    review: row.review,
+    domain: row.domain,
+    health: row.health,
+  };
+}
+
+async function loadProjects() {
+  const { data, error } = await veloraSupabase.from("projects").select("*").order("created_at", { ascending: false });
+  if (!error) projectsCache = (data || []).map(mapProjectRow);
+  return projectsCache;
+}
 
 function getProjects() {
-  try {
-    return JSON.parse(localStorage.getItem(PROJECTS_KEY)) || [];
-  } catch {
-    return [];
-  }
+  return projectsCache;
 }
 
-function saveProjects(list) {
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify(list));
-}
-
-function seedProjectsIfEmpty() {
-  if (getProjects().length) return;
-  const day = 86400000;
-  saveProjects([
-    {
-      id: "sample-1",
-      sample: true,
-      status: "pending",
-      service: "Gaming Website",
-      buildTier: "Common Build ($500)",
-      managementTier: null,
-      clientName: "Jordan Ellis",
-      clientEmail: "jordan@example.com",
-      clientDiscord: "jordanplays",
-      clientMobile: "",
-      details: "Wants a bold, dark-themed site for a Valorant clan — 5 pages, roster page, socials linked.",
-      createdAt: Date.now() - day,
-      assignedDev: null,
-      assignedAt: null,
-      progressNotes: [],
-      finishedAt: null,
-      review: null,
-      domain: null,
-      health: null,
-    },
-    {
-      id: "sample-2",
-      sample: true,
-      status: "assigned",
-      service: "Business Website",
-      buildTier: "Ultimate Build ($1000)",
-      managementTier: "Gold ($125/mo)",
-      clientName: "Priya Nair",
-      clientEmail: "priya@example.com",
-      clientDiscord: "",
-      clientMobile: "+61 400 111 222",
-      details: "Local bakery, needs online ordering, 8 pages, warm approachable branding.",
-      createdAt: Date.now() - 5 * day,
-      assignedDev: "Dev",
-      assignedAt: Date.now() - 3 * day,
-      progressNotes: [
-        { date: Date.now() - 2 * day, note: "Kickoff call done. Wireframes in progress." },
-        { date: Date.now() - day, note: "Homepage design sent for review." },
-      ],
-      finishedAt: null,
-      review: null,
-      domain: null,
-      health: null,
-    },
-    {
-      id: "sample-3",
-      sample: true,
-      status: "finished",
-      service: "SEO",
-      buildTier: null,
-      managementTier: "Silver ($80/mo)",
-      clientName: "Marcus Webb",
-      clientEmail: "marcus@example.com",
-      clientDiscord: "",
-      clientMobile: "",
-      details: "Wanted to rank higher for 'plumber in Brisbane'.",
-      createdAt: Date.now() - 20 * day,
-      assignedDev: "Dev",
-      assignedAt: Date.now() - 18 * day,
-      progressNotes: [{ date: Date.now() - 15 * day, note: "On-page SEO complete, monitoring rankings." }],
-      finishedAt: Date.now() - 2 * day,
-      review: { rating: 5, text: "Velora got us to the first page of Google in under a month. Brilliant communication throughout." },
-      domain: "https://example.com",
-      health: null,
-    },
-  ]);
-}
-
-function pushPendingProjectFromOrder(cart, customer) {
+async function pushPendingProjectFromOrder(cart, customer) {
   if (!cart.length) return;
-  const list = getProjects();
   const buildItem = cart.find((i) => i.type === "Build");
   const mgmtItem = cart.find((i) => i.type === "Management");
   const serviceName = customer?.service || cart[0].service || "Website";
@@ -198,75 +207,65 @@ function pushPendingProjectFromOrder(cart, customer) {
     return line ? line.slice(label.length + 1).trim() : "";
   };
 
-  list.push({
-    id: "order-" + Date.now(),
-    sample: false,
+  const existing = getLine("Existing website");
+  const domain =
+    !existing || /^not yet$/i.test(existing.trim())
+      ? null
+      : /^https?:\/\//i.test(existing)
+      ? existing
+      : "https://" + existing;
+
+  await veloraSupabase.from("projects").insert({
     status: "pending",
     service: serviceName,
-    buildTier: buildItem ? `${buildItem.name} (${buildItem.price})` : null,
-    managementTier: mgmtItem ? `${mgmtItem.name} (${mgmtItem.price}${mgmtItem.period ? " " + mgmtItem.period : ""})` : null,
-    clientName: getLine("Name"),
-    clientEmail: getLine("Email"),
-    clientDiscord: getLine("Discord"),
-    clientMobile: getLine("Mobile"),
+    build_tier: buildItem ? `${buildItem.name} (${buildItem.price})` : null,
+    management_tier: mgmtItem ? `${mgmtItem.name} (${mgmtItem.price}${mgmtItem.period ? " " + mgmtItem.period : ""})` : null,
+    client_name: getLine("Name"),
+    client_email: getLine("Email"),
+    client_discord: getLine("Discord"),
+    client_mobile: getLine("Mobile"),
     details:
       customer?.lines?.filter((l) => !/^Name:|^Email:|^Discord:|^Mobile:/.test(l)).join(" · ") ||
       "No additional project details provided.",
-    createdAt: Date.now(),
-    assignedDev: null,
-    assignedAt: null,
-    progressNotes: [],
-    finishedAt: null,
-    review: null,
-    domain: (() => {
-      const existing = getLine("Existing website");
-      if (!existing || /^not yet$/i.test(existing.trim())) return null;
-      return /^https?:\/\//i.test(existing) ? existing : "https://" + existing;
-    })(),
-    health: null,
+    domain,
   });
-  saveProjects(list);
+}
+
+function mapDeveloperRow(row) {
+  return {
+    id: String(row.id),
+    name: row.name,
+    email: row.email,
+    username: row.username,
+    rank: row.rank,
+    permissions: row.permissions || [],
+  };
+}
+
+async function loadTeam() {
+  const { data, error } = await veloraSupabase.from("developers").select("*").order("created_at", { ascending: true });
+  if (!error) teamCache = (data || []).map(mapDeveloperRow);
+  return teamCache;
 }
 
 function getTeam() {
-  try {
-    return JSON.parse(localStorage.getItem(TEAM_KEY)) || [];
-  } catch {
-    return [];
-  }
+  return teamCache;
 }
 
-function saveTeam(list) {
-  localStorage.setItem(TEAM_KEY, JSON.stringify(list));
+async function loadChats() {
+  const { data, error } = await veloraSupabase.from("chats").select("*").order("created_at", { ascending: true });
+  if (error) return chatsCache;
+  const grouped = {};
+  (data || []).forEach((row) => {
+    if (!grouped[row.chat_id]) grouped[row.chat_id] = [];
+    grouped[row.chat_id].push({ from: row.from_name, text: row.message, at: row.created_at });
+  });
+  chatsCache = grouped;
+  return chatsCache;
 }
-
-const CHATS_KEY = "veloraDevChats";
 
 function getChats() {
-  try {
-    return JSON.parse(localStorage.getItem(CHATS_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function saveChats(chats) {
-  localStorage.setItem(CHATS_KEY, JSON.stringify(chats));
-}
-
-function seedChatsIfEmpty() {
-  if (Object.keys(getChats()).length) return;
-  const day = 86400000;
-  saveChats({
-    "client:sample-2": [
-      { from: "Priya Nair", text: "Hi! Just checking on progress for the homepage design.", at: Date.now() - 2 * day },
-      { from: "Dev", text: "Hey Priya! Homepage draft is done, sending it over today.", at: Date.now() - 2 * day + 3600000 },
-    ],
-    "client:sample-3": [
-      { from: "Marcus Webb", text: "Rankings are looking great, thank you!", at: Date.now() - 3 * day },
-      { from: "Dev", text: "Glad to hear it! Let us know if you want to expand the keyword list.", at: Date.now() - 3 * day + 1800000 },
-    ],
-  });
+  return chatsCache;
 }
 
 const PSI_KEY_STORAGE = "veloraPageSpeedKey";
@@ -555,11 +554,13 @@ if (cartItemsEl) {
   });
 
   const confirmOrderBtn = document.getElementById("confirmOrderBtn");
-  confirmOrderBtn?.addEventListener("click", () => {
+  confirmOrderBtn?.addEventListener("click", async () => {
     const cart = getCart();
     const customer = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "null");
 
-    pushPendingProjectFromOrder(cart, customer);
+    confirmOrderBtn.disabled = true;
+    await pushPendingProjectFromOrder(cart, customer);
+    confirmOrderBtn.disabled = false;
 
     const lines = ["Cart:"];
     cart.forEach((item) => {
@@ -655,9 +656,6 @@ document.addEventListener("click", async (e) => {
 const devTabs = document.querySelectorAll(".dev-tab");
 
 if (devTabs.length) {
-  seedProjectsIfEmpty();
-  seedChatsIfEmpty();
-
   let chatListMode = "clients";
   let activeChatId = null;
 
@@ -733,31 +731,27 @@ if (devTabs.length) {
       ${healthHtml}`;
   }
 
+  async function updateProjectFields(id, fields) {
+    await veloraSupabase.from("projects").update(fields).eq("id", id);
+    await loadProjects();
+  }
+
   function wireDomainAndHealthHandlers(panel) {
     panel.querySelectorAll(".domain-form").forEach((form) => {
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const input = form.querySelector(".domain-input");
         const val = input.value.trim();
         if (!val) return;
-        const list = getProjects();
-        const project = list.find((p) => p.id === form.dataset.id);
-        if (!project) return;
-        project.domain = /^https?:\/\//i.test(val) ? val : "https://" + val;
-        project.health = null;
-        saveProjects(list);
+        const domain = /^https?:\/\//i.test(val) ? val : "https://" + val;
+        await updateProjectFields(form.dataset.id, { domain, health: null });
         renderAllPanels();
       });
     });
 
     panel.querySelectorAll(".edit-domain-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const list = getProjects();
-        const project = list.find((p) => p.id === btn.dataset.id);
-        if (!project) return;
-        project.domain = null;
-        project.health = null;
-        saveProjects(list);
+      btn.addEventListener("click", async () => {
+        await updateProjectFields(btn.dataset.id, { domain: null, health: null });
         renderAllPanels();
       });
     });
@@ -768,20 +762,19 @@ if (devTabs.length) {
   }
 
   async function checkWebsiteHealth(projectId) {
-    const list = getProjects();
-    const project = list.find((p) => p.id === projectId);
+    const project = getProjects().find((p) => p.id === projectId);
     if (!project || !project.domain) return;
 
     const key = getPsiKey();
     if (!key) {
-      project.health = { error: "Add a free Google PageSpeed API key in the Developers tab to run live checks." };
-      saveProjects(list);
+      await updateProjectFields(projectId, {
+        health: { error: "Add a free Google PageSpeed API key in the Developers tab to run live checks." },
+      });
       renderAllPanels();
       return;
     }
 
-    project.health = { loading: true };
-    saveProjects(list);
+    await updateProjectFields(projectId, { health: { loading: true } });
     renderAllPanels();
 
     const url =
@@ -796,27 +789,22 @@ if (devTabs.length) {
       const cats = data.lighthouseResult?.categories || {};
       const audits = data.lighthouseResult?.audits || {};
 
-      const list2 = getProjects();
-      const project2 = list2.find((p) => p.id === projectId);
-      if (!project2) return;
-      project2.health = {
-        performance: cats.performance ? Math.round(cats.performance.score * 100) : null,
-        seo: cats.seo ? Math.round(cats.seo.score * 100) : null,
-        accessibility: cats.accessibility ? Math.round(cats.accessibility.score * 100) : null,
-        bestPractices: cats["best-practices"] ? Math.round(cats["best-practices"].score * 100) : null,
-        lcp: audits["largest-contentful-paint"]?.displayValue || "—",
-        cls: audits["cumulative-layout-shift"]?.displayValue || "—",
-        fcp: audits["first-contentful-paint"]?.displayValue || "—",
-        checkedAt: Date.now(),
-      };
-      saveProjects(list2);
+      await updateProjectFields(projectId, {
+        health: {
+          performance: cats.performance ? Math.round(cats.performance.score * 100) : null,
+          seo: cats.seo ? Math.round(cats.seo.score * 100) : null,
+          accessibility: cats.accessibility ? Math.round(cats.accessibility.score * 100) : null,
+          bestPractices: cats["best-practices"] ? Math.round(cats["best-practices"].score * 100) : null,
+          lcp: audits["largest-contentful-paint"]?.displayValue || "—",
+          cls: audits["cumulative-layout-shift"]?.displayValue || "—",
+          fcp: audits["first-contentful-paint"]?.displayValue || "—",
+          checkedAt: new Date().toISOString(),
+        },
+      });
     } catch (err) {
-      const list3 = getProjects();
-      const project3 = list3.find((p) => p.id === projectId);
-      if (project3) {
-        project3.health = { error: err.message || "Couldn't fetch results — check the domain and try again." };
-        saveProjects(list3);
-      }
+      await updateProjectFields(projectId, {
+        health: { error: err.message || "Couldn't fetch results — check the domain and try again." },
+      });
     }
 
     renderAllPanels();
@@ -862,15 +850,15 @@ if (devTabs.length) {
     wireDomainAndHealthHandlers(panel);
   }
 
-  function assignProject(id) {
-    const list = getProjects();
-    const project = list.find((p) => p.id === id);
+  async function assignProject(id) {
+    const project = getProjects().find((p) => p.id === id);
     if (!project) return;
 
-    project.status = "assigned";
-    project.assignedDev = "Dev";
-    project.assignedAt = Date.now();
-    saveProjects(list);
+    await updateProjectFields(id, {
+      status: "assigned",
+      assigned_dev: window.veloraPortalEmail || "Dev",
+      assigned_at: new Date().toISOString(),
+    });
 
     if (project.clientEmail) {
       const subject = encodeURIComponent(`Your ${project.service} project is underway`);
@@ -941,22 +929,16 @@ if (devTabs.length) {
     wireDomainAndHealthHandlers(panel);
   }
 
-  function addProgressNote(id, text) {
-    const list = getProjects();
-    const project = list.find((p) => p.id === id);
+  async function addProgressNote(id, text) {
+    const project = getProjects().find((p) => p.id === id);
     if (!project) return;
-    project.progressNotes.push({ date: Date.now(), note: text });
-    saveProjects(list);
+    const notes = [...project.progressNotes, { date: new Date().toISOString(), note: text }];
+    await updateProjectFields(id, { progress_notes: notes });
     renderAssignedPanel();
   }
 
-  function finishProject(id) {
-    const list = getProjects();
-    const project = list.find((p) => p.id === id);
-    if (!project) return;
-    project.status = "finished";
-    project.finishedAt = Date.now();
-    saveProjects(list);
+  async function finishProject(id) {
+    await updateProjectFields(id, { status: "finished", finished_at: new Date().toISOString() });
     renderAllPanels();
   }
 
@@ -1017,7 +999,7 @@ if (devTabs.length) {
         <span id="psiKeySavedNote" class="dev-team-meta" style="margin-left: 10px;" hidden>Saved.</span>
       </div>
 
-      <div class="dev-warning-banner">This creates a preview-only entry stored in this browser — it does not create a real, working login. Passwords typed below are never saved anywhere. Real developer accounts need a real backend before this goes live.</div>
+      <div class="dev-warning-banner">Adding someone here grants real access — the moment they sign in at the normal sign-in page with this exact email, they'll get a real Dev account with this rank and these permissions. No password to set or share; they use the same one-time-code sign-in as everyone else.</div>
       <form id="addDevForm" class="add-dev-form">
         <div class="form-grid">
           <div class="form-group">
@@ -1031,10 +1013,6 @@ if (devTabs.length) {
           <div class="form-group">
             <label for="newDevUsername">Username</label>
             <input type="text" id="newDevUsername" required />
-          </div>
-          <div class="form-group">
-            <label for="newDevPassword">Temporary password</label>
-            <input type="text" id="newDevPassword" />
           </div>
         </div>
         <div class="form-group">
@@ -1090,7 +1068,7 @@ if (devTabs.length) {
       }
     });
 
-    document.getElementById("addDevForm")?.addEventListener("submit", (e) => {
+    document.getElementById("addDevForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("newDevName").value.trim();
       const email = document.getElementById("newDevEmail").value.trim();
@@ -1098,16 +1076,16 @@ if (devTabs.length) {
       const rank = document.getElementById("newDevRank").value;
       const permissions = Array.from(panel.querySelectorAll(".permission-grid input:checked")).map((cb) => cb.value);
 
-      const team2 = getTeam();
-      team2.push({ id: "dev-" + Date.now(), name, email, username, rank, permissions });
-      saveTeam(team2);
+      await veloraSupabase.from("developers").insert({ name, email, username, rank, permissions });
+      await loadTeam();
       renderDevelopersPanel();
       renderChatPanel();
     });
 
     panel.querySelectorAll(".remove-dev-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        saveTeam(getTeam().filter((d) => d.id !== btn.dataset.id));
+      btn.addEventListener("click", async () => {
+        await veloraSupabase.from("developers").delete().eq("id", btn.dataset.id);
+        await loadTeam();
         renderDevelopersPanel();
       });
     });
@@ -1183,7 +1161,7 @@ if (devTabs.length) {
               ? activeMsgs
                   .map(
                     (m) => `
-              <div class="chat-message ${m.from === "Dev" ? "mine" : "theirs"}">
+              <div class="chat-message ${m.from === window.veloraPortalEmail ? "mine" : "theirs"}">
                 <div class="chat-message-bubble">${escapeHtml(m.text)}</div>
                 <span class="chat-message-meta">${escapeHtml(m.from)} · ${formatDate(m.at)}</span>
               </div>`
@@ -1229,15 +1207,17 @@ if (devTabs.length) {
     });
 
     const chatSendForm = document.getElementById("chatSendForm");
-    chatSendForm?.addEventListener("submit", (e) => {
+    chatSendForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const input = document.getElementById("chatInput");
       const text = input.value.trim();
       if (!text || !activeChatId) return;
-      const chats2 = getChats();
-      if (!chats2[activeChatId]) chats2[activeChatId] = [];
-      chats2[activeChatId].push({ from: "Dev", text, at: Date.now() });
-      saveChats(chats2);
+      await veloraSupabase.from("chats").insert({
+        chat_id: activeChatId,
+        from_name: window.veloraPortalEmail || "Dev",
+        message: text,
+      });
+      await loadChats();
       renderChatPanel();
       const msgsEl = document.getElementById("chatMessages");
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -1252,7 +1232,10 @@ if (devTabs.length) {
     renderChatPanel();
   }
 
-  renderAllPanels();
+  function waitForAuthReady() {
+    if (window.veloraPortalRole) return Promise.resolve();
+    return new Promise((resolve) => document.addEventListener("velora-auth-ready", resolve, { once: true }));
+  }
 
   // TEMP: Dev/Client preview toggle — for design/testing only, remove once a
   // real client portal (separate login, real per-client data) exists.
@@ -1264,11 +1247,15 @@ if (devTabs.length) {
 
   function renderClientPreview() {
     if (!clientViewContainer) return;
+    const isRealClient = window.veloraPortalRole === "client";
     const projects = getProjects();
-    const demoProject = projects.find((p) => p.id === "sample-2") || projects[0];
+    const demoProject = projects[0];
 
     if (!demoProject) {
-      clientViewContainer.innerHTML = `<p class="dev-empty">No sample project available to preview.</p>`;
+      clientViewContainer.innerHTML = isRealClient
+        ? `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:hello@veloradigital.com">hello@veloradigital.com</a> and we'll sort it out.</p>
+           <div style="text-align: center; margin-top: 24px;"><button type="button" class="clear-cart-link" data-portal-logout>Log out</button></div>`
+        : `<p class="dev-empty">No projects exist yet to preview.</p>`;
       return;
     }
 
@@ -1280,7 +1267,11 @@ if (devTabs.length) {
     const statusDate = demoProject.finishedAt || demoProject.assignedAt || demoProject.createdAt;
 
     clientViewContainer.innerHTML = `
-      <div class="portal-sample-banner">This is a simulated preview of "${escapeHtml(demoProject.clientName)}"'s view, using real pipeline data — for design/testing only.</div>
+      ${
+        isRealClient
+          ? ""
+          : `<div class="portal-sample-banner">This is a simulated preview of "${escapeHtml(demoProject.clientName)}"'s view, using real pipeline data — for design/testing only.</div>`
+      }
 
       <h2 class="dashboard-section-title">Your Project</h2>
       <div class="project-card">
@@ -1316,7 +1307,7 @@ if (devTabs.length) {
               ? msgs
                   .map(
                     (m) => `
-              <div class="chat-message ${m.from !== "Dev" ? "mine" : "theirs"}">
+              <div class="chat-message ${m.from === (demoProject.clientName || "Client") ? "mine" : "theirs"}">
                 <div class="chat-message-bubble">${escapeHtml(m.text)}</div>
                 <span class="chat-message-meta">${escapeHtml(m.from)} · ${formatDate(m.at)}</span>
               </div>`
@@ -1336,15 +1327,17 @@ if (devTabs.length) {
       </div>
     `;
 
-    document.getElementById("clientChatSendForm")?.addEventListener("submit", (e) => {
+    document.getElementById("clientChatSendForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const input = document.getElementById("clientChatInput");
       const text = input.value.trim();
       if (!text) return;
-      const chats2 = getChats();
-      if (!chats2[chatId]) chats2[chatId] = [];
-      chats2[chatId].push({ from: demoProject.clientName || "Client", text, at: Date.now() });
-      saveChats(chats2);
+      await veloraSupabase.from("chats").insert({
+        chat_id: chatId,
+        from_name: demoProject.clientName || "Client",
+        message: text,
+      });
+      await loadChats();
       renderClientPreview();
       const msgsEl = document.getElementById("clientChatMessages");
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -1377,9 +1370,9 @@ if (devTabs.length) {
     }
   }
 
-  if (window.veloraPortalRole) {
+  (async () => {
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats()]);
+    renderAllPanels();
     applyPortalRole();
-  } else {
-    document.addEventListener("velora-auth-ready", applyPortalRole);
-  }
+  })();
 }

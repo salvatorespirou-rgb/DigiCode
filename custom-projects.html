@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Cart — Velora Digital</title>
-  <meta name="description" content="Review your Velora Digital order before checkout." />
+  <title>Custom Projects — Velora Digital</title>
+  <meta name="description" content="Original websites Velora Digital is building in-house, available to the right buyer." />
   <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="js/supabase-client.js"></script>
 </head>
 <body>
+
+  <img src="assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
 
   <header class="site-header">
     <div class="nav-left">
@@ -50,39 +50,23 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <p class="eyebrow">Your Order</p>
-        <h1>Your <span class="gradient-text">Cart</span></h1>
-        <p class="hero-sub">Review what you've added below. Want to add another service? Head back to the homepage — everything you've already added stays right here.</p>
+        <p class="eyebrow">Custom Projects</p>
+        <h1>Sites we're building <span class="gradient-text">ourselves.</span></h1>
+        <p class="hero-sub">Original websites built in-house, on our own time — ready to hand over to the right buyer instead of starting from scratch.</p>
       </div>
     </section>
 
     <section class="request-form-section">
-      <div class="container cart-container">
-        <div id="cartEmpty" class="cart-empty">
-          <p>Your cart is empty.</p>
-          <a href="index.html" class="btn btn-primary">Browse Services</a>
+      <div class="container">
+        <p class="info-intro">Unlike a custom build made for one client, these are projects we design and develop ourselves first — a finished (or near-finished) site you can acquire outright, often faster and cheaper than commissioning something new.</p>
+
+        <div class="dev-empty" style="max-width: 640px; margin: 0 auto; padding: 48px 24px;">
+          We're currently building our first projects for this page — check back soon to see what's available.
         </div>
 
-        <div id="cartItems" class="cart-items"></div>
-
-        <div id="cartSummary" class="cart-summary" hidden>
-          <div class="cart-totals">
-            <div class="cart-total-row">
-              <span>One-time total</span>
-              <span id="oneTimeTotal">$0</span>
-            </div>
-            <div class="cart-total-row" id="subscriptionRow" hidden>
-              <span>Subscription</span>
-              <span id="subscriptionTotal">—</span>
-            </div>
-          </div>
-
-          <div class="cart-actions">
-            <a href="index.html" class="btn btn-ghost">← Add Another Service</a>
-            <button type="button" id="confirmOrderBtn" class="btn btn-primary btn-large">Confirm &amp; Send Order</button>
-          </div>
-          <p class="form-note">Secure card payment via Stripe is coming soon. For now, this sends your full order and details straight to us.</p>
-          <button type="button" id="clearCartBtn" class="clear-cart-link">Clear cart</button>
+        <div class="info-cta">
+          <p>Want something built from the ground up instead? Start a custom request.</p>
+          <a href="index.html#services" class="quick-link-tab">Go to Services</a>
         </div>
       </div>
     </section>

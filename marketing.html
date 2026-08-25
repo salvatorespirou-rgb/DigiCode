@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Cart — Velora Digital</title>
-  <meta name="description" content="Review your Velora Digital order before checkout." />
+  <title>Marketing — Velora Digital</title>
+  <meta name="description" content="Velora Digital's upcoming marketing and social platform management services." />
   <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="js/supabase-client.js"></script>
 </head>
 <body>
+
+  <img src="assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
 
   <header class="site-header">
     <div class="nav-left">
@@ -50,39 +50,24 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <p class="eyebrow">Your Order</p>
-        <h1>Your <span class="gradient-text">Cart</span></h1>
-        <p class="hero-sub">Review what you've added below. Want to add another service? Head back to the homepage — everything you've already added stays right here.</p>
+        <p class="eyebrow">Coming Soon</p>
+        <h1>Marketing, <span class="gradient-text">on the way.</span></h1>
+        <p class="hero-sub">A new service we're building out — help getting your brand seen, not just built.</p>
       </div>
     </section>
 
     <section class="request-form-section">
-      <div class="container cart-container">
-        <div id="cartEmpty" class="cart-empty">
-          <p>Your cart is empty.</p>
-          <a href="index.html" class="btn btn-primary">Browse Services</a>
+      <div class="container">
+        <p class="info-intro">We're expanding beyond building and managing websites into helping you grow on the platforms your audience already lives on — currently in development.</p>
+
+        <div class="dev-empty" style="max-width: 640px; margin: 0 auto; padding: 48px 24px;">
+          <p style="margin-bottom: 12px;"><strong>What's planned:</strong></p>
+          <p style="margin-bottom: 0;">Cross-platform marketing support, and account/content management strategies built for streamers, content creators, and business owners who want their online presence handled properly — not just their website.</p>
         </div>
 
-        <div id="cartItems" class="cart-items"></div>
-
-        <div id="cartSummary" class="cart-summary" hidden>
-          <div class="cart-totals">
-            <div class="cart-total-row">
-              <span>One-time total</span>
-              <span id="oneTimeTotal">$0</span>
-            </div>
-            <div class="cart-total-row" id="subscriptionRow" hidden>
-              <span>Subscription</span>
-              <span id="subscriptionTotal">—</span>
-            </div>
-          </div>
-
-          <div class="cart-actions">
-            <a href="index.html" class="btn btn-ghost">← Add Another Service</a>
-            <button type="button" id="confirmOrderBtn" class="btn btn-primary btn-large">Confirm &amp; Send Order</button>
-          </div>
-          <p class="form-note">Secure card payment via Stripe is coming soon. For now, this sends your full order and details straight to us.</p>
-          <button type="button" id="clearCartBtn" class="clear-cart-link">Clear cart</button>
+        <div class="info-cta">
+          <p>Want to be first in line when this launches?</p>
+          <a href="mailto:hello@veloradigital.com" class="quick-link-tab">Get in Touch</a>
         </div>
       </div>
     </section>
