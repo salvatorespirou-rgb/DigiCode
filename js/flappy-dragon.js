@@ -24,18 +24,48 @@
   const overlay = document.getElementById("dragonOverlay");
   const overlayTitle = document.getElementById("dragonOverlayTitle");
   const overlayBody = document.getElementById("dragonOverlayBody");
-  const nameForm = document.getElementById("dragonNameForm");
+  const registerForm = document.getElementById("dragonRegisterForm");
   const nameInput = document.getElementById("dragonNameInput");
+  const avatarInput = document.getElementById("dragonAvatarInput");
+  const avatarLabel = document.getElementById("dragonAvatarLabel");
+  const avatarLabelText = document.getElementById("dragonAvatarLabelText");
   const startHint = document.getElementById("dragonStartHint");
+  const playingAsEl = document.getElementById("dragonPlayingAs");
 
-  const BEST_KEY = "veloraFlappyDragonBest";
-  let best = Number(localStorage.getItem(BEST_KEY) || 0);
+  // A registered player is remembered on this browser only (no login) — an
+  // id + a per-row secret returned once at registration, used together so
+  // nobody else can update a player they don't hold the key for.
+  const PLAYER_ID_KEY = "veloraGamePlayerId";
+  const PLAYER_EDIT_KEY = "veloraGamePlayerEditKey";
+  const PLAYER_NAME_KEY = "veloraGamePlayerName";
+
+  let playerId = localStorage.getItem(PLAYER_ID_KEY);
+  let playerEditKey = localStorage.getItem(PLAYER_EDIT_KEY);
+  let playerName = localStorage.getItem(PLAYER_NAME_KEY);
+
+  function updatePlayingAsIndicator() {
+    if (!playingAsEl) return;
+    playingAsEl.textContent = playerName
+      ? `Playing as ${playerName}.`
+      : "Beat your own score to join the leaderboard.";
+  }
+  updatePlayingAsIndicator();
+
+  let best = 0; // shown in the HUD immediately; replaced with the real value below if registered
   if (bestEl) bestEl.textContent = best;
+
+  async function loadOwnBest() {
+    if (!playerId) return;
+    const { data } = await veloraSupabase.from("game_players").select("best_score").eq("id", playerId).single();
+    if (data) {
+      best = data.best_score;
+      if (bestEl) bestEl.textContent = best;
+    }
+  }
 
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, distanceSinceSpawn, score, lastScoredIndex;
   let lastTime = null;
-  let lastScoreRowId = null;
 
   function resetGame() {
     dragonY = HEIGHT / 2;
@@ -54,10 +84,8 @@
     pylons.push({ x: WIDTH + PYLON_WIDTH, gapCenter, scored: false });
   }
 
-  // Spacebar is the only control needed to play, so the score always saves
-  // itself the moment the run ends — nothing blocks a restart. The name field
-  // is a non-blocking, optional extra: type a name any time before the next
-  // flap and it updates the score you just set.
+  // Spacebar is the only control needed to play — restarting after a crash
+  // never waits on the registration form, so it's never a hard blocker.
   function flap() {
     if (state === "start") {
       state = "playing";
@@ -77,24 +105,30 @@
 
   async function endGame() {
     state = "gameover";
-    if (score > best) {
+    const beatOwnBest = score > best;
+    if (beatOwnBest) {
       best = score;
-      localStorage.setItem(BEST_KEY, String(best));
       if (bestEl) bestEl.textContent = best;
     }
-    showOverlay(
-      "gameover",
-      "Crashed!",
-      `Score: <strong>${score}</strong> · Best: <strong>${best}</strong> — saved to this month's leaderboard as Anonymous.`
-    );
 
-    lastScoreRowId = null;
-    try {
-      const { data } = await veloraSupabase.from("game_scores").insert({ score }).select().single();
-      lastScoreRowId = data?.id ?? null;
-      await loadLeaderboard();
-    } catch (err) {
-      // Leaderboard being unreachable shouldn't block replaying.
+    if (playerId && playerEditKey) {
+      if (beatOwnBest) {
+        showOverlay("gameover", "New Best!", `Score: <strong>${score}</strong> — that's a new personal best, ${escapeHtml(playerName || "")}!`);
+        try {
+          await veloraSupabase
+            .from("game_players")
+            .update({ best_score: score, updated_at: new Date().toISOString() })
+            .eq("id", playerId)
+            .eq("edit_key", playerEditKey);
+          await loadLeaderboard();
+        } catch (err) {
+          // Leaderboard being unreachable shouldn't block replaying.
+        }
+      } else {
+        showOverlay("gameover", "Crashed!", `Score: <strong>${score}</strong> · Your best: <strong>${best}</strong>`);
+      }
+    } else {
+      showOverlay("gameover", "Crashed!", `Score: <strong>${score}</strong>. Join the leaderboard with this run?`);
     }
   }
 
@@ -103,7 +137,7 @@
     overlay.hidden = false;
     if (overlayTitle) overlayTitle.textContent = title;
     if (overlayBody) overlayBody.innerHTML = bodyHtml;
-    if (nameForm) nameForm.hidden = mode !== "gameover";
+    if (registerForm) registerForm.hidden = !(mode === "gameover" && !playerId);
     if (startHint) startHint.hidden = mode !== "start";
   }
 
@@ -111,23 +145,59 @@
     if (overlay) overlay.hidden = true;
   }
 
-  nameForm?.addEventListener("submit", async (e) => {
+  avatarInput?.addEventListener("change", () => {
+    const file = avatarInput.files?.[0];
+    if (avatarLabelText) avatarLabelText.textContent = file ? `✓ ${file.name.slice(0, 16)}` : "+ Photo";
+    if (avatarLabel) avatarLabel.classList.toggle("has-file", !!file);
+  });
+
+  registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = (nameInput.value || "").trim().slice(0, 24);
-    if (!name || !lastScoreRowId) return;
-    const submitBtn = nameForm.querySelector("button");
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Saving…"; }
+    if (!name) return;
+    const submitBtn = registerForm.querySelector("button[type='submit']");
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Joining…"; }
 
     try {
-      await veloraSupabase.from("game_scores").update({ player_name: name }).eq("id", lastScoreRowId);
-      await loadLeaderboard();
-      if (overlayBody) {
-        overlayBody.innerHTML = `Score: <strong>${score}</strong> · Best: <strong>${best}</strong> — saved as ${escapeHtml(name)}.`;
+      let avatarUrl = null;
+      const file = avatarInput?.files?.[0];
+      if (file) {
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await veloraSupabase.storage.from("avatars").upload(path, file);
+        if (!uploadError) {
+          const { data: pub } = veloraSupabase.storage.from("avatars").getPublicUrl(path);
+          avatarUrl = pub?.publicUrl || null;
+        }
       }
+
+      const { data, error } = await veloraSupabase
+        .from("game_players")
+        .insert({ display_name: name, avatar_url: avatarUrl, best_score: score })
+        .select()
+        .single();
+      if (error || !data) throw error || new Error("No data returned");
+
+      playerId = data.id;
+      playerEditKey = data.edit_key;
+      playerName = data.display_name;
+      localStorage.setItem(PLAYER_ID_KEY, playerId);
+      localStorage.setItem(PLAYER_EDIT_KEY, playerEditKey);
+      localStorage.setItem(PLAYER_NAME_KEY, playerName);
+      updatePlayingAsIndicator();
+
+      registerForm.hidden = true;
+      if (overlayBody) {
+        overlayBody.innerHTML = `Score: <strong>${score}</strong> — you're on the board as ${escapeHtml(playerName)}!`;
+      }
+      await loadLeaderboard();
     } catch (err) {
-      // Non-critical — the anonymous entry is already on the board.
+      if (overlayBody) {
+        overlayBody.innerHTML += ` <span style="color:#f87171;">Couldn't join the leaderboard — try again.</span>`;
+      }
     }
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Save Name"; }
+
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Join Leaderboard"; }
   });
 
   document.addEventListener("keydown", (e) => {
@@ -375,40 +445,38 @@
 
   async function loadLeaderboard() {
     const listEl = document.getElementById("dragonLeaderboardList");
-    const monthEl = document.getElementById("dragonLeaderboardMonth");
     if (!listEl) return;
-    if (monthEl) monthEl.textContent = new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" });
-
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
 
     const { data, error } = await veloraSupabase
-      .from("game_scores")
-      .select("player_name, score, created_at")
-      .gte("created_at", startOfMonth.toISOString())
-      .order("score", { ascending: false })
+      .from("game_players")
+      .select("id, display_name, avatar_url, best_score")
+      .order("best_score", { ascending: false })
       .limit(10);
 
     if (error || !data || !data.length) {
-      listEl.innerHTML = `<p class="dev-empty">No scores yet this month — be the first.</p>`;
+      listEl.innerHTML = `<p class="dev-empty">No players yet — be the first to join.</p>`;
       return;
     }
 
     listEl.innerHTML = data
-      .map(
-        (row, i) => `
+      .map((row, i) => {
+        const avatarHtml = row.avatar_url
+          ? `<img class="leaderboard-avatar" src="${escapeHtml(row.avatar_url)}" alt="" loading="lazy" />`
+          : `<span class="leaderboard-avatar-placeholder">${escapeHtml((row.display_name || "?").charAt(0).toUpperCase())}</span>`;
+        return `
       <div class="leaderboard-row">
         <span class="leaderboard-rank">#${i + 1}</span>
-        <span class="leaderboard-name">${escapeHtml(row.player_name)}</span>
-        <span class="leaderboard-score">${row.score}</span>
-      </div>`
-      )
+        ${avatarHtml}
+        <span class="leaderboard-name">${escapeHtml(row.display_name)}</span>
+        <span class="leaderboard-score">${row.best_score}</span>
+      </div>`;
+      })
       .join("");
   }
 
   resetGame();
   render();
   showOverlay("start", "Flappy Dragon", "Keep the dragon airborne through the castle pylons.");
+  loadOwnBest();
   loadLeaderboard();
 })();

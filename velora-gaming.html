@@ -77,8 +77,8 @@
 
         <div class="dragon-game-layout">
           <div class="dragon-leaderboard">
-            <h3 class="dashboard-section-title">Leaderboard — <span id="dragonLeaderboardMonth"></span></h3>
-            <p class="form-hint" style="margin-bottom: 16px;">Resets fresh every month. Top 10 shown.</p>
+            <h3 class="dashboard-section-title">Top 10</h3>
+            <p class="form-hint" id="dragonPlayingAs" style="margin-bottom: 16px;">Beat your own score to move up the board.</p>
             <div id="dragonLeaderboardList"><p class="dev-empty">Loading…</p></div>
           </div>
 
@@ -88,9 +88,13 @@
               <h3 id="dragonOverlayTitle">Flappy Dragon</h3>
               <p id="dragonOverlayBody">Keep the dragon airborne through the castle pylons.</p>
               <p class="dragon-start-hint" id="dragonStartHint">Space, click, or tap to start</p>
-              <form id="dragonNameForm" class="dragon-name-form" hidden>
-                <input type="text" id="dragonNameInput" placeholder="Your name (optional)" maxlength="24" autocomplete="off" />
-                <button type="submit" class="btn btn-ghost btn-small-inline">Save Name</button>
+              <form id="dragonRegisterForm" class="dragon-name-form" hidden>
+                <input type="text" id="dragonNameInput" placeholder="Your name" maxlength="24" autocomplete="off" required />
+                <label class="dragon-avatar-upload" id="dragonAvatarLabel">
+                  <span id="dragonAvatarLabelText">+ Photo</span>
+                  <input type="file" id="dragonAvatarInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+                </label>
+                <button type="submit" class="btn btn-primary btn-small-inline">Join Leaderboard</button>
               </form>
             </div>
             <div class="dragon-hud">
