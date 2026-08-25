@@ -2232,6 +2232,21 @@ body.custom-cursor-active button {
   white-space: nowrap;
 }
 
+.leaderboard-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.leaderboard-level {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
 .leaderboard-score {
   font-weight: 700;
   color: var(--text);

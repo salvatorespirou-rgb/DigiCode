@@ -12,7 +12,10 @@
   const FLAP_VELOCITY = -440; // px/s
   const MAX_FALL_SPEED = 720; // px/s
   const PYLON_SPEED = 190; // px/s
-  const PYLON_GAP = 185; // px, vertical gap the dragon flies through
+  const PYLON_GAP = 185; // px, vertical gap the dragon flies through — base value at level 1
+  const PYLON_GAP_MIN = 138; // floor so late levels stay flyable
+  const PYLON_MARGIN = 60; // px, how close a gap can sit to the very top/bottom — base value at level 1
+  const PYLON_MARGIN_MIN = 32;
   const PYLON_WIDTH = 76;
   const PYLON_SPACING = 260; // horizontal distance between pylon pairs
   const DRAGON_X = WIDTH * 0.28;
@@ -20,9 +23,108 @@
   const GROUND_HEIGHT = 34;
   const COIN_RADIUS = 12;
   const COIN_VALUE = 5; // bonus on top of the +1 per pylon passed
+  const LEVEL_SCORE_STEP = 50; // score needed per level
+
+  // Each level cycles through these skies; a couple of them also reskin the
+  // dragon so the "world" feels like it's actually progressing, not just a
+  // number going up. Body/wing/glow colors are the only things that change —
+  // the dragon's silhouette stays recognizable at every level.
+  const SKY_THEMES = [
+    {
+      name: "Sunset",
+      sky: ["#3d2c5e", "#d8617a", "#f2915a", "#ffc884"],
+      skyStops: [0, 0.45, 0.75, 1],
+      orbColor: "#fff1cf",
+      orbGlowRGB: "255, 225, 170",
+      decoration: null,
+      dragon: null,
+    },
+    {
+      name: "Twilight",
+      sky: ["#1b1035", "#3a1f68", "#7c3aa0", "#c15fae"],
+      skyStops: [0, 0.4, 0.7, 1],
+      orbColor: "#f4e6ff",
+      orbGlowRGB: "220, 190, 255",
+      decoration: null,
+      dragon: null,
+    },
+    {
+      name: "Midnight",
+      sky: ["#050814", "#0d1533", "#141d40", "#1c2650"],
+      skyStops: [0, 0.5, 0.8, 1],
+      orbColor: "#e8f0ff",
+      orbGlowRGB: "180, 210, 255",
+      decoration: "stars",
+      dragon: {
+        body: ["#8f86c9", "#2e2650"],
+        snout: "#2e2650",
+        horn: "#151030",
+        wing: "#4a3d7a",
+        glowRGB: "120, 140, 255",
+        glowAlpha: 0.45,
+        eyeIris: "#5be8ff",
+      },
+    },
+    {
+      name: "Dawn",
+      sky: ["#2b2140", "#8a4a6b", "#f2a65a", "#fde3b0"],
+      skyStops: [0, 0.35, 0.7, 1],
+      orbColor: "#fff6df",
+      orbGlowRGB: "255, 230, 190",
+      decoration: null,
+      dragon: null,
+    },
+    {
+      name: "Inferno",
+      sky: ["#1a0805", "#4a0f0a", "#b3320f", "#ff7a1a"],
+      skyStops: [0, 0.4, 0.75, 1],
+      orbColor: "#ffdca0",
+      orbGlowRGB: "255, 140, 60",
+      decoration: "embers",
+      dragon: {
+        body: ["#fff3b0", "#c81d11"],
+        snout: "#c81d11",
+        horn: "#5c0a05",
+        wing: "#e8420f",
+        glowRGB: "255, 90, 30",
+        glowAlpha: 0.55,
+        eyeIris: "#2a1810",
+      },
+    },
+  ];
+  const DEFAULT_DRAGON_SKIN = {
+    body: ["#ffb26b", "#e0522f"],
+    snout: "#e0522f",
+    horn: "#7a2e1c",
+    wing: "#e05a3a",
+    glowRGB: "255, 140, 80",
+    glowAlpha: 0.35,
+    eyeIris: "#2a1810",
+  };
+
+  // Fixed positions computed once, not re-randomized per frame, so the sky
+  // decoration doesn't visibly "swim" between frames.
+  const STAR_FIELD = Array.from({ length: 40 }, (_, i) => ({
+    x: (i * 53.7) % WIDTH,
+    y: 20 + ((i * 97.3) % (HEIGHT - GROUND_HEIGHT - 100)),
+    r: 0.6 + ((i * 31) % 10) / 10 * 1.1,
+    phase: i * 0.7,
+  }));
+  const EMBER_FIELD = Array.from({ length: 24 }, (_, i) => ({
+    x: (i * 71.3) % WIDTH,
+    phase: i * 0.9,
+  }));
+
+  function levelForScore(s) {
+    return Math.floor(s / LEVEL_SCORE_STEP) + 1;
+  }
+  function themeForLevel(lvl) {
+    return SKY_THEMES[(lvl - 1) % SKY_THEMES.length];
+  }
 
   const scoreEl = document.getElementById("dragonScore");
   const bestEl = document.getElementById("dragonBest");
+  const levelEl = document.getElementById("dragonLevel");
   const overlay = document.getElementById("dragonOverlay");
   const overlayTitle = document.getElementById("dragonOverlayTitle");
   const overlayBody = document.getElementById("dragonOverlayBody");
@@ -67,6 +169,7 @@
 
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
+  let level, currentTheme;
   let lastTime = null;
 
   function resetGame() {
@@ -78,17 +181,32 @@
     distanceSinceSpawn = PYLON_SPACING; // spawn one immediately
     score = 0;
     lastScoredIndex = -1;
+    level = 1;
+    currentTheme = themeForLevel(level);
     if (scoreEl) scoreEl.textContent = "0";
+    if (levelEl) levelEl.textContent = String(level);
+  }
+
+  // Levels get a little harder as the score climbs: the gap narrows and can
+  // sit closer to the very top or bottom of the screen, so the extreme-height
+  // obstacles that were easy early on actually demand precision later.
+  function updateLevel() {
+    const newLevel = levelForScore(score);
+    if (newLevel === level) return;
+    level = newLevel;
+    currentTheme = themeForLevel(level);
+    if (levelEl) levelEl.textContent = String(level);
   }
 
   // A coin sits at the centre of each pylon's gap — collecting one rewards
   // flying the accurate line through the middle, and it can never overlap
   // the stonework since it's placed inside the open gap by construction.
   function spawnPylon() {
-    const margin = 60;
-    const gapCenter = margin + PYLON_GAP / 2 + Math.random() * (HEIGHT - GROUND_HEIGHT - margin * 2 - PYLON_GAP);
+    const gap = Math.max(PYLON_GAP_MIN, PYLON_GAP - (level - 1) * 4);
+    const margin = Math.max(PYLON_MARGIN_MIN, PYLON_MARGIN - (level - 1) * 2);
+    const gapCenter = margin + gap / 2 + Math.random() * (HEIGHT - GROUND_HEIGHT - margin * 2 - gap);
     const pylonX = WIDTH + PYLON_WIDTH;
-    pylons.push({ x: pylonX, gapCenter, scored: false });
+    pylons.push({ x: pylonX, gapCenter, gap, scored: false });
     coins.push({ x: pylonX + PYLON_WIDTH / 2, y: gapCenter, collected: false });
   }
 
@@ -326,6 +444,7 @@
         p.scored = true;
         score++;
         if (scoreEl) scoreEl.textContent = String(score);
+        updateLevel();
       }
     }
     pylons = pylons.filter((p) => p.x > -PYLON_WIDTH);
@@ -340,6 +459,7 @@
           score += COIN_VALUE;
           if (scoreEl) scoreEl.textContent = String(score);
           playCoinSound();
+          updateLevel();
         }
       }
     }
@@ -358,8 +478,8 @@
     for (const p of pylons) {
       const withinX = DRAGON_X + DRAGON_RADIUS > p.x && DRAGON_X - DRAGON_RADIUS < p.x + PYLON_WIDTH;
       if (!withinX) continue;
-      const gapTop = p.gapCenter - PYLON_GAP / 2;
-      const gapBottom = p.gapCenter + PYLON_GAP / 2;
+      const gapTop = p.gapCenter - p.gap / 2;
+      const gapBottom = p.gapCenter + p.gap / 2;
       if (dragonY - DRAGON_RADIUS < gapTop || dragonY + DRAGON_RADIUS > gapBottom) {
         endGame();
         return;
@@ -367,26 +487,56 @@
     }
   }
 
+  function drawDecoration(theme) {
+    const now = performance.now();
+    if (theme.decoration === "stars") {
+      ctx.save();
+      for (const s of STAR_FIELD) {
+        const twinkle = 0.5 + 0.5 * Math.sin(now / 500 + s.phase);
+        ctx.globalAlpha = 0.3 + twinkle * 0.7;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    } else if (theme.decoration === "embers") {
+      ctx.save();
+      const topY = HEIGHT - GROUND_HEIGHT;
+      for (const e of EMBER_FIELD) {
+        const rise = (now / 1000 * 22 + e.phase * 30) % topY;
+        const y = topY - rise;
+        const flicker = 0.4 + 0.6 * Math.sin(now / 300 + e.phase);
+        ctx.globalAlpha = flicker;
+        ctx.fillStyle = "#ff8a3d";
+        ctx.beginPath();
+        ctx.arc(e.x, y, 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
   function drawBackground() {
+    const theme = currentTheme || SKY_THEMES[0];
     const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    sky.addColorStop(0, "#3d2c5e");
-    sky.addColorStop(0.45, "#d8617a");
-    sky.addColorStop(0.75, "#f2915a");
-    sky.addColorStop(1, "#ffc884");
+    theme.sky.forEach((color, i) => sky.addColorStop(theme.skyStops[i], color));
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    // Sun.
+    // Sun / moon.
     const sunY = HEIGHT * 0.42;
     const sunGlow = ctx.createRadialGradient(WIDTH * 0.7, sunY, 4, WIDTH * 0.7, sunY, 90);
-    sunGlow.addColorStop(0, "rgba(255, 225, 170, 0.9)");
-    sunGlow.addColorStop(1, "rgba(255, 225, 170, 0)");
+    sunGlow.addColorStop(0, `rgba(${theme.orbGlowRGB}, 0.9)`);
+    sunGlow.addColorStop(1, `rgba(${theme.orbGlowRGB}, 0)`);
     ctx.fillStyle = sunGlow;
     ctx.fillRect(WIDTH * 0.7 - 90, sunY - 90, 180, 180);
-    ctx.fillStyle = "#fff1cf";
+    ctx.fillStyle = theme.orbColor;
     ctx.beginPath();
     ctx.arc(WIDTH * 0.7, sunY, 34, 0, Math.PI * 2);
     ctx.fill();
+
+    drawDecoration(theme);
 
     // Distant castle silhouette.
     ctx.fillStyle = "rgba(58, 30, 46, 0.55)";
@@ -406,8 +556,8 @@
   }
 
   function drawPylon(p) {
-    const gapTop = p.gapCenter - PYLON_GAP / 2;
-    const gapBottom = p.gapCenter + PYLON_GAP / 2;
+    const gapTop = p.gapCenter - p.gap / 2;
+    const gapBottom = p.gapCenter + p.gap / 2;
     const stone = ctx.createLinearGradient(p.x, 0, p.x + PYLON_WIDTH, 0);
     stone.addColorStop(0, "#6b6459");
     stone.addColorStop(0.5, "#8c8375");
@@ -456,6 +606,7 @@
   // A simple, clearly-flapping dragon: one wing that swings on a hinge at the
   // shoulder (a real rotation, not just a wobble) so the flap always reads.
   function drawDragon() {
+    const skin = (currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN;
     ctx.save();
     ctx.translate(DRAGON_X, dragonY);
     const tilt = Math.max(-0.35, Math.min(0.8, dragonVY / 650));
@@ -468,7 +619,7 @@
     ctx.save();
     ctx.translate(-6, -2);
     ctx.rotate(wingAngle);
-    ctx.fillStyle = "#e05a3a";
+    ctx.fillStyle = skin.wing;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.quadraticCurveTo(-4, -18, -18, -22);
@@ -479,15 +630,15 @@
 
     // Body.
     const bodyGrad = ctx.createRadialGradient(-4, -5, 2, 0, 0, DRAGON_RADIUS);
-    bodyGrad.addColorStop(0, "#ffb26b");
-    bodyGrad.addColorStop(1, "#e0522f");
+    bodyGrad.addColorStop(0, skin.body[0]);
+    bodyGrad.addColorStop(1, skin.body[1]);
     ctx.fillStyle = bodyGrad;
     ctx.beginPath();
     ctx.ellipse(0, 0, DRAGON_RADIUS, DRAGON_RADIUS * 0.82, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Snout.
-    ctx.fillStyle = "#e0522f";
+    ctx.fillStyle = skin.snout;
     ctx.beginPath();
     ctx.moveTo(DRAGON_RADIUS - 5, -3);
     ctx.lineTo(DRAGON_RADIUS + 11, 0);
@@ -496,7 +647,7 @@
     ctx.fill();
 
     // Single small horn.
-    ctx.fillStyle = "#7a2e1c";
+    ctx.fillStyle = skin.horn;
     ctx.beginPath();
     ctx.moveTo(0, -DRAGON_RADIUS + 3);
     ctx.lineTo(4, -DRAGON_RADIUS - 9);
@@ -509,7 +660,7 @@
     ctx.beginPath();
     ctx.arc(7, -5, 4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#2a1810";
+    ctx.fillStyle = skin.eyeIris;
     ctx.beginPath();
     ctx.arc(8.5, -5, 2, 0, Math.PI * 2);
     ctx.fill();
@@ -520,8 +671,8 @@
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     const glow = ctx.createRadialGradient(DRAGON_X, dragonY, 2, DRAGON_X, dragonY, DRAGON_RADIUS * 2.2);
-    glow.addColorStop(0, "rgba(255, 140, 80, 0.35)");
-    glow.addColorStop(1, "rgba(255, 140, 80, 0)");
+    glow.addColorStop(0, `rgba(${skin.glowRGB}, ${skin.glowAlpha})`);
+    glow.addColorStop(1, `rgba(${skin.glowRGB}, 0)`);
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(DRAGON_X, dragonY, DRAGON_RADIUS * 2.2, 0, Math.PI * 2);
@@ -606,7 +757,10 @@
         <span class="leaderboard-rank">#${i + 1}</span>
         ${avatarHtml}
         <span class="leaderboard-name">${escapeHtml(row.display_name)}</span>
-        <span class="leaderboard-score">${row.best_score}</span>
+        <span class="leaderboard-meta">
+          <span class="leaderboard-level">Lv ${levelForScore(row.best_score)}</span>
+          <span class="leaderboard-score">${row.best_score}</span>
+        </span>
       </div>`;
       })
       .join("");
