@@ -234,6 +234,7 @@
   const storeGrid = document.getElementById("dragonStoreGrid");
   const storeCoinAmountEl = document.getElementById("dragonStoreCoinAmount");
   const storeSubEl = document.getElementById("dragonStoreSub");
+  const authStatusEl = document.getElementById("dragonAuthStatus");
 
   // A registered player is remembered on this browser only (no login) — an
   // id + a per-row secret returned once at registration, used together so
@@ -297,6 +298,92 @@
       equippedDragonId = data.equipped_dragon || null;
     }
     updateCoinDisplays();
+  }
+
+  // Real accounts, reusing the portal's email one-time-code sign-in — no
+  // password to strengthen or reset, since a fresh code is always one
+  // email away. Signing in on a second device with the same email resolves
+  // to the same game_players row (via user_id), so the profile — score,
+  // coins, dragons — just follows the player instead of starting over.
+  let authUser = null;
+
+  function adoptProfile(row) {
+    playerId = row.id;
+    playerEditKey = row.edit_key;
+    playerName = row.display_name;
+    localStorage.setItem(PLAYER_ID_KEY, playerId);
+    localStorage.setItem(PLAYER_EDIT_KEY, playerEditKey);
+    localStorage.setItem(PLAYER_NAME_KEY, playerName);
+    best = row.best_score || 0;
+    if (bestEl) bestEl.textContent = best;
+    walletCoins = row.coins || 0;
+    ownedDragons = row.owned_dragons || [];
+    equippedDragonId = row.equipped_dragon || null;
+    updatePlayingAsIndicator();
+    updateCoinDisplays();
+  }
+
+  async function linkOrLoadAccountProfile() {
+    const { data: linked } = await veloraSupabase
+      .from("game_players")
+      .select("*")
+      .eq("user_id", authUser.id)
+      .maybeSingle();
+    if (linked) {
+      adoptProfile(linked);
+      return;
+    }
+    // No profile linked to this account yet. If this browser already has
+    // an anonymous one (guest play before signing in), claim it so nothing
+    // is lost — otherwise they'll get a linked profile the next time they
+    // register a name, same as any new player.
+    if (playerId && playerEditKey) {
+      const { data: claimed, error } = await veloraSupabase
+        .from("game_players")
+        .update({ user_id: authUser.id })
+        .eq("id", playerId)
+        .eq("edit_key", playerEditKey)
+        .select()
+        .single();
+      if (!error && claimed) adoptProfile(claimed);
+    }
+  }
+
+  function updateAuthUI() {
+    if (!authStatusEl) return;
+    if (authUser) {
+      authStatusEl.innerHTML = `Synced as <strong>${escapeHtml(authUser.email)}</strong> · <button type="button" id="dragonSignOutBtn" class="dragon-auth-link">Sign out</button>`;
+      document.getElementById("dragonSignOutBtn")?.addEventListener("click", async () => {
+        await veloraSupabase.auth.signOut();
+        window.location.reload();
+      });
+    } else {
+      authStatusEl.innerHTML = `<a href="#" id="dragonSignInLink" class="dragon-auth-link">Sign in to sync across devices</a>`;
+      document.getElementById("dragonSignInLink")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        sessionStorage.setItem("veloraAuthRedirect", "velora-gaming.html");
+        window.location.href = "signin.html";
+      });
+    }
+  }
+
+  async function initAuth() {
+    try {
+      const {
+        data: { session },
+      } = await veloraSupabase.auth.getSession();
+      authUser = session?.user || null;
+    } catch (err) {
+      authUser = null;
+    }
+    if (authUser) {
+      try {
+        await linkOrLoadAccountProfile();
+      } catch (err) {
+        // A failed link shouldn't block anonymous play from working.
+      }
+    }
+    updateAuthUI();
   }
 
   // What the dragon actually looks/sounds like right now — the equipped
@@ -703,9 +790,11 @@
         }
       }
 
+      const insertPayload = { display_name: name, avatar_url: avatarUrl, best_score: score };
+      if (authUser) insertPayload.user_id = authUser.id;
       const { data, error } = await veloraSupabase
         .from("game_players")
-        .insert({ display_name: name, avatar_url: avatarUrl, best_score: score })
+        .insert(insertPayload)
         .select()
         .single();
       if (error || !data) throw error || new Error("No data returned");
@@ -1705,7 +1794,13 @@
   resetGame();
   render();
   showOverlay("start", "Flappy Dragon", "Keep the dragon airborne through the castle pylons.");
-  loadOwnBest();
-  loadWallet();
-  loadLeaderboard();
+  // initAuth runs first and, when it finds a linked account, updates
+  // playerId/playerEditKey itself — awaiting it here avoids loadOwnBest/
+  // loadWallet racing it and briefly loading the wrong (or no) profile.
+  (async () => {
+    await initAuth();
+    loadOwnBest();
+    loadWallet();
+    loadLeaderboard();
+  })();
 })();

@@ -618,7 +618,11 @@ if (verifyCodeForm) {
     }
 
     sessionStorage.removeItem("veloraPendingEmail");
-    window.location.href = "portal.html";
+    // Signing in from the game (to sync a profile across devices) sends
+    // the player back there instead of the portal.
+    const redirect = sessionStorage.getItem("veloraAuthRedirect") || "portal.html";
+    sessionStorage.removeItem("veloraAuthRedirect");
+    window.location.href = redirect;
   });
 
   document.getElementById("resendCodeBtn")?.addEventListener("click", async () => {
