@@ -583,6 +583,12 @@
       hideOverlay();
       resetGame();
       lastTime = null;
+      // Warm up the AudioContext on this very first tap even though it's
+      // silent here — mobile browsers reliably unlock audio only on a
+      // gesture that actually touches the Web Audio API, and without this
+      // an early coin pickup (before the player's next real flap) could
+      // stay silent on iOS.
+      try { getAudioCtx(); } catch (err) {}
       requestAnimationFrame(loop);
       return;
     }
