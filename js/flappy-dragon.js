@@ -560,6 +560,18 @@
     return null;
   }
 
+  // Epic/Legendary/Cosmic dragons can smash straight through a pylon
+  // instead of dying to it — a set number of times per run, by rarity.
+  // Below Epic gets 0, i.e. exactly today's normal instant-crash behavior.
+  const PYLON_BREAK_CHARGES = { Epic: 2, Legendary: 4, Cosmic: 6 };
+  function getMaxPylonBreaks() {
+    if (equippedDragonId) {
+      const dragon = findDragon(equippedDragonId);
+      if (dragon) return PYLON_BREAK_CHARGES[dragon.rarity] || 0;
+    }
+    return 0;
+  }
+
   // Level events — one-time set pieces the first time a run reaches
   // certain levels. Every one opens the same way (pylons shake, then the
   // top half lifts into the ceiling and the bottom half sinks into the
@@ -587,6 +599,10 @@
   // needs no timer of its own to clean up.
   let restartLockedUntil = 0;
   const DEFAULT_CRASH_LOCK_MS = 350; // no dragon-specific crash sound to wait out
+  let pylonBreaksLeft = 0; // this run's remaining smash-throughs, set from getMaxPylonBreaks()
+  let pylonDebris = []; // falling stone chunks from a broken pylon
+  let impactShakeTimer = 0; // seconds left on the quick jolt from a break
+  const IMPACT_SHAKE_DURATION = 0.25;
 
   function resetGame() {
     dragonY = HEIGHT / 2;
@@ -594,6 +610,9 @@
     wingPhase = 0;
     pylons = [];
     coins = [];
+    pylonDebris = [];
+    impactShakeTimer = 0;
+    pylonBreaksLeft = getMaxPylonBreaks();
     distanceSinceSpawn = PYLON_SPACING; // spawn one immediately
     score = 0;
     lastScoredIndex = -1;
@@ -680,6 +699,43 @@
     const pylonX = WIDTH + PYLON_WIDTH;
     pylons.push({ x: pylonX, gapCenter, gap, scored: false });
     coins.push({ x: pylonX + PYLON_WIDTH / 2, y: gapCenter, collected: false });
+  }
+
+  // A burst of falling stone chunks where a pylon just got smashed through —
+  // the pylon itself stops being drawn/solid the instant it breaks (see
+  // p.broken in drawPylon/update), so this debris is the entire "it broke"
+  // read. Reuses PYLON_BRICK_PATTERN as each chunk's fill, so every piece
+  // still looks like a piece of the same brickwork with zero new assets.
+  function spawnPylonDebris(p) {
+    const gapTop = p.gapCenter - p.gap / 2;
+    const gapBottom = p.gapCenter + p.gap / 2;
+    for (let i = 0; i < 16; i++) {
+      const fromTop = i % 2 === 0;
+      pylonDebris.push({
+        x: p.x + Math.random() * PYLON_WIDTH,
+        y: fromTop ? gapTop - Math.random() * 30 : gapBottom + Math.random() * 30,
+        vx: (Math.random() - 0.5) * 160 - PYLON_SPEED * 0.4,
+        vy: -60 - Math.random() * 140,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 9,
+        size: 7 + Math.random() * 9,
+        life: 1,
+      });
+    }
+  }
+
+  // Called on a pylon hit while pylonBreaksLeft > 0 instead of endGame() —
+  // the pylon stops being solid/drawn (see p.broken), the run carries on
+  // uninterrupted, and every sense gets a hit of "that just broke": debris,
+  // a screen jolt, a thud, and the same squash-pop the dragon gets on a
+  // flap so it visibly reacts rather than sailing through untouched.
+  function breakPylon(p) {
+    p.broken = true;
+    pylonBreaksLeft--;
+    spawnPylonDebris(p);
+    impactShakeTimer = IMPACT_SHAKE_DURATION;
+    flapPulse = 1;
+    playPylonBreakSound();
   }
 
   // Synthesized 8-bit-style effects (no audio files to download — an
@@ -831,6 +887,29 @@
       g.connect(masterGain);
       osc.start(t);
       osc.stop(t + 0.32);
+    } catch (err) {}
+  }
+
+  // A quick, punchy thud-and-scatter for a pylon smashing apart — short and
+  // percussive on purpose, so it reads as "impact, keep flying" rather than
+  // playExplosionSound()'s longer, final-sounding death sweep.
+  function playPylonBreakSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(160, t);
+      osc.frequency.exponentialRampToValueAtTime(50, t + 0.12);
+      g.gain.setValueAtTime(0.22, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.14);
+      [1400, 900, 1800, 700].forEach((f, i) => playTone(ctx, f, t + 0.02 + i * 0.025, 0.06, 0.08, "square"));
     } catch (err) {}
   }
 
@@ -1218,6 +1297,16 @@
     }
     trail = trail.filter((p) => p.life > 0);
 
+    for (const d of pylonDebris) {
+      d.vy += 480 * dt; // gravity
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      d.rot += d.vrot * dt;
+      d.life -= dt * 0.6;
+    }
+    pylonDebris = pylonDebris.filter((d) => d.life > 0 && d.y < HEIGHT);
+    if (impactShakeTimer > 0) impactShakeTimer = Math.max(0, impactShakeTimer - dt);
+
     if (!levelEvent.active) {
       distanceSinceSpawn += PYLON_SPEED * dt;
       if (distanceSinceSpawn >= PYLON_SPACING) {
@@ -1268,13 +1357,22 @@
     // a fair loss.
     if (!levelEvent.active) {
       for (const p of pylons) {
+        if (p.broken) continue; // already smashed through — no longer solid
         const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
         if (!withinX) continue;
         const gapTop = p.gapCenter - p.gap / 2;
         const gapBottom = p.gapCenter + p.gap / 2;
         if (dragonY - DRAGON_HIT_RADIUS < gapTop || dragonY + DRAGON_HIT_RADIUS > gapBottom) {
-          endGame();
-          return;
+          // Epic/Legendary/Cosmic dragons smash straight through instead of
+          // dying, for as many hits as pylonBreaksLeft allows this run —
+          // once that runs out, a pylon hit crashes exactly like it always
+          // has for every other dragon.
+          if (pylonBreaksLeft > 0) {
+            breakPylon(p);
+          } else {
+            endGame();
+            return;
+          }
         }
       }
     } else if (levelEvent.type === "jetChase" && levelEvent.phase === "active") {
@@ -1415,6 +1513,7 @@
   }
 
   function drawPylon(p) {
+    if (p.broken) return; // smashed through — the debris burst is the only trace left of it
     let gapTop = p.gapCenter - p.gap / 2;
     let gapBottom = p.gapCenter + p.gap / 2;
     let jitterX = 0;
@@ -1473,6 +1572,26 @@
       ctx.fillStyle = PYLON_BRICK_PATTERN;
       ctx.fillRect(tx, ty, toothWidth, 10);
       ctx.strokeRect(tx + 0.5, ty + 0.5, toothWidth - 1, 9);
+    }
+  }
+
+  // The falling stone chunks a broken pylon leaves behind — same brick
+  // pattern as the towers themselves so each piece still reads as "part of
+  // that wall," just tumbling. Fades out over its short life instead of
+  // popping away, and gets filtered out of the array well before then
+  // anyway (see update()) once it's off the bottom of the screen.
+  function drawPylonDebris() {
+    ctx.strokeStyle = "rgba(40, 30, 25, 0.5)";
+    ctx.lineWidth = 1;
+    for (const d of pylonDebris) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, d.life));
+      ctx.translate(d.x, d.y);
+      ctx.rotate(d.rot);
+      ctx.fillStyle = PYLON_BRICK_PATTERN;
+      ctx.fillRect(-d.size / 2, -d.size / 2, d.size, d.size);
+      ctx.strokeRect(-d.size / 2, -d.size / 2, d.size, d.size);
+      ctx.restore();
     }
   }
 
@@ -1802,6 +1921,11 @@
   // A quick handheld-camera jolt while the pylons shake — makes the buildup
   // read as an "event," not just an obstacle quietly fading out.
   function getScreenShakeOffset() {
+    if (impactShakeTimer > 0) {
+      const intensity = impactShakeTimer / IMPACT_SHAKE_DURATION;
+      const now = performance.now();
+      return { x: Math.sin(now / 25) * 6 * intensity, y: Math.cos(now / 31) * 5 * intensity };
+    }
     if (!levelEvent.active || levelEvent.phase !== "shake") return null;
     const intensity = Math.min(1, levelEvent.timer / 0.15);
     const now = performance.now();
@@ -1943,6 +2067,7 @@
     drawTrail(getActiveSkin());
     for (const c of coins) drawCoin(c);
     for (const p of pylons) drawPylon(p);
+    drawPylonDebris();
     if (levelEvent.type === "jetChase" && levelEvent.phase === "active") {
       for (const m of missiles) drawMissile(m);
       drawJet();
