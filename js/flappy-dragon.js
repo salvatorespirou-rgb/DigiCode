@@ -478,16 +478,32 @@
     const rx = COIN_RADIUS * (0.25 + spin * 0.75);
     ctx.save();
     ctx.translate(c.x, c.y);
+
+    // A dark ring plus a drop shadow so the coin reads against the sunset
+    // sky even where the gold fill is close in hue to the background.
+    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+    ctx.shadowBlur = 6;
+    ctx.fillStyle = "#3a2010";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx + 2.5, COIN_RADIUS + 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+
     const coinGrad = ctx.createRadialGradient(-rx * 0.3, -COIN_RADIUS * 0.3, 1, 0, 0, COIN_RADIUS);
-    coinGrad.addColorStop(0, "#fff3c4");
-    coinGrad.addColorStop(1, "#f0a04b");
+    coinGrad.addColorStop(0, "#fffbe6");
+    coinGrad.addColorStop(0.55, "#ffd54f");
+    coinGrad.addColorStop(1, "#e8a317");
     ctx.fillStyle = coinGrad;
     ctx.beginPath();
     ctx.ellipse(0, 0, rx, COIN_RADIUS, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#c97b1f";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+
+    // Glint highlight so it still pops even fully squashed edge-on.
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.beginPath();
+    ctx.ellipse(-rx * 0.35, -COIN_RADIUS * 0.4, Math.max(1.5, rx * 0.25), COIN_RADIUS * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 
