@@ -8,8 +8,13 @@
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
 
+  // Touch devices get a gentler flap — the same impulse that feels right
+  // with a keyboard tap reads as way too strong from a finger tap on a
+  // small screen.
+  const IS_TOUCH = "ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0;
+
   const GRAVITY = 1500; // px/s^2
-  const FLAP_VELOCITY = -440; // px/s
+  const FLAP_VELOCITY = IS_TOUCH ? -375 : -440; // px/s
   const MAX_FALL_SPEED = 720; // px/s
   const PYLON_SPEED = 190; // px/s
   const PYLON_GAP = 185; // px, vertical gap the dragon flies through — base value at level 1
@@ -19,7 +24,9 @@
   const PYLON_WIDTH = 76;
   const PYLON_SPACING = 260; // horizontal distance between pylon pairs
   const DRAGON_X = WIDTH * 0.28;
-  const DRAGON_RADIUS = 19;
+  const DRAGON_RADIUS = 19; // used for all the body-part math the dragon is drawn with
+  const DRAGON_SCALE = 0.8; // shrinks the whole dragon (and its hitbox) visually
+  const DRAGON_HIT_RADIUS = DRAGON_RADIUS * DRAGON_SCALE;
   const GROUND_HEIGHT = 34;
   const COIN_RADIUS = 12;
   const COIN_VALUE = 5; // bonus on top of the +1 per pylon passed
@@ -460,7 +467,7 @@
 
     for (const p of pylons) {
       p.x -= PYLON_SPEED * dt;
-      if (!p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_RADIUS) {
+      if (!p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
         p.scored = true;
         score++;
         if (scoreEl) scoreEl.textContent = String(score);
@@ -474,7 +481,7 @@
       if (!c.collected) {
         const dx = c.x - DRAGON_X;
         const dy = c.y - dragonY;
-        if (Math.sqrt(dx * dx + dy * dy) < COIN_RADIUS + DRAGON_RADIUS) {
+        if (Math.sqrt(dx * dx + dy * dy) < COIN_RADIUS + DRAGON_HIT_RADIUS) {
           c.collected = true;
           score += COIN_VALUE;
           if (scoreEl) scoreEl.textContent = String(score);
@@ -485,22 +492,22 @@
     }
     coins = coins.filter((c) => !c.collected && c.x > -COIN_RADIUS);
 
-    if (dragonY - DRAGON_RADIUS < 0) {
-      dragonY = DRAGON_RADIUS;
+    if (dragonY - DRAGON_HIT_RADIUS < 0) {
+      dragonY = DRAGON_HIT_RADIUS;
       dragonVY = 0;
     }
-    if (dragonY + DRAGON_RADIUS > HEIGHT - GROUND_HEIGHT) {
-      dragonY = HEIGHT - GROUND_HEIGHT - DRAGON_RADIUS;
+    if (dragonY + DRAGON_HIT_RADIUS > HEIGHT - GROUND_HEIGHT) {
+      dragonY = HEIGHT - GROUND_HEIGHT - DRAGON_HIT_RADIUS;
       endGame();
       return;
     }
 
     for (const p of pylons) {
-      const withinX = DRAGON_X + DRAGON_RADIUS > p.x && DRAGON_X - DRAGON_RADIUS < p.x + PYLON_WIDTH;
+      const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
       if (!withinX) continue;
       const gapTop = p.gapCenter - p.gap / 2;
       const gapBottom = p.gapCenter + p.gap / 2;
-      if (dragonY - DRAGON_RADIUS < gapTop || dragonY + DRAGON_RADIUS > gapBottom) {
+      if (dragonY - DRAGON_HIT_RADIUS < gapTop || dragonY + DRAGON_HIT_RADIUS > gapBottom) {
         endGame();
         return;
       }
@@ -691,12 +698,12 @@
     // linework out into a fuzzy blob.
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    const glow = ctx.createRadialGradient(DRAGON_X, dragonY, 2, DRAGON_X, dragonY, DRAGON_RADIUS * 1.7);
+    const glow = ctx.createRadialGradient(DRAGON_X, dragonY, 2, DRAGON_X, dragonY, DRAGON_HIT_RADIUS * 1.7);
     glow.addColorStop(0, `rgba(${skin.glowRGB}, ${skin.glowAlpha * 0.7})`);
     glow.addColorStop(1, `rgba(${skin.glowRGB}, 0)`);
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(DRAGON_X, dragonY, DRAGON_RADIUS * 1.7, 0, Math.PI * 2);
+    ctx.arc(DRAGON_X, dragonY, DRAGON_HIT_RADIUS * 1.7, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -704,6 +711,7 @@
     ctx.translate(DRAGON_X, dragonY);
     const tilt = Math.max(-0.35, Math.min(0.8, dragonVY / 650));
     ctx.rotate(tilt);
+    ctx.scale(DRAGON_SCALE, DRAGON_SCALE); // shrinks the whole dragon uniformly
 
     // Serpentine tail — three tapering segments trailing the head, swaying
     // gently so the body reads as sinuous rather than a round blob.
