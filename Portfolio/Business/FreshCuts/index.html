@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreshCuts Barbershop — Sharp Cuts, Clean Fades</title>
+  <meta name="description" content="FreshCuts Barbershop — precision fades, hot towel shaves, and beard grooming. Walk-ins welcome." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#top" class="logo">Fresh Cuts</a>
+      <nav class="main-nav">
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <ul id="navLinks">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#hours">Hours</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <a href="#contact" class="btn btn-primary header-cta">Book Now</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="top" class="hero" style="background-image: url('assets/images/hero-shave.jpg');">
+      <div class="hero-overlay"></div>
+      <div class="container hero-inner">
+        <p class="eyebrow">Est. Neighborhood Barbershop</p>
+        <h1>Sharp Cuts. Clean Fades.<br/><span class="script">Fresh Starts.</span></h1>
+        <p class="hero-sub">No appointment, no problem. FreshCuts is a walk-in-friendly barbershop built on classic technique, modern style, and a chair that's always warm.</p>
+        <div class="hero-cta-row">
+          <a href="#contact" class="btn btn-primary">Book Your Cut</a>
+          <a href="#services" class="btn btn-outline">View Services</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>FADES</span><span>•</span><span>BEARD TRIMS</span><span>•</span><span>HOT TOWEL SHAVES</span><span>•</span><span>KIDS CUTS</span><span>•</span>
+        <span>FADES</span><span>•</span><span>BEARD TRIMS</span><span>•</span><span>HOT TOWEL SHAVES</span><span>•</span><span>KIDS CUTS</span><span>•</span>
+      </div>
+    </section>
+
+    <section id="services" class="services">
+      <div class="container">
+        <p class="eyebrow center">What We Do</p>
+        <h2 class="section-title center">Services <span class="script">&amp; Pricing</span></h2>
+        <div class="services-grid">
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 24 24" fill="none"><path d="M6 5l12 14M18 5L6 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="5" cy="5" r="2" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="19" r="2" stroke="currentColor" stroke-width="1.6"/></svg>
+            <h3>Classic Haircut</h3>
+            <p>Scissor or clipper cut, tailored to your style, finished with a hot towel neck cleanup.</p>
+            <span class="price">$35</span>
+          </div>
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 24 24" fill="none"><path d="M4 12h16M4 12c0-3 2-5 4-5m-4 5c0 3 2 5 4 5m12-5c0-3-2-5-4-5m4 5c0 3-2 5-4 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <h3>Skin Fade</h3>
+            <p>Precision fade down to the skin, blended clean with your preferred length on top.</p>
+            <span class="price">$40</span>
+          </div>
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 24 24" fill="none"><path d="M6 14c0-5 3-9 6-9s6 4 6 9-3 6-6 6-6-1-6-6z" stroke="currentColor" stroke-width="1.6"/><path d="M9 13c1 1 5 1 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <h3>Beard Trim &amp; Shape</h3>
+            <p>Line-up, shape, and shave-oil finish to keep your beard sharp between grow-outs.</p>
+            <span class="price">$20</span>
+          </div>
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 24 24" fill="none"><rect x="5" y="9" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 9V6a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.6"/></svg>
+            <h3>Hot Towel Shave</h3>
+            <p>A full straight-razor shave with hot towel prep and cold towel finish. The classic.</p>
+            <span class="price">$45</span>
+          </div>
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <h3>Kids Cut</h3>
+            <p>Patient, quick, and painless — for the youngest members of the FreshCuts family.</p>
+            <span class="price">$25</span>
+          </div>
+          <div class="service-card featured">
+            <span class="badge">Most Popular</span>
+            <svg class="service-icon" viewBox="0 0 24 24" fill="none"><path d="M6 5l12 14M18 5L6 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6 14c0-5 3-9 6-9" stroke="currentColor" stroke-width="1.6"/></svg>
+            <h3>Cut + Beard Combo</h3>
+            <p>The full package — haircut, beard shape, and hot towel finish in one sitting.</p>
+            <span class="price">$50</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <div class="container about-inner">
+        <div class="about-text">
+          <p class="eyebrow">Why FreshCuts</p>
+          <h2 class="section-title">Craft, not just <span class="script">a haircut.</span></h2>
+          <p class="about-lead">Every chair at FreshCuts is run by a barber who trained for years to get the details right — the fade line, the taper, the finish. We keep the shop simple: good tools, good product, and enough time to actually do the job properly.</p>
+          <ul class="feature-list">
+            <li><strong>Master Barbers</strong> — years of experience in every chair, not just the owner's.</li>
+            <li><strong>Walk-ins Welcome</strong> — no app, no booking fee, just show up.</li>
+            <li><strong>Premium Products</strong> — pomades, oils, and balms we actually use ourselves.</li>
+            <li><strong>Relaxed Atmosphere</strong> — good music, cold drinks, no rush.</li>
+          </ul>
+        </div>
+        <div class="about-visual">
+          <img src="assets/images/about-barber.jpg" alt="A FreshCuts barber blow-drying a client's hair after a cut" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery" class="gallery">
+      <div class="container">
+        <p class="eyebrow center">The Work</p>
+        <h2 class="section-title center">A Few of Our <span class="script">Favorites</span></h2>
+        <div class="gallery-grid">
+          <a class="gallery-tile" href="assets/images/gallery-scissors.jpg" target="_blank" rel="noopener"><img src="assets/images/gallery-scissors.jpg" alt="Barber cutting a client's hair with scissors" loading="lazy" /><span>The Cut</span></a>
+          <a class="gallery-tile" href="assets/images/gallery-client.jpg" target="_blank" rel="noopener"><img src="assets/images/gallery-client.jpg" alt="Client seated in the barber's chair" loading="lazy" /><span>Fresh In The Chair</span></a>
+          <a class="gallery-tile" href="assets/images/gallery-tools.jpg" target="_blank" rel="noopener"><img src="assets/images/gallery-tools.jpg" alt="Clippers, scissors, and grooming tools" loading="lazy" /><span>The Tools</span></a>
+          <a class="gallery-tile" href="assets/images/gallery-chair.jpg" target="_blank" rel="noopener"><img src="assets/images/gallery-chair.jpg" alt="Barber chair in the shop" loading="lazy" /><span>The Chair</span></a>
+          <a class="gallery-tile" href="assets/images/gallery-interior.jpg" target="_blank" rel="noopener"><img src="assets/images/gallery-interior.jpg" alt="Leather barber chair against a brick wall" loading="lazy" /><span>The Shop</span></a>
+          <a class="gallery-tile" href="assets/images/gallery-lamps.jpg" target="_blank" rel="noopener"><img src="assets/images/gallery-lamps.jpg" alt="Shop interior with pendant lighting" loading="lazy" /><span>The Atmosphere</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials">
+      <div class="container">
+        <p class="eyebrow center">Regulars Say</p>
+        <h2 class="section-title center">Word on the <span class="script">Street</span></h2>
+        <div class="testimonial-grid">
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p>"Been chasing a good fade for years. Found it here. Booked in every three weeks now."</p>
+            <span class="testimonial-name">— Marcus T.</span>
+          </div>
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p>"The hot towel shave alone is worth the trip. Whole place just feels right."</p>
+            <span class="testimonial-name">— Daniel R.</span>
+          </div>
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p>"Took my son for his first real haircut and they were so patient with him. Regulars for life."</p>
+            <span class="testimonial-name">— Priya S.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hours" class="hours">
+      <div class="container hours-inner">
+        <div class="hours-card">
+          <p class="eyebrow">Open Hours</p>
+          <h2 class="section-title">When to <span class="script">Find Us</span></h2>
+          <ul class="hours-list">
+            <li><span>Monday</span><span>Closed</span></li>
+            <li><span>Tuesday – Friday</span><span>9:00am – 7:00pm</span></li>
+            <li><span>Saturday</span><span>8:00am – 5:00pm</span></li>
+            <li><span>Sunday</span><span>10:00am – 3:00pm</span></li>
+          </ul>
+          <p class="hours-note">Walk-ins welcome all week. Last cut starts 30 minutes before close.</p>
+        </div>
+        <div class="location-card">
+          <p class="eyebrow">Find Us</p>
+          <h2 class="section-title">Come Say <span class="script">Hi</span></h2>
+          <p class="location-address">128 Main Street<br/>Riverside, CA 92501</p>
+          <p class="location-phone">(555) 019-4482</p>
+          <div class="map-placeholder" aria-hidden="true">
+            <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+              <rect width="200" height="120" fill="#0d0d0d"/>
+              <path d="M0 40h200M0 80h200M50 0v120M140 0v120" stroke="#2a2a2a" stroke-width="1"/>
+              <circle cx="140" cy="40" r="6" fill="#c9a24b"/>
+              <path d="M140 40v-16" stroke="#c9a24b" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="cta-band">
+      <div class="container cta-inner">
+        <h2>Ready for a <span class="script">fresh cut?</span></h2>
+        <p>Walk in any time we're open, or reach out ahead if you want a specific barber.</p>
+        <div class="hero-cta-row">
+          <a href="tel:5550194482" class="btn btn-primary">Call (555) 019-4482</a>
+          <a href="#top" class="btn btn-outline">Back to Top</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a href="#top" class="logo footer-logo">Fresh Cuts</a>
+      <p class="footer-tagline">128 Main Street, Riverside, CA · (555) 019-4482</p>
+      <p class="footer-note">Design concept by Velora Digital — a portfolio demo, not a live business. Photography via Unsplash contributors.</p>
+    </div>
+  </footer>
+
+  <script>
+    const navToggle = document.getElementById("navToggle");
+    const navLinks = document.getElementById("navLinks");
+    navToggle.addEventListener("click", () => {
+      const isOpen = navLinks.classList.toggle("open");
+      navToggle.setAttribute("aria-expanded", isOpen);
+    });
+    navLinks.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        navLinks.classList.remove("open");
+        navToggle.setAttribute("aria-expanded", "false");
+      });
+    });
+  </script>
+</body>
+</html>
