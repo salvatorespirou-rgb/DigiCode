@@ -98,7 +98,14 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   position: relative;
 }
 
-.cart-icon-link {
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cart-icon-link,
+.profile-icon-link {
   position: relative;
   display: flex;
   align-items: center;
@@ -109,9 +116,11 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   color: var(--text);
   transition: background 0.15s ease;
 }
-.cart-icon-link:hover { background: rgba(255, 255, 255, 0.06); }
+.cart-icon-link:hover,
+.profile-icon-link:hover { background: rgba(255, 255, 255, 0.06); }
 
-.cart-icon {
+.cart-icon,
+.profile-icon {
   width: 22px;
   height: 22px;
 }
