@@ -1238,6 +1238,63 @@ body.custom-cursor-active button {
   margin-bottom: 20px;
 }
 
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.portfolio-card {
+  display: block;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.portfolio-card:hover { border-color: rgba(147, 51, 234, 0.5); transform: translateY(-3px); }
+
+.portfolio-card-image {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background-size: cover;
+  background-position: center;
+}
+.portfolio-card-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 8, 12, 0.1), rgba(8, 8, 12, 0.75));
+}
+
+.portfolio-tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1;
+  background: rgba(147, 51, 234, 0.85);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.portfolio-card-body { padding: 20px 22px; }
+.portfolio-card-body h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.portfolio-card-body p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px; }
+.portfolio-card-link {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a78bfa;
+}
+.portfolio-card:hover .portfolio-card-link { color: #c4b5fd; }
+
 /* ---------- Portal / sign-in flow ---------- */
 .portal-message {
   color: var(--text);
