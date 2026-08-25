@@ -187,8 +187,50 @@
       skin: { body: ["#ffffff", "#d9c27a"], snout: "#e8dcae", horn: "#f0c14b", wing: "#fff2c2", glowRGB: "255, 240, 190", glowAlpha: 0.55, eyeIris: "#c9a53a" },
       flap: { type: "sine", chime: [1100, 1500], duration: 0.1, gain: 0.15 },
     },
+    // Cosmic tier — above Legendary, and the only skins with an animated
+    // tail flare (see skin.tailFlare in drawDragon): "rgb" cycles the tail
+    // through the full hue wheel every frame, "neon" locks it to skin's
+    // fixed neonRGB with an additive glow. Both are cheap — one HSL string
+    // or one rgba() string per frame, no extra geometry — so they cost
+    // about the same as the static gradient every other skin already uses.
+    {
+      id: "nebula-reaver", name: "Nebula Reaver", rarity: "Cosmic", price: 1200000,
+      blurb: "Woven from stardust — its tail burns every color at once.",
+      skin: { body: ["#c9b6ff", "#1a0f3d"], snout: "#1a0f3d", horn: "#0a0620", wing: "#8b5cf6", glowRGB: "170, 120, 255", glowAlpha: 0.55, eyeIris: "#e0d4ff", tailFlare: "rgb" },
+      flap: { type: "sine", chime: [660, 990], duration: 0.11, gain: 0.14 },
+    },
+    {
+      id: "quasar-fang", name: "Quasar Fang", rarity: "Cosmic", price: 1350000,
+      blurb: "Its tail burns a single relentless shade of electric cyan.",
+      skin: { body: ["#eafffe", "#0a3a42"], snout: "#0a3a42", horn: "#031a1e", wing: "#00e5ff", glowRGB: "0, 229, 255", glowAlpha: 0.55, eyeIris: "#00e5ff", tailFlare: "neon", neonRGB: "0, 229, 255" },
+      flap: { type: "sawtooth", f0: 500, f1: 900, duration: 0.1, gain: 0.14 },
+    },
+    {
+      id: "starforged", name: "Starforged", rarity: "Cosmic", price: 1500000,
+      blurb: "Hammered from a dying star — the tail still hasn't cooled.",
+      skin: { body: ["#f2f2ff", "#242452"], snout: "#242452", horn: "#0f0f2c", wing: "#a5b4ff", glowRGB: "180, 190, 255", glowAlpha: 0.55, eyeIris: "#c9d4ff", tailFlare: "rgb" },
+      flap: { type: "triangle", f0: 560, f1: 940, duration: 0.1, gain: 0.15 },
+    },
+    {
+      id: "pulsar-wraith", name: "Pulsar Wraith", rarity: "Cosmic", price: 1700000,
+      blurb: "Blinks in and out of sight — the tail never stops glowing magenta.",
+      skin: { body: ["#2a0a33", "#050108"], snout: "#050108", horn: "#1a0520", wing: "#ff2fd6", glowRGB: "255, 47, 214", glowAlpha: 0.6, eyeIris: "#ff2fd6", tailFlare: "neon", neonRGB: "255, 47, 214" },
+      flap: { type: "square", chime: [420, 880], duration: 0.09, gain: 0.13 },
+    },
+    {
+      id: "galactic-comet", name: "Galactic Comet", rarity: "Cosmic", price: 1900000,
+      blurb: "Trails an entire galaxy's worth of color behind it.",
+      skin: { body: ["#dff7ff", "#12283f"], snout: "#12283f", horn: "#081422", wing: "#7fd8ff", glowRGB: "150, 220, 255", glowAlpha: 0.55, eyeIris: "#eafcff", tailFlare: "rgb" },
+      flap: { type: "sine", f0: 620, f1: 260, duration: 0.16, gain: 0.14 },
+    },
+    {
+      id: "eventide-supernova", name: "Eventide Supernova", rarity: "Cosmic", price: 2200000,
+      blurb: "The last dragon anyone sees before the sky goes green.",
+      skin: { body: ["#eafff2", "#052e1a"], snout: "#052e1a", horn: "#021a0d", wing: "#4dffa0", glowRGB: "80, 255, 150", glowAlpha: 0.6, eyeIris: "#4dffa0", tailFlare: "neon", neonRGB: "80, 255, 150" },
+      flap: { type: "square", chime: [1200, 1700], duration: 0.1, gain: 0.15 },
+    },
   ];
-  const RARITY_COLORS = { Common: "#9ca3af", Uncommon: "#4ade80", Rare: "#60a5fa", Epic: "#c084fc", Legendary: "#f0c14b" };
+  const RARITY_COLORS = { Common: "#9ca3af", Uncommon: "#4ade80", Rare: "#60a5fa", Epic: "#c084fc", Legendary: "#f0c14b", Cosmic: "#ff2fd6" };
   function findDragon(id) {
     return DRAGON_CATALOG.find((d) => d.id === id) || null;
   }
@@ -1360,8 +1402,12 @@
   // moving forward even though it never actually changes x position.
   function drawTrail(skin) {
     if (trail.length < 2) return;
+    // Neon-flare skins already get a colored trail for free since their
+    // wing color IS the neon tone; RGB-flare skins need the trail to cycle
+    // too, so match the same per-frame hue drawDragon() uses for the tail.
+    const trailColor = skin.tailFlare === "rgb" ? `hsl(${(performance.now() / 6) % 360}, 95%, 62%)` : skin.wing;
     ctx.save();
-    ctx.strokeStyle = skin.wing;
+    ctx.strokeStyle = trailColor;
     ctx.lineCap = "round";
     for (let i = 1; i < trail.length; i++) {
       const a = trail[i - 1];
@@ -1376,7 +1422,7 @@
     }
     ctx.restore();
     ctx.save();
-    ctx.fillStyle = skin.wing;
+    ctx.fillStyle = trailColor;
     for (const p of trail) {
       const t = p.life / p.maxLife;
       ctx.globalAlpha = t * 0.6;
@@ -1455,9 +1501,36 @@
     ctx.scale(DRAGON_SCALE, DRAGON_SCALE); // shrinks the whole dragon uniformly
 
     // Serpentine tail — three tapering segments trailing the head, swaying
-    // gently so the body reads as sinuous rather than a round blob.
+    // gently so the body reads as sinuous rather than a round blob. Cosmic
+    // skins (skin.tailFlare) swap the static cached gradient for a color
+    // that's recomputed every frame — either cycling the full hue wheel
+    // ("rgb") or a fixed neon tone ("neon") — plus a soft additive glow
+    // behind the segments. Every other skin skips this branch entirely and
+    // costs exactly what it always did.
     const sway = Math.sin(wingPhase) * 3.5;
-    ctx.fillStyle = g.tailGrad;
+    let tailFill = g.tailGrad;
+    if (skin.tailFlare === "rgb") {
+      tailFill = `hsl(${(now / 6) % 360}, 95%, 62%)`;
+    } else if (skin.tailFlare === "neon") {
+      tailFill = `rgb(${skin.neonRGB})`;
+    }
+    if (skin.tailFlare) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = tailFill;
+      ctx.beginPath();
+      ctx.ellipse(-14, 5 + sway * 0.35, 17, 11, -0.12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(-27, 9 + sway * 0.75, 12.5, 8.5, -0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(-37, 12 + sway, 8, 5.2, -0.05, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = tailFill;
     ctx.strokeStyle = outline;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1838,11 +1911,12 @@
         const label = playerId ? `Buy · 🪙 ${d.price.toLocaleString()}` : "Join to buy";
         btnHtml = `<button type="button" class="dragon-card-btn is-buy" data-action="buy" data-id="${d.id}" ${playerId && canAfford ? "" : "disabled"}>${label}</button>`;
       }
+      const isCosmic = d.rarity === "Cosmic";
       return `
-      <div class="dragon-card${equipped ? " is-equipped" : ""}">
+      <div class="dragon-card${equipped ? " is-equipped" : ""}${isCosmic ? " is-cosmic" : ""}">
         <div class="dragon-card-swatch" style="background: radial-gradient(circle at 35% 30%, ${d.skin.body[0]}, ${d.skin.body[1]});"></div>
         <span class="dragon-card-name">${escapeHtml(d.name)}</span>
-        <span class="dragon-card-rarity" style="color: ${RARITY_COLORS[d.rarity]}">${d.rarity}</span>
+        <span class="dragon-card-rarity${isCosmic ? " is-cosmic" : ""}" style="color: ${RARITY_COLORS[d.rarity]}">${d.rarity}</span>
         <span class="dragon-card-blurb">${escapeHtml(d.blurb)}</span>
         <span class="dragon-card-price">${owned ? "Owned" : "🪙 " + d.price.toLocaleString()}</span>
         ${btnHtml}

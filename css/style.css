@@ -2491,6 +2491,16 @@ body.custom-cursor-active button {
   background: var(--bg);
 }
 .dragon-card.is-equipped { border-color: #f0c14b; box-shadow: 0 0 0 1px rgba(240, 193, 75, 0.4) inset; }
+.dragon-card.is-cosmic {
+  border-color: rgba(200, 140, 255, 0.4);
+  background: linear-gradient(180deg, rgba(140, 70, 255, 0.14), var(--bg) 65%);
+  animation: cosmic-card-pulse 3.5s ease-in-out infinite;
+}
+.dragon-card.is-cosmic.is-equipped { border-color: #ff2fd6; box-shadow: 0 0 0 1px rgba(255, 47, 214, 0.4) inset; }
+@keyframes cosmic-card-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(140, 90, 255, 0.18); }
+  50% { box-shadow: 0 0 24px rgba(255, 60, 220, 0.32); }
+}
 
 .dragon-card-swatch {
   width: 56px;
@@ -2511,6 +2521,18 @@ body.custom-cursor-active button {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+.dragon-card-rarity.is-cosmic {
+  background: linear-gradient(90deg, #ff2fd6, #8b5cf6, #00e5ff, #ff2fd6);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  animation: cosmic-text-shift 3s linear infinite;
+}
+@keyframes cosmic-text-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
 }
 
 .dragon-card-blurb {
