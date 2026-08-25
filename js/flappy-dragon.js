@@ -193,6 +193,54 @@
     return DRAGON_CATALOG.find((d) => d.id === id) || null;
   }
 
+  // Coin Store — real-money bundles. Purchase buttons are UI-only for now
+  // (see the click handler below) until the Stripe checkout function is
+  // wired up; nothing here credits coins yet. pileRows is bottom-to-top
+  // coin counts per row, so bigger bundles just get a taller pyramid.
+  const COIN_BUNDLES = [
+    { id: "coins-10k", coins: 10000, price: 2.5, pileRows: [2, 1] },
+    { id: "coins-50k", coins: 50000, price: 5.0, pileRows: [3, 2, 1] },
+    { id: "coins-100k", coins: 100000, price: 7.5, pileRows: [4, 3, 2, 1] },
+    { id: "coins-250k", coins: 250000, price: 10.0, pileRows: [5, 4, 3, 2, 1], best: true },
+  ];
+
+  // Builds a simple gold-coin pyramid sized to the bundle — same coin
+  // gradient as the in-game pickups, just stacked instead of scattered.
+  function buildCoinPileSvg(rows, uid) {
+    const coinRx = 15;
+    const coinRy = 10;
+    const rowStep = 13;
+    const colStep = 25;
+    const maxRowLen = Math.max(...rows);
+    const width = maxRowLen * colStep + coinRx * 2;
+    const height = rows.length * rowStep + coinRy * 2 + 10;
+    const gradId = `pileCoinGrad-${uid}`;
+    let coinsHtml = "";
+    rows.forEach((count, rowIndexFromBottom) => {
+      const y = height - 10 - coinRy - rowIndexFromBottom * rowStep;
+      const rowWidth = (count - 1) * colStep;
+      const startX = (width - rowWidth) / 2;
+      for (let i = 0; i < count; i++) {
+        const x = startX + i * colStep;
+        coinsHtml += `
+          <ellipse cx="${x}" cy="${y}" rx="${coinRx}" ry="${coinRy}" fill="url(#${gradId})" stroke="#3a2010" stroke-width="1.2"/>
+          <ellipse cx="${x - coinRx * 0.32}" cy="${y - coinRy * 0.35}" rx="${coinRx * 0.26}" ry="${coinRy * 0.2}" fill="rgba(255,255,255,0.75)"/>
+        `;
+      }
+    });
+    return `<svg viewBox="0 0 ${width} ${height}" class="coin-pile-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="${gradId}" cx="0.35" cy="0.3" r="0.75">
+          <stop offset="0" stop-color="#fffbe6"/>
+          <stop offset="0.55" stop-color="#ffd54f"/>
+          <stop offset="1" stop-color="#e8a317"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="${width / 2}" cy="${height - 5}" rx="${width * 0.4}" ry="5" fill="rgba(0,0,0,0.35)"/>
+      ${coinsHtml}
+    </svg>`;
+  }
+
   // Fixed positions computed once, not re-randomized per frame, so the sky
   // decoration doesn't visibly "swim" between frames.
   const STAR_FIELD = Array.from({ length: 40 }, (_, i) => ({
@@ -234,6 +282,11 @@
   const storeGrid = document.getElementById("dragonStoreGrid");
   const storeCoinAmountEl = document.getElementById("dragonStoreCoinAmount");
   const storeSubEl = document.getElementById("dragonStoreSub");
+  const coinStoreOpenBtn = document.getElementById("coinStoreOpenBtn");
+  const coinStoreModal = document.getElementById("coinStoreModal");
+  const coinStoreCloseBtn = document.getElementById("coinStoreCloseBtn");
+  const coinBundleGrid = document.getElementById("coinBundleGrid");
+  const coinStoreMessageEl = document.getElementById("coinStoreMessage");
   const authStatusEl = document.getElementById("dragonAuthStatus");
   const authModal = document.getElementById("dragonAuthModal");
   const authCloseBtn = document.getElementById("dragonAuthCloseBtn");
@@ -908,7 +961,7 @@
   // or picking a photo doesn't restart the game out from under you.
   const stage = document.querySelector(".dragon-game-stage");
   stage?.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn, #dragonMuteBtn")) return;
+    if (e.target.closest("#dragonRegisterForm, #dragonStoreOpenBtn, #coinStoreOpenBtn, #dragonMuteBtn")) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.preventDefault();
     flap();
@@ -1798,6 +1851,48 @@
   });
   document.addEventListener("keydown", (e) => {
     if (e.code === "Escape" && storeModal && !storeModal.hidden) closeStore();
+  });
+
+  function renderCoinBundles() {
+    if (!coinBundleGrid) return;
+    coinBundleGrid.innerHTML = COIN_BUNDLES.map((b) => {
+      const pileSvg = buildCoinPileSvg(b.pileRows, b.id);
+      return `
+      <div class="coin-bundle-card${b.best ? " is-best" : ""}">
+        ${b.best ? `<span class="coin-bundle-badge">Best Value</span>` : ""}
+        <div class="coin-bundle-pile">${pileSvg}</div>
+        <span class="coin-bundle-amount">🪙 ${b.coins.toLocaleString()}</span>
+        <span class="coin-bundle-price">$${b.price.toFixed(2)}</span>
+        <button type="button" class="coin-purchase-btn" data-bundle="${b.id}">Purchase</button>
+      </div>`;
+    }).join("");
+  }
+
+  function openCoinStore() {
+    if (!coinStoreModal) return;
+    if (coinStoreMessageEl) coinStoreMessageEl.hidden = true;
+    renderCoinBundles();
+    coinStoreModal.hidden = false;
+  }
+  function closeCoinStore() {
+    if (coinStoreModal) coinStoreModal.hidden = true;
+  }
+  coinStoreOpenBtn?.addEventListener("click", openCoinStore);
+  coinStoreCloseBtn?.addEventListener("click", closeCoinStore);
+  coinStoreModal?.addEventListener("click", (e) => {
+    if (e.target === coinStoreModal) closeCoinStore();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Escape" && coinStoreModal && !coinStoreModal.hidden) closeCoinStore();
+  });
+
+  // Purchases aren't wired to real payments yet — this just tells the
+  // player that plainly instead of pretending a click did something.
+  coinBundleGrid?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".coin-purchase-btn");
+    if (!btn || !coinStoreMessageEl) return;
+    coinStoreMessageEl.textContent = "Card payments are coming soon — this button isn't live yet.";
+    coinStoreMessageEl.hidden = false;
   });
 
   // A dedicated email/password account for the game — separate from the
