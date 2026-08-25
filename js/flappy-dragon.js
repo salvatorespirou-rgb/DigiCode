@@ -25,7 +25,7 @@
   const PYLON_MARGIN_STEP = 1; // tightens this many px per level
   const PYLON_WIDTH = 76;
   const PYLON_SPACING = 260; // horizontal distance between pylon pairs
-  const DRAGON_X = WIDTH * 0.28;
+  const DRAGON_X = WIDTH * 0.5; // centered — was 0.28, but that put it uncomfortably close to the Jet Chase's jet
   const DRAGON_RADIUS = 19; // used for all the body-part math the dragon is drawn with
   const DRAGON_SCALE = 0.8; // shrinks the whole dragon (and its hitbox) visually
   const DRAGON_HIT_RADIUS = DRAGON_RADIUS * DRAGON_SCALE;
@@ -403,7 +403,7 @@
     for (let i = 0; i < count; i++) {
       const x = spanStart + (i / count) * (spanEnd - spanStart) + (Math.random() - 0.5) * 40;
       const y = topBound + Math.random() * (bottomBound - topBound);
-      coins.push({ x, y, collected: false, value: COIN_RUSH_COIN_VALUE, isEventCoin: true });
+      coins.push({ x, y, collected: false, value: COIN_RUSH_COIN_VALUE });
     }
   }
 
@@ -495,16 +495,6 @@
       const t = ctx.currentTime;
       playTone(ctx, 988, t, 0.11, 0.16); // B5
       playTone(ctx, 1319, t + 0.07, 0.2, 0.16); // E6
-    } catch (err) {}
-  }
-
-  // A lighter, quicker blip for Coin Rush pickups — the full two-note chime
-  // gets noisy fast when a dozen coins are grabbed in a couple of seconds.
-  function playEventCoinSound() {
-    try {
-      const ctx = getAudioCtx();
-      if (!ctx) return;
-      playTone(ctx, 1500 + Math.random() * 300, ctx.currentTime, 0.06, 0.09, "sine");
     } catch (err) {}
   }
 
@@ -910,8 +900,7 @@
           c.collected = true;
           score += c.value || COIN_VALUE;
           if (scoreEl) scoreEl.textContent = String(score);
-          if (c.isEventCoin) playEventCoinSound();
-          else playCoinSound();
+          playCoinSound();
           updateLevel();
         }
       }
