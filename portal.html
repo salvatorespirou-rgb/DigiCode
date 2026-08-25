@@ -11,12 +11,28 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <style>body { visibility: hidden; }</style>
 </head>
 <body>
   <script>
-    if (!["dev", "client"].includes(sessionStorage.getItem("veloraPortalRole"))) {
-      window.location.href = "signin.html";
-    }
+    (async function () {
+      const { data: { session } } = await veloraSupabase.auth.getSession();
+      if (!session) {
+        window.location.href = "signin.html";
+        return;
+      }
+      const { data: profile } = await veloraSupabase
+        .from("profiles")
+        .select("role, email")
+        .eq("id", session.user.id)
+        .single();
+      window.veloraPortalRole = profile ? profile.role : "client";
+      window.veloraPortalEmail = session.user.email;
+      document.body.style.visibility = "visible";
+      document.dispatchEvent(new CustomEvent("velora-auth-ready"));
+    })();
   </script>
 
   <img src="assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />

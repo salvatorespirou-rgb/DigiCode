@@ -578,38 +578,76 @@ if (cartItemsEl) {
   });
 }
 
-// Portal login gate — client-side only, NOT real security.
-// The credential checks below are visible to anyone who views this file. It exists
-// purely so the Dev and Client portal views can be previewed before real backend
-// auth exists. Replace this entirely before any real account or project data is involved.
-const PORTAL_ACCOUNTS = {
-  dev: { user: "Dev", pass: "Velora.26" },
-  client: { user: "Client", pass: "ClientPreview.26" },
-};
+// Portal login — real Supabase email one-time-code auth.
 const portalLoginForm = document.getElementById("portalLoginForm");
 if (portalLoginForm) {
-  portalLoginForm.addEventListener("submit", (e) => {
+  portalLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const user = document.getElementById("loginUser").value.trim();
-    const pass = document.getElementById("loginPass").value;
+    const email = document.getElementById("loginEmail").value.trim();
     const errorEl = document.getElementById("loginError");
+    const submitBtn = document.getElementById("loginSubmitBtn");
+    if (errorEl) errorEl.hidden = true;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Sending…"; }
 
-    let role = null;
-    if (user === PORTAL_ACCOUNTS.dev.user && pass === PORTAL_ACCOUNTS.dev.pass) role = "dev";
-    else if (user === PORTAL_ACCOUNTS.client.user && pass === PORTAL_ACCOUNTS.client.pass) role = "client";
+    const { error } = await veloraSupabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    });
 
-    if (role) {
-      sessionStorage.setItem("veloraPortalRole", role);
-      window.location.href = "portal.html";
-    } else if (errorEl) {
-      errorEl.hidden = false;
+    if (error) {
+      if (errorEl) errorEl.hidden = false;
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Send Code"; }
+      return;
     }
+
+    sessionStorage.setItem("veloraPendingEmail", email);
+    window.location.href = "verify.html";
   });
 }
 
-document.addEventListener("click", (e) => {
+const verifyCodeForm = document.getElementById("verifyCodeForm");
+if (verifyCodeForm) {
+  const pendingEmail = sessionStorage.getItem("veloraPendingEmail");
+  const subEl = document.getElementById("verifySub");
+  if (pendingEmail && subEl) {
+    subEl.textContent = `We've sent a one-time code to ${pendingEmail}. Enter it below to continue.`;
+  } else if (!pendingEmail) {
+    window.location.href = "signin.html";
+  }
+
+  verifyCodeForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = document.getElementById("oneTimeCode").value.trim();
+    const errorEl = document.getElementById("verifyError");
+    const submitBtn = document.getElementById("verifySubmitBtn");
+    if (errorEl) errorEl.hidden = true;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Verifying…"; }
+
+    const { error } = await veloraSupabase.auth.verifyOtp({
+      email: pendingEmail,
+      token: code,
+      type: "email",
+    });
+
+    if (error) {
+      if (errorEl) errorEl.hidden = false;
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Verify Code"; }
+      return;
+    }
+
+    sessionStorage.removeItem("veloraPendingEmail");
+    window.location.href = "portal.html";
+  });
+
+  document.getElementById("resendCodeBtn")?.addEventListener("click", async () => {
+    if (!pendingEmail) return;
+    await veloraSupabase.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true } });
+  });
+}
+
+document.addEventListener("click", async (e) => {
   if (!e.target.closest("[data-portal-logout]")) return;
-  sessionStorage.removeItem("veloraPortalRole");
+  await veloraSupabase.auth.signOut();
   window.location.href = "signin.html";
 });
 
@@ -1222,7 +1260,6 @@ if (devTabs.length) {
   const viewSwitchRow = document.querySelector(".view-switch-row");
   const devViewContainer = document.getElementById("devViewContainer");
   const clientViewContainer = document.getElementById("clientViewContainer");
-  const portalRole = sessionStorage.getItem("veloraPortalRole");
   const portalWelcomeName = document.getElementById("portalWelcomeName");
 
   function renderClientPreview() {
@@ -1327,11 +1364,22 @@ if (devTabs.length) {
 
   // A real client login goes straight to the client view, with no way to
   // flip back to the Dev pipeline — the switch above is a Dev-only testing tool.
-  if (portalRole === "client") {
-    if (viewSwitchRow) viewSwitchRow.hidden = true;
-    if (devViewContainer) devViewContainer.hidden = true;
-    if (clientViewContainer) clientViewContainer.hidden = false;
-    if (portalWelcomeName) portalWelcomeName.textContent = "Client.";
-    renderClientPreview();
+  // The portal's auth gate (portal.html) resolves the session/role asynchronously,
+  // so this waits for that to finish rather than assuming it's already set.
+  function applyPortalRole() {
+    const portalRole = window.veloraPortalRole;
+    if (portalWelcomeName) portalWelcomeName.textContent = portalRole === "client" ? "Client." : "Dev.";
+    if (portalRole === "client") {
+      if (viewSwitchRow) viewSwitchRow.hidden = true;
+      if (devViewContainer) devViewContainer.hidden = true;
+      if (clientViewContainer) clientViewContainer.hidden = false;
+      renderClientPreview();
+    }
+  }
+
+  if (window.veloraPortalRole) {
+    applyPortalRole();
+  } else {
+    document.addEventListener("velora-auth-ready", applyPortalRole);
   }
 }

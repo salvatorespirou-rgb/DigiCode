@@ -42,21 +42,24 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <p class="eyebrow">Coming Soon</p>
-        <h1>Check your <span class="gradient-text">code.</span></h1>
-        <p class="hero-sub">After you purchase, we'll email you a one-time code. Enter it below to continue setting up your portal access.</p>
+        <p class="eyebrow">Almost there</p>
+        <h1>Check your <span class="gradient-text">email.</span></h1>
+        <p class="hero-sub" id="verifySub">We've sent a one-time code to your email. Enter it below to continue.</p>
       </div>
     </section>
 
     <section class="request-form-section">
       <div class="container">
         <div class="portal-card">
-          <div class="form-group">
-            <label for="oneTimeCode">One-time code</label>
-            <input type="text" id="oneTimeCode" placeholder="123456" disabled />
-          </div>
-          <button type="button" class="btn btn-primary btn-large" disabled style="width: 100%; margin-top: 12px;">Verify Code</button>
-          <p class="portal-note" style="margin-top: 20px;">This step activates once the portal is connected to a real backend. For now, email <a href="mailto:hello@veloradigital.com">hello@veloradigital.com</a> if you need help.</p>
+          <form id="verifyCodeForm" class="portal-login-form">
+            <div class="form-group">
+              <label for="oneTimeCode">One-time code</label>
+              <input type="text" id="oneTimeCode" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" required />
+            </div>
+            <p class="portal-login-error" id="verifyError" hidden>That code didn't work — check it and try again, or request a new one.</p>
+            <button type="submit" class="btn btn-primary btn-large" id="verifySubmitBtn" style="width: 100%; margin-top: 4px;">Verify Code</button>
+          </form>
+          <p class="portal-note" style="margin-top: 20px;">Didn't get a code, or it expired? <button type="button" id="resendCodeBtn" class="clear-cart-link" style="display:inline; padding:0;">Send a new one</button>.</p>
         </div>
       </div>
     </section>
@@ -68,6 +71,8 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

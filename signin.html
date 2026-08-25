@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Client Portal — Velora Digital</title>
-  <meta name="description" content="The Velora Digital client portal — coming soon." />
+  <title>Sign In — Velora Digital</title>
+  <meta name="description" content="Sign in to your Velora Digital portal." />
   <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,9 +42,9 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <p class="eyebrow">Coming Soon</p>
-        <h1>Client <span class="gradient-text">Portal</span></h1>
-        <p class="hero-sub">Once you've purchased a build or a management plan, this is where you'll track your project, message your assigned developer, and manage your account. We're building it now.</p>
+        <p class="eyebrow">Sign In</p>
+        <h1>Access your <span class="gradient-text">portal.</span></h1>
+        <p class="hero-sub">Enter your email and we'll send you a one-time code — no password to remember.</p>
       </div>
     </section>
 
@@ -59,17 +59,13 @@
           </div>
           <form id="portalLoginForm" class="portal-login-form">
             <div class="form-group">
-              <label for="loginUser">Email or Username</label>
-              <input type="text" id="loginUser" autocomplete="username" />
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" autocomplete="email" required />
             </div>
-            <div class="form-group">
-              <label for="loginPass">Password</label>
-              <input type="password" id="loginPass" autocomplete="current-password" />
-            </div>
-            <p class="portal-login-error" id="loginError" hidden>That email/username and password combination isn't recognized.</p>
-            <button type="submit" class="btn btn-primary">Sign In</button>
+            <p class="portal-login-error" id="loginError" hidden>Something went wrong sending your code — try again.</p>
+            <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Send Code</button>
           </form>
-          <p class="portal-note">Just purchased a build or a management plan and don't have login details yet? Real client accounts are coming soon — email <a href="mailto:hello@veloradigital.com">hello@veloradigital.com</a> in the meantime and we'll get you sorted.</p>
+          <p class="portal-note">Just purchased a build or a management plan? Use the same email you checked out with.</p>
         </div>
       </div>
     </section>
@@ -81,6 +77,8 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
