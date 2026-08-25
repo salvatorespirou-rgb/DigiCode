@@ -206,25 +206,26 @@
 
   // Builds a simple gold-coin pyramid sized to the bundle — same coin
   // gradient as the in-game pickups, just stacked instead of scattered.
+  // Round coins (not the game's squashed side-on ellipses) so they read
+  // clearly as coins rather than blobs when packed tightly together.
   function buildCoinPileSvg(rows, uid) {
-    const coinRx = 15;
-    const coinRy = 10;
-    const rowStep = 13;
-    const colStep = 25;
+    const coinR = 13;
+    const rowStep = 12;
+    const colStep = 20;
     const maxRowLen = Math.max(...rows);
-    const width = maxRowLen * colStep + coinRx * 2;
-    const height = rows.length * rowStep + coinRy * 2 + 10;
+    const width = maxRowLen * colStep + coinR * 2;
+    const height = rows.length * rowStep + coinR * 2;
     const gradId = `pileCoinGrad-${uid}`;
     let coinsHtml = "";
     rows.forEach((count, rowIndexFromBottom) => {
-      const y = height - 10 - coinRy - rowIndexFromBottom * rowStep;
+      const y = height - coinR - rowIndexFromBottom * rowStep;
       const rowWidth = (count - 1) * colStep;
       const startX = (width - rowWidth) / 2;
       for (let i = 0; i < count; i++) {
         const x = startX + i * colStep;
         coinsHtml += `
-          <ellipse cx="${x}" cy="${y}" rx="${coinRx}" ry="${coinRy}" fill="url(#${gradId})" stroke="#3a2010" stroke-width="1.2"/>
-          <ellipse cx="${x - coinRx * 0.32}" cy="${y - coinRy * 0.35}" rx="${coinRx * 0.26}" ry="${coinRy * 0.2}" fill="rgba(255,255,255,0.75)"/>
+          <circle cx="${x}" cy="${y}" r="${coinR}" fill="url(#${gradId})" stroke="#3a2010" stroke-width="1.3"/>
+          <circle cx="${x - coinR * 0.32}" cy="${y - coinR * 0.32}" r="${coinR * 0.24}" fill="rgba(255,255,255,0.8)"/>
         `;
       }
     });
@@ -236,7 +237,6 @@
           <stop offset="1" stop-color="#e8a317"/>
         </radialGradient>
       </defs>
-      <ellipse cx="${width / 2}" cy="${height - 5}" rx="${width * 0.4}" ry="5" fill="rgba(0,0,0,0.35)"/>
       ${coinsHtml}
     </svg>`;
   }
@@ -1861,8 +1861,10 @@
       <div class="coin-bundle-card${b.best ? " is-best" : ""}">
         ${b.best ? `<span class="coin-bundle-badge">Best Value</span>` : ""}
         <div class="coin-bundle-pile">${pileSvg}</div>
-        <span class="coin-bundle-amount">🪙 ${b.coins.toLocaleString()}</span>
-        <span class="coin-bundle-price">$${b.price.toFixed(2)}</span>
+        <div class="coin-bundle-info">
+          <span class="coin-bundle-amount">🪙 ${b.coins.toLocaleString()}</span>
+          <span class="coin-bundle-price">$${b.price.toFixed(2)}</span>
+        </div>
         <button type="button" class="coin-purchase-btn" data-bundle="${b.id}">Purchase</button>
       </div>`;
     }).join("");

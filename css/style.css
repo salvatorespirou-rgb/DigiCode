@@ -2471,6 +2471,12 @@ body.custom-cursor-active button {
   gap: 14px;
   overflow-y: auto;
   padding-right: 4px;
+  /* Without these, a flex child's default min-height:auto stops it from
+     ever shrinking below its content size, so it just grows the whole
+     panel past the viewport instead of scrolling internally — the
+     scrolling bug this pattern is here to prevent. */
+  flex: 1;
+  min-height: 0;
 }
 
 .dragon-card {
@@ -2559,6 +2565,10 @@ body.custom-cursor-active button {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+  flex: 1;
+  min-height: 0;
 }
 
 .coin-bundle-card {
@@ -2594,6 +2604,16 @@ body.custom-cursor-active button {
 .coin-bundle-pile { width: 100%; height: 74px; display: flex; align-items: flex-end; justify-content: center; }
 .coin-pile-svg { max-width: 100%; max-height: 100%; }
 
+.coin-bundle-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
 .coin-bundle-amount { font-family: var(--font-heading); font-weight: 700; color: #fff; font-size: 1rem; }
 .coin-bundle-price { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
 
