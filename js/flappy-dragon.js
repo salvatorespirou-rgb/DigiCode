@@ -170,6 +170,7 @@
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
   let level, currentTheme;
+  let flapPulse, trail, trailTimer;
   let lastTime = null;
 
   function resetGame() {
@@ -183,6 +184,9 @@
     lastScoredIndex = -1;
     level = 1;
     currentTheme = themeForLevel(level);
+    flapPulse = 0;
+    trail = [];
+    trailTimer = 0;
     if (scoreEl) scoreEl.textContent = "0";
     if (levelEl) levelEl.textContent = String(level);
   }
@@ -282,6 +286,7 @@
       return;
     }
     dragonVY = FLAP_VELOCITY;
+    flapPulse = 1;
     playFlapSound();
   }
 
@@ -431,6 +436,21 @@
     dragonVY = Math.min(dragonVY + GRAVITY * dt, MAX_FALL_SPEED);
     dragonY += dragonVY * dt;
     wingPhase += dt * 14;
+    flapPulse = Math.max(0, flapPulse - dt * 5);
+
+    // A short comet trail of sparks streaming off the tail — spawned at a
+    // fixed rate and then swept backward with the rest of the world so it
+    // reads as motion even though the dragon itself never moves in x.
+    trailTimer += dt;
+    if (trailTimer > 0.045) {
+      trailTimer = 0;
+      trail.push({ x: DRAGON_X - 36, y: dragonY + 10, life: 0.5, maxLife: 0.5 });
+    }
+    for (const p of trail) {
+      p.x -= PYLON_SPEED * dt;
+      p.life -= dt;
+    }
+    trail = trail.filter((p) => p.life > 0);
 
     distanceSinceSpawn += PYLON_SPEED * dt;
     if (distanceSinceSpawn >= PYLON_SPACING) {
@@ -603,15 +623,68 @@
     }
   }
 
-  // A Japanese-style dragon: a long, sinuous serpent with a proper fan-edged
-  // wing (not just a mane), twin antler-like horns, and a trailing whisker.
-  // Still pure vector shapes on the same small canvas budget as before — no
+  // One tapered feather, drawn in the wing's local (already hinge-rotated)
+  // space: a thin leaf shape fanned out at `spreadAngle` from the hinge.
+  function drawFeather(len, spreadAngle, width, colorTop, colorBottom, outline) {
+    ctx.save();
+    ctx.rotate(spreadAngle);
+    const grad = ctx.createLinearGradient(0, 0, -len, 0);
+    grad.addColorStop(0, colorTop);
+    grad.addColorStop(1, colorBottom);
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-len * 0.4, -width, -len, -width * 0.15);
+    ctx.quadraticCurveTo(-len * 0.55, width * 0.3, 0, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // A comet trail of sparks streaming off the tail, so the dragon reads as
+  // moving forward even though it never actually changes x position.
+  function drawTrail(skin) {
+    if (trail.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = skin.wing;
+    ctx.lineCap = "round";
+    for (let i = 1; i < trail.length; i++) {
+      const a = trail[i - 1];
+      const b = trail[i];
+      const t = Math.max(a.life, b.life) / a.maxLife;
+      ctx.globalAlpha = t * 0.45;
+      ctx.lineWidth = 2.5 * t + 0.4;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle = skin.wing;
+    for (const p of trail) {
+      const t = p.life / p.maxLife;
+      ctx.globalAlpha = t * 0.6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2 * t + 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // A Japanese-style dragon: a long, sinuous serpent with a feathered,
+  // fan-edged wing, twin antler-like horns, and a trailing whisker. Still
+  // pure vector shapes on the same small canvas budget as before — no
   // images, so it stays light — and the hitbox is still just the head
   // circle (DRAGON_RADIUS), unchanged from before.
   function drawDragon() {
     const skin = (currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN;
     const now = performance.now();
     const outline = "rgba(20, 15, 10, 0.35)";
+    const pulse = 1 + flapPulse * 0.16; // a quick "pop" right on each flap
 
     // Ambient glow drawn first, behind everything — drawing it last (as
     // before) additively brightened the whole dragon and washed the
@@ -679,18 +752,43 @@
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
+    // Individual feathers layered over the membrane for texture, fanned
+    // out from the same hinge.
+    drawFeather(38, -0.62, 7, skin.wing, skin.body[1], outline);
+    drawFeather(33, -0.34, 8, skin.wing, skin.body[1], outline);
+    drawFeather(27, -0.06, 8, skin.wing, skin.body[1], outline);
+    drawFeather(20, 0.2, 7, skin.wing, skin.body[1], outline);
     ctx.restore();
 
     // Head.
-    const bodyGrad = ctx.createRadialGradient(-4, -5, 2, 0, 0, DRAGON_RADIUS);
+    const headRX = DRAGON_RADIUS * pulse;
+    const headRY = DRAGON_RADIUS * 0.82 * pulse;
+    const bodyGrad = ctx.createRadialGradient(-4, -5, 2, 0, 0, headRX);
     bodyGrad.addColorStop(0, skin.body[0]);
     bodyGrad.addColorStop(1, skin.body[1]);
     ctx.fillStyle = bodyGrad;
     ctx.strokeStyle = outline;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.ellipse(0, 0, DRAGON_RADIUS, DRAGON_RADIUS * 0.82, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, headRX, headRY, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
+
+    // Glossy specular highlight, for a polished rather than flat-shaded look.
+    const gloss = ctx.createRadialGradient(-7, -8, 0, -7, -8, 11);
+    gloss.addColorStop(0, "rgba(255, 255, 255, 0.55)");
+    gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = gloss;
+    ctx.beginPath();
+    ctx.ellipse(-7, -8, 11, 7.5, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Rim light along the upper-left edge, catching the theme's sun/moon.
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, headRX, headRY, 0, Math.PI * 1.08, Math.PI * 1.72);
     ctx.stroke();
 
     // Elongated, tapered snout.
@@ -777,6 +875,7 @@
 
   function render() {
     drawBackground();
+    drawTrail((currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN);
     for (const c of coins) drawCoin(c);
     for (const p of pylons) drawPylon(p);
     drawDragon();
