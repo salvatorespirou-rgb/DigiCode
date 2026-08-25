@@ -2066,6 +2066,9 @@ body.custom-cursor-active button {
   overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: 0 20px 60px rgba(255, 126, 95, 0.15);
+  /* The stage is a tap target (flap on click) — without this, mobile
+     WebKit/Chrome paint their default blue highlight over it on every tap. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dragon-game-stage canvas {
@@ -2074,6 +2077,8 @@ body.custom-cursor-active button {
   height: auto;
   touch-action: manipulation;
   cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dragon-overlay {
@@ -2087,6 +2092,7 @@ body.custom-cursor-active button {
   padding: 24px;
   background: rgba(10, 6, 20, 0.72);
   backdrop-filter: blur(4px);
+  -webkit-tap-highlight-color: transparent;
 }
 .dragon-overlay[hidden] { display: none; }
 
