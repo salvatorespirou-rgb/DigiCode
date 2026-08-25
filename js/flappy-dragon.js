@@ -198,36 +198,72 @@
       blurb: "Woven from stardust — its tail burns every color at once.",
       skin: { body: ["#c9b6ff", "#1a0f3d"], snout: "#1a0f3d", horn: "#0a0620", wing: "#8b5cf6", glowRGB: "170, 120, 255", glowAlpha: 0.55, eyeIris: "#e0d4ff", tailFlare: "rgb" },
       flap: { type: "sine", chime: [660, 990], duration: 0.11, gain: 0.14 },
+      // A shimmering low sweep with a glassy chime trailing after it, like
+      // stardust scattering — crash profiles are an array of tone stages,
+      // each an independent pitch sweep, played by playCrashSound().
+      crash: [
+        { f0: 900, f1: 120, duration: 0.35, type: "sine", gain: 0.18 },
+        { f0: 1600, f1: 500, duration: 0.25, type: "triangle", gain: 0.1, delay: 0.08 },
+      ],
     },
     {
       id: "quasar-fang", name: "Quasar Fang", rarity: "Cosmic", price: 1350000,
       blurb: "Its tail burns a single relentless shade of electric cyan.",
       skin: { body: ["#eafffe", "#0a3a42"], snout: "#0a3a42", horn: "#031a1e", wing: "#00e5ff", glowRGB: "0, 229, 255", glowAlpha: 0.55, eyeIris: "#00e5ff", tailFlare: "neon", neonRGB: "0, 229, 255" },
       flap: { type: "sawtooth", f0: 500, f1: 900, duration: 0.1, gain: 0.14 },
+      // A harsh, fast electric zap — short and sharp to match the neon bite.
+      crash: [
+        { f0: 1400, f1: 80, duration: 0.22, type: "sawtooth", gain: 0.22 },
+        { f0: 2200, f1: 300, duration: 0.12, type: "square", gain: 0.1, delay: 0.03 },
+      ],
     },
     {
       id: "starforged", name: "Starforged", rarity: "Cosmic", price: 1500000,
       blurb: "Hammered from a dying star — the tail still hasn't cooled.",
       skin: { body: ["#f2f2ff", "#242452"], snout: "#242452", horn: "#0f0f2c", wing: "#a5b4ff", glowRGB: "180, 190, 255", glowAlpha: 0.55, eyeIris: "#c9d4ff", tailFlare: "rgb" },
       flap: { type: "triangle", f0: 560, f1: 940, duration: 0.1, gain: 0.15 },
+      // A deep metallic clang — long and low, like a hammer on cooling metal.
+      crash: [
+        { f0: 300, f1: 40, duration: 0.4, type: "square", gain: 0.24 },
+        { f0: 700, f1: 90, duration: 0.2, type: "sawtooth", gain: 0.12, delay: 0.05 },
+      ],
     },
     {
       id: "pulsar-wraith", name: "Pulsar Wraith", rarity: "Cosmic", price: 1700000,
       blurb: "Blinks in and out of sight — the tail never stops glowing magenta.",
       skin: { body: ["#2a0a33", "#050108"], snout: "#050108", horn: "#1a0520", wing: "#ff2fd6", glowRGB: "255, 47, 214", glowAlpha: 0.6, eyeIris: "#ff2fd6", tailFlare: "neon", neonRGB: "255, 47, 214" },
       flap: { type: "square", chime: [420, 880], duration: 0.09, gain: 0.13 },
+      // A stuttering, glitchy triple-pulse — matches its "blinks in and out" blurb.
+      crash: [
+        { f0: 800, f1: 200, duration: 0.1, type: "square", gain: 0.16 },
+        { f0: 600, f1: 150, duration: 0.1, type: "square", gain: 0.16, delay: 0.11 },
+        { f0: 400, f1: 60, duration: 0.2, type: "sawtooth", gain: 0.18, delay: 0.22 },
+      ],
     },
     {
       id: "galactic-comet", name: "Galactic Comet", rarity: "Cosmic", price: 1900000,
       blurb: "Trails an entire galaxy's worth of color behind it.",
       skin: { body: ["#dff7ff", "#12283f"], snout: "#12283f", horn: "#081422", wing: "#7fd8ff", glowRGB: "150, 220, 255", glowAlpha: 0.55, eyeIris: "#eafcff", tailFlare: "rgb" },
       flap: { type: "sine", f0: 620, f1: 260, duration: 0.16, gain: 0.14 },
+      // A long whoosh down, with a soft high fade trailing after — a comet
+      // tail dissipating rather than an impact.
+      crash: [
+        { f0: 1200, f1: 100, duration: 0.3, type: "triangle", gain: 0.18 },
+        { f0: 2000, f1: 900, duration: 0.35, type: "sine", gain: 0.08, delay: 0.05 },
+      ],
     },
     {
       id: "eventide-supernova", name: "Eventide Supernova", rarity: "Cosmic", price: 2200000,
       blurb: "The last dragon anyone sees before the sky goes green.",
       skin: { body: ["#eafff2", "#052e1a"], snout: "#052e1a", horn: "#021a0d", wing: "#4dffa0", glowRGB: "80, 255, 150", glowAlpha: 0.6, eyeIris: "#4dffa0", tailFlare: "neon", neonRGB: "80, 255, 150" },
       flap: { type: "square", chime: [1200, 1700], duration: 0.1, gain: 0.15 },
+      // The biggest crash of the six, fitting the most expensive dragon — a
+      // low boom layered under two higher crackling bursts.
+      crash: [
+        { f0: 250, f1: 30, duration: 0.45, type: "sawtooth", gain: 0.26 },
+        { f0: 1800, f1: 200, duration: 0.2, type: "square", gain: 0.14, delay: 0.02 },
+        { f0: 3000, f1: 400, duration: 0.15, type: "sawtooth", gain: 0.1, delay: 0.15 },
+      ],
     },
   ];
   const RARITY_COLORS = { Common: "#9ca3af", Uncommon: "#4ade80", Rare: "#60a5fa", Epic: "#c084fc", Legendary: "#f0c14b", Cosmic: "#ff2fd6" };
@@ -778,6 +814,34 @@
     } catch (err) {}
   }
 
+  // A dragon-specific crash — only the six Cosmic dragons define skin.crash
+  // (see DRAGON_CATALOG); every other dragon has none and plays no crash
+  // sound at all, same as before this existed. Each profile is an array of
+  // independent pitch-sweep stages (own type/frequency range/timing), so
+  // one dragon's crash can be a single sharp zap while another layers three
+  // staggered tones — same building block as playFlapSound, just stacked.
+  function playCrashSound(stages) {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      stages.forEach((s) => {
+        const start = t + (s.delay || 0);
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = s.type || "square";
+        osc.frequency.setValueAtTime(s.f0, start);
+        osc.frequency.exponentialRampToValueAtTime(Math.max(s.f1, 1), start + s.duration);
+        g.gain.setValueAtTime(s.gain, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + s.duration + 0.02);
+        osc.connect(g);
+        g.connect(masterGain);
+        osc.start(start);
+        osc.stop(start + s.duration + 0.02);
+      });
+    } catch (err) {}
+  }
+
   // A bright ascending flourish when the Jet Chase reward lands.
   function playRewardSound() {
     try {
@@ -819,6 +883,12 @@
 
   async function endGame() {
     state = "gameover";
+    // Cosmic dragons get their own crash sound on every death (ground,
+    // pylon, or missile) — everyone else stays exactly as before (silent on
+    // ground/pylon, the generic explosion on missile, handled at the
+    // missile-collision site so the two don't play on top of each other).
+    const crashProfile = getActiveSkin().crash;
+    if (crashProfile) playCrashSound(crashProfile);
     // Optimistic only — this tab's cached `best` can be stale (another tab,
     // or now another signed-in device, may have already saved a higher
     // score). The write below is what actually decides "new best," guarded
@@ -1179,7 +1249,9 @@
         const dx = m.x - DRAGON_X;
         const dy = m.y - dragonY;
         if (Math.sqrt(dx * dx + dy * dy) < MISSILE_RADIUS + DRAGON_HIT_RADIUS) {
-          playExplosionSound();
+          // Cosmic dragons play their own crash sound instead (endGame()
+          // handles it) — everyone else keeps the generic explosion here.
+          if (!getActiveSkin().crash) playExplosionSound();
           endGame();
           return;
         }
