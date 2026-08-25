@@ -18,56 +18,37 @@ document.getElementById("year").textContent = new Date().getFullYear();
 // Custom cursor — a marketing-facing touch for desktop mouse users only.
 // Skipped on touch devices, when the user prefers reduced motion, and on the
 // Dev portal (a working tool, not something visitors see).
+//
+// The native cursor is never hidden until a real mousemove confirms where the
+// dot actually is, and it comes straight back the moment the mouse leaves the
+// page or window. That's what a plain "hide native, show custom on load"
+// approach gets wrong: navigating back/forward or reloading doesn't fire a
+// mousemove on its own, so if the native cursor was already hidden, nothing
+// is visible until the mouse happens to move again — reads as "the cursor
+// disappeared." Here there's always a real cursor on screen, native or custom.
 (function initCustomCursor() {
   const supportsCursor =
     window.matchMedia("(pointer: fine)").matches &&
     !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!supportsCursor || document.querySelector(".dev-tabs")) return;
 
-  document.body.classList.add("custom-cursor-active");
-
   const dot = document.createElement("div");
   dot.className = "custom-cursor-dot";
-  const ring = document.createElement("div");
-  ring.className = "custom-cursor-ring";
-  document.body.append(dot, ring);
-
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
-  let ringX = mouseX;
-  let ringY = mouseY;
-  let hasMoved = false;
-
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    dot.style.transform = `translate3d(${mouseX - 3}px, ${mouseY - 3}px, 0)`;
-    if (!hasMoved) {
-      hasMoved = true;
-      dot.classList.add("is-visible");
-      ring.classList.add("is-visible");
-    }
-  });
-
-  function animateRing() {
-    ringX += (mouseX - ringX) * 0.18;
-    ringY += (mouseY - ringY) * 0.18;
-    ring.style.transform = `translate3d(${ringX - 16}px, ${ringY - 16}px, 0)`;
-    requestAnimationFrame(animateRing);
-  }
-  requestAnimationFrame(animateRing);
+  document.body.append(dot);
 
   const hoverSelector = "a, button, input, textarea, select, .service-row, .tier-card";
-  document.addEventListener("mouseover", (e) => {
-    if (e.target.closest(hoverSelector)) ring.classList.add("is-hovering");
-  });
-  document.addEventListener("mouseout", (e) => {
-    if (e.target.closest(hoverSelector)) ring.classList.remove("is-hovering");
+
+  document.addEventListener("mousemove", (e) => {
+    document.body.classList.add("custom-cursor-active");
+    dot.classList.add("is-visible");
+    dot.style.setProperty("--cx", `${e.clientX - 4}px`);
+    dot.style.setProperty("--cy", `${e.clientY - 4}px`);
+    dot.classList.toggle("is-hovering", !!e.target.closest?.(hoverSelector));
   });
 
   document.addEventListener("mouseleave", () => {
+    document.body.classList.remove("custom-cursor-active");
     dot.classList.remove("is-visible");
-    ring.classList.remove("is-visible");
   });
 })();
 
