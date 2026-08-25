@@ -235,6 +235,17 @@
   const storeCoinAmountEl = document.getElementById("dragonStoreCoinAmount");
   const storeSubEl = document.getElementById("dragonStoreSub");
   const authStatusEl = document.getElementById("dragonAuthStatus");
+  const authModal = document.getElementById("dragonAuthModal");
+  const authCloseBtn = document.getElementById("dragonAuthCloseBtn");
+  const authForm = document.getElementById("dragonAuthForm");
+  const authEmailInput = document.getElementById("dragonAuthEmail");
+  const authPasswordInput = document.getElementById("dragonAuthPassword");
+  const authErrorEl = document.getElementById("dragonAuthError");
+  const authSubmitBtn = document.getElementById("dragonAuthSubmitBtn");
+  const authTitleEl = document.getElementById("dragonAuthTitle");
+  const authSwitchModeText = document.getElementById("dragonAuthSwitchModeText");
+  const authSwitchModeBtn = document.getElementById("dragonAuthSwitchModeBtn");
+  const authForgotBtn = document.getElementById("dragonAuthForgotBtn");
 
   // A registered player is remembered on this browser only (no login) — an
   // id + a per-row secret returned once at registration, used together so
@@ -361,8 +372,7 @@
       authStatusEl.innerHTML = `<a href="#" id="dragonSignInLink" class="dragon-auth-link">Sign in to sync across devices</a>`;
       document.getElementById("dragonSignInLink")?.addEventListener("click", (e) => {
         e.preventDefault();
-        sessionStorage.setItem("veloraAuthRedirect", "velora-gaming.html");
-        window.location.href = "signin.html";
+        openAuthModal();
       });
     }
   }
@@ -1734,6 +1744,125 @@
   });
   document.addEventListener("keydown", (e) => {
     if (e.code === "Escape" && storeModal && !storeModal.hidden) closeStore();
+  });
+
+  // A dedicated email/password account for the game — separate from the
+  // portal's one-time-code login, so players never have to go through the
+  // portal to sync a profile. "Forgot password" is a real reset-link email
+  // here (see reset-password.html) since there's an actual password to lose
+  // this time, unlike the portal's code-based flow.
+  let authModalMode = "signin"; // signin | signup | reset
+
+  function setAuthModalMode(mode) {
+    authModalMode = mode;
+    if (authErrorEl) authErrorEl.hidden = true;
+    if (mode === "signup") {
+      if (authTitleEl) authTitleEl.textContent = "Create Account";
+      if (authPasswordInput) { authPasswordInput.hidden = false; authPasswordInput.required = true; }
+      if (authSubmitBtn) authSubmitBtn.textContent = "Create Account";
+      if (authSwitchModeText) authSwitchModeText.textContent = "Already have an account?";
+      if (authSwitchModeBtn) authSwitchModeBtn.textContent = "Sign in";
+      if (authForgotBtn) authForgotBtn.hidden = true;
+    } else if (mode === "reset") {
+      if (authTitleEl) authTitleEl.textContent = "Reset Password";
+      if (authPasswordInput) { authPasswordInput.hidden = true; authPasswordInput.required = false; }
+      if (authSubmitBtn) authSubmitBtn.textContent = "Send Reset Link";
+      if (authSwitchModeText) authSwitchModeText.textContent = "Remembered it?";
+      if (authSwitchModeBtn) authSwitchModeBtn.textContent = "Sign in";
+      if (authForgotBtn) authForgotBtn.hidden = true;
+    } else {
+      if (authTitleEl) authTitleEl.textContent = "Sign In";
+      if (authPasswordInput) { authPasswordInput.hidden = false; authPasswordInput.required = true; }
+      if (authSubmitBtn) authSubmitBtn.textContent = "Sign In";
+      if (authSwitchModeText) authSwitchModeText.textContent = "New here?";
+      if (authSwitchModeBtn) authSwitchModeBtn.textContent = "Create an account";
+      if (authForgotBtn) authForgotBtn.hidden = false;
+    }
+  }
+
+  function openAuthModal() {
+    if (!authModal) return;
+    setAuthModalMode("signin");
+    authForm?.reset();
+    authModal.hidden = false;
+  }
+  function closeAuthModal() {
+    if (authModal) authModal.hidden = true;
+  }
+  authCloseBtn?.addEventListener("click", closeAuthModal);
+  authModal?.addEventListener("click", (e) => {
+    if (e.target === authModal) closeAuthModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Escape" && authModal && !authModal.hidden) closeAuthModal();
+  });
+  authSwitchModeBtn?.addEventListener("click", () => {
+    setAuthModalMode(authModalMode === "signup" ? "signin" : "signup");
+  });
+  authForgotBtn?.addEventListener("click", () => setAuthModalMode("reset"));
+
+  function showAuthMessage(text, isError) {
+    if (!authErrorEl) return;
+    authErrorEl.textContent = text;
+    authErrorEl.style.color = isError ? "#f87171" : "#4ade80";
+    authErrorEl.hidden = false;
+  }
+
+  authForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = authEmailInput?.value.trim();
+    const password = authPasswordInput?.value;
+    if (authErrorEl) authErrorEl.hidden = true;
+    if (authSubmitBtn) authSubmitBtn.disabled = true;
+
+    try {
+      if (authModalMode === "signin") {
+        const { error } = await veloraSupabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        closeAuthModal();
+        await initAuth();
+      } else if (authModalMode === "signup") {
+        const { data, error } = await veloraSupabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (!data.session) {
+          // Supabase deliberately doesn't say whether this email was new or
+          // already registered (it never reveals that, to stop email
+          // enumeration) — data.session is null either way, so the message
+          // has to cover both cases at once.
+          setAuthModalMode("signin");
+          showAuthMessage("If that's a new email, check your inbox to confirm it. Already have an account? Just sign in, or use Forgot password.", false);
+        } else {
+          closeAuthModal();
+          await initAuth();
+        }
+      } else if (authModalMode === "reset") {
+        const { error } = await veloraSupabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password.html`,
+        });
+        if (error) throw error;
+        showAuthMessage("Check your email for a reset link.", false);
+      }
+    } catch (err) {
+      const message =
+        err.message === "User already registered"
+          ? "That email already has an account — try signing in, or use Forgot password to add one."
+          : err.message || "Something went wrong — try again.";
+      showAuthMessage(message, true);
+    }
+    if (authSubmitBtn) authSubmitBtn.disabled = false;
+  });
+
+  document.querySelectorAll(".dragon-oauth-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await veloraSupabase.auth.signInWithOAuth({
+          provider: btn.dataset.provider,
+          options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
+        });
+      } catch (err) {
+        showAuthMessage("That sign-in method isn't set up yet — try email instead.", true);
+      }
+    });
   });
 
   // Equip writes are a simple, low-risk overwrite (the store is only open

@@ -631,6 +631,41 @@ if (verifyCodeForm) {
   });
 }
 
+// Game password reset — landing page for the link Supabase emails from
+// resetPasswordForEmail. The recovery token in the URL is picked up
+// automatically (detectSessionInUrl is on by default), which is what
+// authorizes updateUser() below; no separate token handling needed.
+const resetPasswordForm = document.getElementById("resetPasswordForm");
+if (resetPasswordForm) {
+  resetPasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const errorEl = document.getElementById("resetError");
+    const submitBtn = document.getElementById("resetSubmitBtn");
+    if (errorEl) errorEl.hidden = true;
+
+    if (newPassword !== confirmPassword) {
+      if (errorEl) { errorEl.textContent = "Those passwords don't match."; errorEl.hidden = false; }
+      return;
+    }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Saving…"; }
+    const { error } = await veloraSupabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      if (errorEl) {
+        errorEl.textContent = "That link may have expired — request a new reset email from the game and try again.";
+        errorEl.hidden = false;
+      }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Set Password"; }
+      return;
+    }
+
+    window.location.href = "velora-gaming.html";
+  });
+}
+
 document.addEventListener("click", async (e) => {
   if (!e.target.closest("[data-portal-logout]")) return;
   await veloraSupabase.auth.signOut();
