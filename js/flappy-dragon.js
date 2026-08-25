@@ -581,16 +581,18 @@
     5: { type: "coinRush", duration: 10 },
     10: { type: "jetChase", duration: 10 },
     15: { type: "coinRush", duration: 20 },
+    20: { type: "rage", duration: 20 },
   };
   const EVENT_SHAKE_DURATION = 0.5;
   const EVENT_RETRACT_DURATION = 0.6;
   const COIN_RUSH_COIN_VALUE = 1; // a normal in-flight coin is worth COIN_VALUE (5)
+  const RAGE_REWARD = 10000; // credited to every player once Rage Mode finishes
 
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
   let level, currentTheme, lastGapCenter;
   let flapPulse, trail, trailTimer;
-  let levelEvent, jet, missiles, jetChaseRewardFlash;
+  let levelEvent, jet, missiles, jetChaseRewardFlash, rageRewardFlash;
   let lastTime = null;
   // A brief window after death where the dragon stays frozen exactly where
   // it was hit and no tap/space restarts the run — long enough for the
@@ -622,10 +624,11 @@
     flapPulse = 0;
     trail = [];
     trailTimer = 0;
-    levelEvent = { triggeredLevels: new Set(), active: false, type: null, phase: "idle", timer: 0, duration: 0, timeLeft: 0 };
+    levelEvent = { triggeredLevels: new Set(), active: false, type: null, phase: "idle", timer: 0, duration: 0, timeLeft: 0, lastBeepSecond: null };
     jet = null;
     missiles = [];
     jetChaseRewardFlash = 0;
+    rageRewardFlash = 0;
     if (scoreEl) scoreEl.textContent = "0";
     if (levelEl) levelEl.textContent = String(level);
   }
@@ -650,10 +653,13 @@
     levelEvent.phase = "shake";
     levelEvent.timer = 0;
     levelEvent.duration = config.duration;
+    levelEvent.lastBeepSecond = null;
     if (config.type === "jetChase") {
       jet = { x: JET_X, y: dragonY, missileTimer: 0 };
       missiles = [];
       playJetChaseStartSound();
+    } else if (config.type === "rage") {
+      playRageStartSound();
     } else {
       playCoinRushStartSound();
     }
@@ -729,9 +735,14 @@
   // uninterrupted, and every sense gets a hit of "that just broke": debris,
   // a screen jolt, a thud, and the same squash-pop the dragon gets on a
   // flap so it visibly reacts rather than sailing through untouched.
+  // Charge-agnostic on purpose: it just breaks the pylon in front of it.
+  // The normal (non-rage) collision branch is the one that spends a charge,
+  // decrementing pylonBreaksLeft itself right before calling this — Rage
+  // Mode's branch calls this directly and never touches pylonBreaksLeft at
+  // all, so smashing pylons during Rage costs nothing and can't drain an
+  // Epic/Legendary/Cosmic dragon's charges for after the event ends.
   function breakPylon(p) {
     p.broken = true;
-    pylonBreaksLeft--;
     spawnPylonDebris(p);
     impactShakeTimer = IMPACT_SHAKE_DURATION;
     flapPulse = 1;
@@ -846,6 +857,41 @@
       playTone(ctx, 200, t, 0.16, 0.16, "sawtooth");
       playTone(ctx, 160, t + 0.18, 0.16, 0.16, "sawtooth");
       playTone(ctx, 120, t + 0.36, 0.22, 0.17, "sawtooth");
+    } catch (err) {}
+  }
+
+  // A rising growl into a couple of power-chord stabs for Rage Mode's
+  // arrival — meant to feel aggressive/triumphant rather than tense
+  // (jetChase) or cheerful (coinRush).
+  function playRageStartSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(80, t);
+      osc.frequency.exponentialRampToValueAtTime(500, t + 0.35);
+      g.gain.setValueAtTime(0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.4);
+      [300, 450, 600].forEach((f, i) => playTone(ctx, f, t + 0.08 + i * 0.07, 0.15, 0.15, "square"));
+    } catch (err) {}
+  }
+
+  // The 3-2-1 warning beep right before Rage Mode ends — same sharp tone
+  // each time on purpose, like a countdown clock, so it's instantly
+  // recognizable as "wrap it up" rather than another event cue.
+  function playRageCountdownBeep() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      playTone(ctx, 880, t, 0.12, 0.18, "square");
     } catch (err) {}
   }
 
@@ -1233,11 +1279,23 @@
       levelEvent.phase = "active";
       levelEvent.timer = 0;
       levelEvent.timeLeft = levelEvent.duration;
-      pylons = [];
+      // Rage keeps every pylon already in play (and keeps spawning more —
+      // see update()) instead of clearing them: the whole point is a solid
+      // field of pylons to smash through, not an empty sky.
+      if (levelEvent.type !== "rage") pylons = [];
       if (levelEvent.type === "coinRush") spawnCoinRushField(levelEvent.duration);
     } else if (levelEvent.phase === "active") {
       levelEvent.timeLeft -= dt;
       if (levelEvent.type === "jetChase") updateJetChase(dt);
+      if (levelEvent.type === "rage") {
+        // A beep on the 3/2/1 mark right before it ends — that's the
+        // player's cue to stop ramming pylons and fly clean again.
+        const secs = Math.ceil(levelEvent.timeLeft);
+        if (secs >= 1 && secs <= 3 && secs !== levelEvent.lastBeepSecond) {
+          levelEvent.lastBeepSecond = secs;
+          playRageCountdownBeep();
+        }
+      }
       if (levelEvent.timeLeft <= 0) finishLevelEvent();
     }
   }
@@ -1261,8 +1319,28 @@
     }
   }
 
+  async function awardRageBonus() {
+    if (!playerId || !playerEditKey) return;
+    try {
+      const { data: newBalance, error } = await veloraSupabase.rpc("credit_coins", {
+        p_id: playerId,
+        p_edit_key: playerEditKey,
+        p_amount: RAGE_REWARD,
+      });
+      if (!error && typeof newBalance === "number") {
+        walletCoins = newBalance;
+        updateCoinDisplays();
+        rageRewardFlash = 2.5;
+        playRewardSound();
+      }
+    } catch (err) {
+      // A failed credit shouldn't block the run from continuing.
+    }
+  }
+
   function finishLevelEvent() {
     const wasJetChase = levelEvent.type === "jetChase";
+    const wasRage = levelEvent.type === "rage";
     levelEvent.active = false;
     levelEvent.phase = "idle";
     distanceSinceSpawn = 0; // a clean breather before pylons resume
@@ -1271,6 +1349,8 @@
     if (wasJetChase) {
       playExplosionSound(); // the jet peeling off in a burst, not a hit
       awardJetChaseBonus();
+    } else if (wasRage) {
+      awardRageBonus();
     }
   }
 
@@ -1280,6 +1360,7 @@
     wingPhase += dt * 14;
     flapPulse = Math.max(0, flapPulse - dt * 5);
     jetChaseRewardFlash = Math.max(0, jetChaseRewardFlash - dt);
+    rageRewardFlash = Math.max(0, rageRewardFlash - dt);
     updateLevelEvent(dt);
     if (state !== "playing") return; // a missile hit inside updateLevelEvent may have already ended the run
 
@@ -1307,7 +1388,10 @@
     pylonDebris = pylonDebris.filter((d) => d.life > 0 && d.y < HEIGHT);
     if (impactShakeTimer > 0) impactShakeTimer = Math.max(0, impactShakeTimer - dt);
 
-    if (!levelEvent.active) {
+    // Rage keeps pylons spawning through its whole 20s — every other event
+    // (coinRush/jetChase) clears the sky instead, so this stays gated to
+    // "no event, or specifically rage" rather than just "!levelEvent.active".
+    if (!levelEvent.active || levelEvent.type === "rage") {
       distanceSinceSpawn += PYLON_SPEED * dt;
       if (distanceSinceSpawn >= PYLON_SPACING) {
         distanceSinceSpawn = 0;
@@ -1317,7 +1401,7 @@
 
     for (const p of pylons) {
       p.x -= PYLON_SPEED * dt;
-      if (!levelEvent.active && !p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
+      if ((!levelEvent.active || levelEvent.type === "rage") && !p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
         p.scored = true;
         score++;
         if (scoreEl) scoreEl.textContent = String(score);
@@ -1352,10 +1436,23 @@
       return;
     }
 
-    // No pylon collision during a level event — the pylons are visibly
-    // retracting or already gone, so a hit here would feel like a bug, not
-    // a fair loss.
-    if (!levelEvent.active) {
+    // Rage: every dragon smashes through pylons for free — no charge cost,
+    // no crash, for the whole 20s — that's the entire point of the event.
+    // Checked first since levelEvent.active is true throughout, which would
+    // otherwise fall into the "no pylon collision during an event" branch
+    // below meant for coinRush/jetChase (which really do clear the sky).
+    if (levelEvent.active && levelEvent.type === "rage") {
+      for (const p of pylons) {
+        if (p.broken) continue;
+        const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
+        if (!withinX) continue;
+        const gapTop = p.gapCenter - p.gap / 2;
+        const gapBottom = p.gapCenter + p.gap / 2;
+        if (dragonY - DRAGON_HIT_RADIUS < gapTop || dragonY + DRAGON_HIT_RADIUS > gapBottom) {
+          breakPylon(p);
+        }
+      }
+    } else if (!levelEvent.active) {
       for (const p of pylons) {
         if (p.broken) continue; // already smashed through — no longer solid
         const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
@@ -1368,6 +1465,7 @@
           // once that runs out, a pylon hit crashes exactly like it always
           // has for every other dragon.
           if (pylonBreaksLeft > 0) {
+            pylonBreaksLeft--;
             breakPylon(p);
           } else {
             endGame();
@@ -1527,7 +1625,10 @@
       if (levelEvent.phase === "shake") {
         const intensity = Math.min(1, levelEvent.timer / 0.15);
         jitterX = Math.sin(performance.now() / 35 + p.x * 0.3) * 4 * intensity;
-      } else if (levelEvent.phase === "retract" || levelEvent.phase === "active") {
+      } else if (levelEvent.type !== "rage" && (levelEvent.phase === "retract" || levelEvent.phase === "active")) {
+        // Rage skips this entirely — its pylons stay fully solid the whole
+        // time since smashing through a real one is the point, not an
+        // already-open gap.
         const t = levelEvent.phase === "active" ? 1 : Math.min(1, levelEvent.timer / EVENT_RETRACT_DURATION);
         const eased = 1 - Math.pow(1 - t, 3);
         gapTop = gapTop * (1 - eased);
@@ -1910,8 +2011,8 @@
   }
 
   const HEADING_FONT = '"Space Grotesk", sans-serif';
-  const EVENT_TITLES = { coinRush: "COIN RUSH!", jetChase: "INCOMING!" };
-  const EVENT_TITLE_COLORS = { coinRush: "#f0c14b", jetChase: "#ff4d4d" };
+  const EVENT_TITLES = { coinRush: "COIN RUSH!", jetChase: "INCOMING!", rage: "RAGE MODE!" };
+  const EVENT_TITLE_COLORS = { coinRush: "#f0c14b", jetChase: "#ff4d4d", rage: "#ff2f2f" };
 
   const JET_BODY_GRADIENT = ctx.createLinearGradient(-26, 0, 28, 0);
   JET_BODY_GRADIENT.addColorStop(0, "#4a4f57");
@@ -2033,10 +2134,20 @@
         ctx.fillText(title, 0, 0);
       } else if (levelEvent.phase === "active") {
         const secs = Math.max(0, Math.ceil(levelEvent.timeLeft));
-        const label = levelEvent.type === "jetChase" ? `🚀 Dodge! — ${secs}s` : `🪙 Coin Rush — ${secs}s`;
+        // Rage's own label, and its last 3 seconds flash red/scale up in
+        // step with the countdown beep — the same "wrap it up" cue in both
+        // sound and sight.
+        const isRageEnding = levelEvent.type === "rage" && secs <= 3 && secs > 0;
+        const label =
+          levelEvent.type === "jetChase" ? `🚀 Dodge! — ${secs}s` : levelEvent.type === "rage" ? `🔥 Rage Mode — ${secs}s` : `🪙 Coin Rush — ${secs}s`;
+        if (isRageEnding) {
+          ctx.translate(WIDTH / 2, 63);
+          ctx.scale(1.12, 1.12);
+          ctx.translate(-WIDTH / 2, -63);
+        }
         ctx.fillStyle = "rgba(10, 6, 20, 0.55)";
         ctx.fillRect(WIDTH / 2 - 110, 46, 220, 34);
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = isRageEnding ? "#ff4d4d" : "#fff";
         ctx.textAlign = "center";
         ctx.font = `700 19px ${HEADING_FONT}`;
         ctx.fillText(label, WIDTH / 2, 69);
@@ -2055,6 +2166,20 @@
       ctx.fillText("🪙 +5,000 Coins!", 3, 3);
       ctx.fillStyle = "#f0c14b";
       ctx.fillText("🪙 +5,000 Coins!", 0, 0);
+      ctx.restore();
+    }
+
+    if (rageRewardFlash > 0) {
+      const alpha = Math.min(1, rageRewardFlash / 0.4);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = "center";
+      ctx.font = `900 28px ${HEADING_FONT}`;
+      ctx.translate(WIDTH / 2, HEIGHT * 0.3);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillText("🔥 +10,000 Coins!", 3, 3);
+      ctx.fillStyle = "#ff4d4d";
+      ctx.fillText("🔥 +10,000 Coins!", 0, 0);
       ctx.restore();
     }
   }
