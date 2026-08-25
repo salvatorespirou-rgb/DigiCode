@@ -2047,18 +2047,21 @@ body.custom-cursor-active button {
 }
 
 /* ---------- Flappy Dragon game ---------- */
+/* The 1fr / auto / 1fr split keeps the game mathematically centered on the
+   page regardless of monitor width — the leaderboard sits in the left 1fr,
+   and the empty third column mirrors it so the middle column never drifts
+   off-center the way a plain two-column layout would. */
 .dragon-game-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 32px;
   align-items: start;
 }
 
 .dragon-game-stage {
   position: relative;
-  width: 480px;
+  width: clamp(320px, 60vw, 560px);
   max-width: 100%;
-  margin: 0 auto;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -2108,6 +2111,8 @@ body.custom-cursor-active button {
 
 .dragon-name-form {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin-top: 16px;
 }
@@ -2119,7 +2124,8 @@ body.custom-cursor-active button {
   padding: 8px 12px;
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  /* 16px+ stops iOS Safari auto-zooming the page when this gets focused. */
+  font-size: 16px;
   width: 160px;
 }
 .dragon-name-form input:focus { outline: none; border-color: rgba(147, 51, 234, 0.6); }
@@ -2145,7 +2151,8 @@ body.custom-cursor-active button {
   border-radius: var(--radius);
   padding: 24px;
   width: 100%;
-  max-width: 340px;
+  max-width: 320px;
+  justify-self: end;
 }
 
 .leaderboard-row {
@@ -2178,8 +2185,8 @@ body.custom-cursor-active button {
 
 @media (max-width: 860px) {
   .dragon-game-layout { grid-template-columns: 1fr; justify-items: center; }
-  .dragon-game-stage { order: -1; }
-  .dragon-leaderboard { max-width: 480px; }
+  .dragon-game-stage { order: -1; width: 100%; max-width: 480px; }
+  .dragon-leaderboard { max-width: 480px; justify-self: center; }
 }
 
 

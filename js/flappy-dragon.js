@@ -143,7 +143,10 @@
     return r.top < window.innerHeight && r.bottom > 0;
   }
 
-  canvas.addEventListener("pointerdown", flap);
+  // "click" (not pointerdown/touchstart) so scrolling the page with a finger
+  // that happens to start over the canvas never gets mistaken for a flap —
+  // click only fires for a genuine tap, never for a touch that becomes a drag.
+  canvas.addEventListener("click", flap);
 
   function escapeHtml(str) {
     return String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
