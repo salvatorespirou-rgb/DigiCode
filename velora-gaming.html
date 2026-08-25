@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verify Your Code — Velora Digital</title>
-  <meta name="description" content="Enter your one-time code to access your Velora Digital portal." />
+  <title>Velora Gaming — Velora Digital</title>
+  <meta name="description" content="Velora Gaming — our gaming servers, and Flappy Dragon." />
   <link rel="icon" href="assets/images/velora-logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
 </head>
 <body>
 
@@ -51,24 +53,51 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <p class="eyebrow">Almost there</p>
-        <h1>Check your <span class="gradient-text">email.</span></h1>
-        <p class="hero-sub" id="verifySub">We've sent a one-time code to your email. Enter it below to continue.</p>
+        <p class="eyebrow">Velora Gaming</p>
+        <h1>Our own <span class="gradient-text">gaming corner.</span></h1>
+        <p class="hero-sub">Game servers we run, and a little something to play while you wait.</p>
       </div>
     </section>
 
     <section class="request-form-section">
       <div class="container">
-        <div class="portal-card">
-          <form id="verifyCodeForm" class="portal-login-form">
-            <div class="form-group">
-              <label for="oneTimeCode">One-time code</label>
-              <input type="text" id="oneTimeCode" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" required />
+        <h2 class="section-title">Our Servers</h2>
+        <p class="section-sub">Servers we host and manage — join one, or ask us to set up your own.</p>
+
+        <div class="dev-empty" style="max-width: 640px; margin: 0 auto; padding: 48px 24px;">
+          We're setting up our first community servers — check back soon for connection details.
+        </div>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container">
+        <h2 class="section-title">Flappy Dragon</h2>
+        <p class="section-sub">Keep the dragon airborne through the castle pylons. Space, click, or tap to flap.</p>
+
+        <div class="dragon-game-layout">
+          <div class="dragon-leaderboard">
+            <h3 class="dashboard-section-title">Leaderboard — <span id="dragonLeaderboardMonth"></span></h3>
+            <p class="form-hint" style="margin-bottom: 16px;">Resets fresh every month. Top 10 shown.</p>
+            <div id="dragonLeaderboardList"><p class="dev-empty">Loading…</p></div>
+          </div>
+
+          <div class="dragon-game-stage">
+            <canvas id="dragonCanvas" width="480" height="700"></canvas>
+            <div class="dragon-overlay" id="dragonOverlay">
+              <h3 id="dragonOverlayTitle">Flappy Dragon</h3>
+              <p id="dragonOverlayBody">Keep the dragon airborne through the castle pylons.</p>
+              <p class="dragon-start-hint" id="dragonStartHint">Space, click, or tap to start</p>
+              <form id="dragonNameForm" class="dragon-name-form" hidden>
+                <input type="text" id="dragonNameInput" placeholder="Your name (optional)" maxlength="24" autocomplete="off" />
+                <button type="submit" class="btn btn-ghost btn-small-inline">Save Name</button>
+              </form>
             </div>
-            <p class="portal-login-error" id="verifyError" hidden>That code didn't work — check it and try again, or request a new one.</p>
-            <button type="submit" class="btn btn-primary btn-large" id="verifySubmitBtn" style="width: 100%; margin-top: 4px;">Verify Code</button>
-          </form>
-          <p class="portal-note" style="margin-top: 20px;">Didn't get a code, or it expired? <button type="button" id="resendCodeBtn" class="clear-cart-link" style="display:inline; padding:0;">Send a new one</button>.</p>
+            <div class="dragon-hud">
+              <span>Score <strong id="dragonScore">0</strong></span>
+              <span>Best <strong id="dragonBest">0</strong></span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -80,8 +109,7 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="js/supabase-client.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/flappy-dragon.js"></script>
 </body>
 </html>

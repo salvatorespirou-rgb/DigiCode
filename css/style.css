@@ -2046,4 +2046,140 @@ body.custom-cursor-active button {
   .domain-form { flex-direction: column; }
 }
 
+/* ---------- Flappy Dragon game ---------- */
+.dragon-game-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.dragon-game-stage {
+  position: relative;
+  width: 480px;
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(255, 126, 95, 0.15);
+}
+
+.dragon-game-stage canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.dragon-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background: rgba(10, 6, 20, 0.72);
+  backdrop-filter: blur(4px);
+}
+.dragon-overlay[hidden] { display: none; }
+
+.dragon-overlay h3 {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.dragon-overlay p {
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.dragon-start-hint {
+  font-size: 0.85rem;
+  color: #f0a04b;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.dragon-name-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.dragon-name-form input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  width: 160px;
+}
+.dragon-name-form input:focus { outline: none; border-color: rgba(147, 51, 234, 0.6); }
+
+.dragon-hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.dragon-leaderboard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.leaderboard-row:last-child { border-bottom: none; }
+
+.leaderboard-rank {
+  width: 28px;
+  font-weight: 700;
+  color: #f0a04b;
+}
+
+.leaderboard-name {
+  flex: 1;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-score {
+  font-weight: 700;
+  color: var(--text);
+}
+
+@media (max-width: 860px) {
+  .dragon-game-layout { grid-template-columns: 1fr; justify-items: center; }
+  .dragon-game-stage { order: -1; }
+  .dragon-leaderboard { max-width: 480px; }
+}
+
 
