@@ -18,6 +18,8 @@
   const DRAGON_X = WIDTH * 0.28;
   const DRAGON_RADIUS = 19;
   const GROUND_HEIGHT = 34;
+  const COIN_RADIUS = 12;
+  const COIN_VALUE = 5; // bonus on top of the +1 per pylon passed
 
   const scoreEl = document.getElementById("dragonScore");
   const bestEl = document.getElementById("dragonBest");
@@ -64,7 +66,7 @@
   }
 
   let state = "start"; // start | playing | gameover
-  let dragonY, dragonVY, wingPhase, pylons, distanceSinceSpawn, score, lastScoredIndex;
+  let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
   let lastTime = null;
 
   function resetGame() {
@@ -72,16 +74,22 @@
     dragonVY = 0;
     wingPhase = 0;
     pylons = [];
+    coins = [];
     distanceSinceSpawn = PYLON_SPACING; // spawn one immediately
     score = 0;
     lastScoredIndex = -1;
     if (scoreEl) scoreEl.textContent = "0";
   }
 
+  // A coin sits at the centre of each pylon's gap — collecting one rewards
+  // flying the accurate line through the middle, and it can never overlap
+  // the stonework since it's placed inside the open gap by construction.
   function spawnPylon() {
     const margin = 60;
     const gapCenter = margin + PYLON_GAP / 2 + Math.random() * (HEIGHT - GROUND_HEIGHT - margin * 2 - PYLON_GAP);
-    pylons.push({ x: WIDTH + PYLON_WIDTH, gapCenter, scored: false });
+    const pylonX = WIDTH + PYLON_WIDTH;
+    pylons.push({ x: pylonX, gapCenter, scored: false });
+    coins.push({ x: pylonX + PYLON_WIDTH / 2, y: gapCenter, collected: false });
   }
 
   // Spacebar is the only control needed to play — restarting after a crash
@@ -125,10 +133,10 @@
           // Leaderboard being unreachable shouldn't block replaying.
         }
       } else {
-        showOverlay("gameover", "Crashed!", `Score: <strong>${score}</strong> · Your best: <strong>${best}</strong>`);
+        showOverlay("gameover", "You Crashed!", `Score: <strong>${score}</strong> · Your best: <strong>${best}</strong>`);
       }
     } else {
-      showOverlay("gameover", "Crashed!", `Score: <strong>${score}</strong>. Join the leaderboard with this run?`);
+      showOverlay("gameover", "You Crashed!", `Score: <strong>${score}</strong>. Join the leaderboard with this run?`);
     }
   }
 
@@ -138,7 +146,10 @@
     if (overlayTitle) overlayTitle.textContent = title;
     if (overlayBody) overlayBody.innerHTML = bodyHtml;
     if (registerForm) registerForm.hidden = !(mode === "gameover" && !playerId);
-    if (startHint) startHint.hidden = mode !== "start";
+    if (startHint) {
+      startHint.hidden = false;
+      startHint.textContent = mode === "start" ? "Tap or Space to Start" : "Tap or Space to Restart";
+    }
   }
 
   function hideOverlay() {
@@ -151,10 +162,19 @@
     if (avatarLabel) avatarLabel.classList.toggle("has-file", !!file);
   });
 
+  // Disabling the submit button alone isn't enough — pressing Enter on a
+  // mobile keyboard can fire several submit events back-to-back faster than
+  // the disabled state visibly takes hold, which is exactly how duplicate
+  // leaderboard entries got created during testing. This flag is checked
+  // synchronously before anything async starts, so it can't race.
+  let isRegistering = false;
+
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (isRegistering) return;
     const name = (nameInput.value || "").trim().slice(0, 24);
     if (!name) return;
+    isRegistering = true;
     const submitBtn = registerForm.querySelector("button[type='submit']");
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Joining…"; }
 
@@ -197,6 +217,7 @@
       }
     }
 
+    isRegistering = false;
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Join Leaderboard"; }
   });
 
@@ -213,10 +234,20 @@
     return r.top < window.innerHeight && r.bottom > 0;
   }
 
-  // "click" (not pointerdown/touchstart) so scrolling the page with a finger
-  // that happens to start over the canvas never gets mistaken for a flap —
-  // click only fires for a genuine tap, never for a touch that becomes a drag.
-  canvas.addEventListener("click", flap);
+  // Listens on the whole stage, not just the canvas — the start/game-over
+  // overlay is a separate element sitting visually on top of the canvas, so
+  // a real tap on it (as opposed to a script calling canvas.click() directly)
+  // never actually reaches the canvas itself. "click" (not pointerdown/
+  // touchstart) so scrolling the page with a finger that happens to start
+  // over the game never gets mistaken for a flap — click only fires for a
+  // genuine tap, never for a touch that becomes a drag. Clicks inside the
+  // registration form are excluded so typing a name or picking a photo
+  // doesn't restart the game out from under you.
+  const stage = document.querySelector(".dragon-game-stage");
+  stage?.addEventListener("click", (e) => {
+    if (e.target.closest("#dragonRegisterForm")) return;
+    flap();
+  });
 
   function escapeHtml(str) {
     return String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -242,6 +273,20 @@
       }
     }
     pylons = pylons.filter((p) => p.x > -PYLON_WIDTH);
+
+    for (const c of coins) {
+      c.x -= PYLON_SPEED * dt;
+      if (!c.collected) {
+        const dx = c.x - DRAGON_X;
+        const dy = c.y - dragonY;
+        if (Math.sqrt(dx * dx + dy * dy) < COIN_RADIUS + DRAGON_RADIUS) {
+          c.collected = true;
+          score += COIN_VALUE;
+          if (scoreEl) scoreEl.textContent = String(score);
+        }
+      }
+    }
+    coins = coins.filter((c) => !c.collected && c.x > -COIN_RADIUS);
 
     if (dragonY - DRAGON_RADIUS < 0) {
       dragonY = DRAGON_RADIUS;
@@ -427,8 +472,28 @@
     ctx.restore();
   }
 
+  function drawCoin(c) {
+    // A cheap "spinning" look: squash the ellipse's width with a sine wave.
+    const spin = Math.abs(Math.sin(performance.now() / 260 + c.x * 0.04));
+    const rx = COIN_RADIUS * (0.25 + spin * 0.75);
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    const coinGrad = ctx.createRadialGradient(-rx * 0.3, -COIN_RADIUS * 0.3, 1, 0, 0, COIN_RADIUS);
+    coinGrad.addColorStop(0, "#fff3c4");
+    coinGrad.addColorStop(1, "#f0a04b");
+    ctx.fillStyle = coinGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, COIN_RADIUS, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#c97b1f";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function render() {
     drawBackground();
+    for (const c of coins) drawCoin(c);
     for (const p of pylons) drawPylon(p);
     drawDragon();
   }
