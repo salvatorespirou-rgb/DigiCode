@@ -311,10 +311,22 @@
     return DEFAULT_FLAP_PROFILE;
   }
 
+  // Coin Rush — a one-time bonus event the first time a run reaches level
+  // 10. Every pylon shakes, then the top half lifts into the ceiling and
+  // the bottom half sinks into the ground, clearing the sky; for 10 open
+  // seconds coins rain in instead (worth 1 each, far less than a normal
+  // in-flight coin) before normal pylons resume.
+  const COIN_RUSH_LEVEL = 10;
+  const COIN_RUSH_SHAKE_DURATION = 0.5;
+  const COIN_RUSH_RETRACT_DURATION = 0.6;
+  const COIN_RUSH_COLLECT_DURATION = 10;
+  const COIN_RUSH_COIN_VALUE = 1;
+
   let state = "start"; // start | playing | gameover
   let dragonY, dragonVY, wingPhase, pylons, coins, distanceSinceSpawn, score, lastScoredIndex;
   let level, currentTheme, lastGapCenter;
   let flapPulse, trail, trailTimer;
+  let coinRush;
   let lastTime = null;
 
   function resetGame() {
@@ -332,6 +344,7 @@
     flapPulse = 0;
     trail = [];
     trailTimer = 0;
+    coinRush = { triggered: false, active: false, phase: "idle", timer: 0, collectTimeLeft: 0 };
     if (scoreEl) scoreEl.textContent = "0";
     if (levelEl) levelEl.textContent = String(level);
   }
@@ -345,6 +358,31 @@
     level = newLevel;
     currentTheme = themeForLevel(level);
     if (levelEl) levelEl.textContent = String(level);
+    if (level === COIN_RUSH_LEVEL && !coinRush.triggered) startCoinRush();
+  }
+
+  function startCoinRush() {
+    coinRush.triggered = true;
+    coinRush.active = true;
+    coinRush.phase = "shake";
+    coinRush.timer = 0;
+    playCoinRushStartSound();
+  }
+
+  // Scatters a wide band of coins ahead of the dragon — wider than one
+  // screen — so as some scroll off the left edge over the full 10 seconds,
+  // fresh ones are still arriving from the right the whole time.
+  function spawnCoinRushField() {
+    const topBound = 50;
+    const bottomBound = HEIGHT - GROUND_HEIGHT - 50;
+    const spanStart = 60;
+    const spanEnd = WIDTH + PYLON_SPEED * COIN_RUSH_COLLECT_DURATION;
+    const count = 46;
+    for (let i = 0; i < count; i++) {
+      const x = spanStart + (i / count) * (spanEnd - spanStart) + (Math.random() - 0.5) * 40;
+      const y = topBound + Math.random() * (bottomBound - topBound);
+      coins.push({ x, y, collected: false, value: COIN_RUSH_COIN_VALUE, isEventCoin: true });
+    }
   }
 
   // The actual "impossible pylon" bug: each gap's vertical position used to
@@ -435,6 +473,29 @@
       const t = ctx.currentTime;
       playTone(ctx, 988, t, 0.11, 0.16); // B5
       playTone(ctx, 1319, t + 0.07, 0.2, 0.16); // E6
+    } catch (err) {}
+  }
+
+  // A lighter, quicker blip for Coin Rush pickups — the full two-note chime
+  // gets noisy fast when a dozen coins are grabbed in a couple of seconds.
+  function playEventCoinSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      playTone(ctx, 1500 + Math.random() * 300, ctx.currentTime, 0.06, 0.09, "sine");
+    } catch (err) {}
+  }
+
+  // A short rising three-note fanfare when the pylons finish retracting and
+  // the coin field appears.
+  function playCoinRushStartSound() {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      playTone(ctx, 660, t, 0.12, 0.15, "square");
+      playTone(ctx, 880, t + 0.1, 0.12, 0.15, "square");
+      playTone(ctx, 1320, t + 0.2, 0.22, 0.17, "square");
     } catch (err) {}
   }
 
@@ -633,11 +694,38 @@
     return String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
+  // Advances the shake -> retract -> collect phases and handles the
+  // hand-off between them (clearing the pylons and dropping the coin field
+  // the instant retract finishes, resuming normal spawning once collect
+  // runs out).
+  function updateCoinRush(dt) {
+    if (!coinRush.active) return;
+    coinRush.timer += dt;
+    if (coinRush.phase === "shake" && coinRush.timer >= COIN_RUSH_SHAKE_DURATION) {
+      coinRush.phase = "retract";
+      coinRush.timer = 0;
+    } else if (coinRush.phase === "retract" && coinRush.timer >= COIN_RUSH_RETRACT_DURATION) {
+      coinRush.phase = "collect";
+      coinRush.timer = 0;
+      coinRush.collectTimeLeft = COIN_RUSH_COLLECT_DURATION;
+      pylons = [];
+      spawnCoinRushField();
+    } else if (coinRush.phase === "collect") {
+      coinRush.collectTimeLeft -= dt;
+      if (coinRush.collectTimeLeft <= 0) {
+        coinRush.active = false;
+        coinRush.phase = "idle";
+        distanceSinceSpawn = 0; // a clean breather before pylons resume
+      }
+    }
+  }
+
   function update(dt) {
     dragonVY = Math.min(dragonVY + GRAVITY * dt, MAX_FALL_SPEED);
     dragonY += dragonVY * dt;
     wingPhase += dt * 14;
     flapPulse = Math.max(0, flapPulse - dt * 5);
+    updateCoinRush(dt);
 
     // A short comet trail of sparks streaming off the tail — spawned at a
     // fixed rate and then swept backward with the rest of the world so it
@@ -653,15 +741,17 @@
     }
     trail = trail.filter((p) => p.life > 0);
 
-    distanceSinceSpawn += PYLON_SPEED * dt;
-    if (distanceSinceSpawn >= PYLON_SPACING) {
-      distanceSinceSpawn = 0;
-      spawnPylon();
+    if (!coinRush.active) {
+      distanceSinceSpawn += PYLON_SPEED * dt;
+      if (distanceSinceSpawn >= PYLON_SPACING) {
+        distanceSinceSpawn = 0;
+        spawnPylon();
+      }
     }
 
     for (const p of pylons) {
       p.x -= PYLON_SPEED * dt;
-      if (!p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
+      if (!coinRush.active && !p.scored && p.x + PYLON_WIDTH < DRAGON_X - DRAGON_HIT_RADIUS) {
         p.scored = true;
         score++;
         if (scoreEl) scoreEl.textContent = String(score);
@@ -677,9 +767,10 @@
         const dy = c.y - dragonY;
         if (Math.sqrt(dx * dx + dy * dy) < COIN_RADIUS + DRAGON_HIT_RADIUS) {
           c.collected = true;
-          score += COIN_VALUE;
+          score += c.value || COIN_VALUE;
           if (scoreEl) scoreEl.textContent = String(score);
-          playCoinSound();
+          if (c.isEventCoin) playEventCoinSound();
+          else playCoinSound();
           updateLevel();
         }
       }
@@ -696,14 +787,18 @@
       return;
     }
 
-    for (const p of pylons) {
-      const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
-      if (!withinX) continue;
-      const gapTop = p.gapCenter - p.gap / 2;
-      const gapBottom = p.gapCenter + p.gap / 2;
-      if (dragonY - DRAGON_HIT_RADIUS < gapTop || dragonY + DRAGON_HIT_RADIUS > gapBottom) {
-        endGame();
-        return;
+    // No pylon collision during Coin Rush — they're visibly retracting or
+    // already gone, so a hit here would feel like a bug, not a fair loss.
+    if (!coinRush.active) {
+      for (const p of pylons) {
+        const withinX = DRAGON_X + DRAGON_HIT_RADIUS > p.x && DRAGON_X - DRAGON_HIT_RADIUS < p.x + PYLON_WIDTH;
+        if (!withinX) continue;
+        const gapTop = p.gapCenter - p.gap / 2;
+        const gapBottom = p.gapCenter + p.gap / 2;
+        if (dragonY - DRAGON_HIT_RADIUS < gapTop || dragonY + DRAGON_HIT_RADIUS > gapBottom) {
+          endGame();
+          return;
+        }
       }
     }
   }
@@ -799,13 +894,31 @@
   }
 
   function drawPylon(p) {
-    const gapTop = p.gapCenter - p.gap / 2;
-    const gapBottom = p.gapCenter + p.gap / 2;
+    let gapTop = p.gapCenter - p.gap / 2;
+    let gapBottom = p.gapCenter + p.gap / 2;
+    let jitterX = 0;
+
+    // Coin Rush: pylons shake in place (a ramping jitter, per-pylon offset
+    // via its x position so they don't all judder in lockstep), then the
+    // top tower retreats up into the ceiling and the bottom sinks into the
+    // ground on an ease-out curve, opening the whole gap over ~0.6s.
+    if (coinRush.active) {
+      if (coinRush.phase === "shake") {
+        const intensity = Math.min(1, coinRush.timer / 0.15);
+        jitterX = Math.sin(performance.now() / 35 + p.x * 0.3) * 4 * intensity;
+      } else if (coinRush.phase === "retract" || coinRush.phase === "collect") {
+        const t = coinRush.phase === "collect" ? 1 : Math.min(1, coinRush.timer / COIN_RUSH_RETRACT_DURATION);
+        const eased = 1 - Math.pow(1 - t, 3);
+        gapTop = gapTop * (1 - eased);
+        gapBottom = gapBottom + (HEIGHT - GROUND_HEIGHT - gapBottom) * eased;
+      }
+    }
+
     // Drawn in local (0..PYLON_WIDTH) space via translate so every pylon —
     // and every frame — can share the same cached gradient instead of each
     // building its own.
     ctx.save();
-    ctx.translate(p.x, 0);
+    ctx.translate(p.x + jitterX, 0);
 
     // Top tower.
     ctx.fillStyle = PYLON_STONE_GRADIENT;
@@ -1091,47 +1204,106 @@
     ctx.restore();
   }
 
+  // Coin Rush pickups are smaller and cool-toned (silver/cyan) instead of
+  // gold, so mid-event it's visually obvious these are the 1-coin bonus
+  // pickups and not the normal 5-value in-flight coins.
+  const EVENT_COIN_SCALE = 0.72;
+
   function drawCoin(c) {
     // A cheap "spinning" look: squash the ellipse's width with a sine wave.
     const spin = Math.abs(Math.sin(performance.now() / 260 + c.x * 0.04));
-    const rx = COIN_RADIUS * (0.25 + spin * 0.75);
+    const scale = c.isEventCoin ? EVENT_COIN_SCALE : 1;
+    const radius = COIN_RADIUS * scale;
+    const rx = radius * (0.25 + spin * 0.75);
     ctx.save();
     ctx.translate(c.x, c.y);
 
     // A dark ring plus a drop shadow so the coin reads against the sunset
-    // sky even where the gold fill is close in hue to the background.
+    // sky even where the fill is close in hue to the background.
     ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
     ctx.shadowBlur = 6;
-    ctx.fillStyle = "#3a2010";
+    ctx.fillStyle = c.isEventCoin ? "#0f2a33" : "#3a2010";
     ctx.beginPath();
-    ctx.ellipse(0, 0, rx + 2.5, COIN_RADIUS + 2.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, rx + 2.5, radius + 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
 
-    const coinGrad = ctx.createRadialGradient(-rx * 0.3, -COIN_RADIUS * 0.3, 1, 0, 0, COIN_RADIUS);
-    coinGrad.addColorStop(0, "#fffbe6");
-    coinGrad.addColorStop(0.55, "#ffd54f");
-    coinGrad.addColorStop(1, "#e8a317");
+    const coinGrad = ctx.createRadialGradient(-rx * 0.3, -radius * 0.3, 1, 0, 0, radius);
+    if (c.isEventCoin) {
+      coinGrad.addColorStop(0, "#f4fdff");
+      coinGrad.addColorStop(0.55, "#8fe3ff");
+      coinGrad.addColorStop(1, "#1fa8c9");
+    } else {
+      coinGrad.addColorStop(0, "#fffbe6");
+      coinGrad.addColorStop(0.55, "#ffd54f");
+      coinGrad.addColorStop(1, "#e8a317");
+    }
     ctx.fillStyle = coinGrad;
     ctx.beginPath();
-    ctx.ellipse(0, 0, rx, COIN_RADIUS, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, rx, radius, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Glint highlight so it still pops even fully squashed edge-on.
     ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
     ctx.beginPath();
-    ctx.ellipse(-rx * 0.35, -COIN_RADIUS * 0.4, Math.max(1.5, rx * 0.25), COIN_RADIUS * 0.22, 0, 0, Math.PI * 2);
+    ctx.ellipse(-rx * 0.35, -radius * 0.4, Math.max(1.5, rx * 0.25), radius * 0.22, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 
+  const HEADING_FONT = '"Space Grotesk", sans-serif';
+
+  // A quick handheld-camera jolt while the pylons shake — makes the buildup
+  // read as an "event," not just an obstacle quietly fading out.
+  function getScreenShakeOffset() {
+    if (!coinRush.active || coinRush.phase !== "shake") return null;
+    const intensity = Math.min(1, coinRush.timer / 0.15);
+    const now = performance.now();
+    return { x: Math.sin(now / 28) * 5 * intensity, y: Math.cos(now / 33) * 4 * intensity };
+  }
+
+  function drawCoinRushBanner() {
+    if (!coinRush.active) return;
+    ctx.save();
+    if (coinRush.phase === "shake" || coinRush.phase === "retract") {
+      const elapsed = coinRush.phase === "shake" ? coinRush.timer : COIN_RUSH_SHAKE_DURATION + coinRush.timer;
+      const total = COIN_RUSH_SHAKE_DURATION + COIN_RUSH_RETRACT_DURATION;
+      const p = Math.min(1, elapsed / total);
+      const scale = 0.7 + Math.min(1, p * 3) * 0.3; // pops in fast, then holds
+      const alpha = p < 0.85 ? 1 : Math.max(0, 1 - (p - 0.85) / 0.15);
+      ctx.translate(WIDTH / 2, HEIGHT * 0.3);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = "center";
+      ctx.font = `900 36px ${HEADING_FONT}`;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillText("COIN RUSH!", 3, 3);
+      ctx.fillStyle = "#f0c14b";
+      ctx.fillText("COIN RUSH!", 0, 0);
+    } else if (coinRush.phase === "collect") {
+      const secs = Math.max(0, Math.ceil(coinRush.collectTimeLeft));
+      ctx.fillStyle = "rgba(10, 6, 20, 0.55)";
+      ctx.fillRect(WIDTH / 2 - 110, 46, 220, 34);
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.font = `700 19px ${HEADING_FONT}`;
+      ctx.fillText(`🪙 Coin Rush — ${secs}s`, WIDTH / 2, 69);
+    }
+    ctx.restore();
+  }
+
   function render() {
+    const shake = getScreenShakeOffset();
+    ctx.save();
+    if (shake) ctx.translate(shake.x, shake.y);
     drawBackground();
     drawTrail(getActiveSkin());
     for (const c of coins) drawCoin(c);
     for (const p of pylons) drawPylon(p);
     drawDragon();
+    ctx.restore();
+    drawCoinRushBanner();
   }
 
   function loop(t) {
