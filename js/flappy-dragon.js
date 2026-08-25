@@ -603,15 +603,30 @@
     }
   }
 
-  // A Japanese-style dragon: a long, sinuous serpent rather than a stocky
-  // Western wyvern — no bat wing, just a tapering tail that undulates, a
-  // flowing mane that carries the flap motion, twin antler-like horns, and
-  // a trailing whisker. Still pure vector shapes on the same small canvas
-  // budget as before — no images, so it stays light — and the hitbox is
-  // still just the head circle (DRAGON_RADIUS), unchanged from before.
+  // A Japanese-style dragon: a long, sinuous serpent with a proper fan-edged
+  // wing (not just a mane), twin antler-like horns, and a trailing whisker.
+  // Still pure vector shapes on the same small canvas budget as before — no
+  // images, so it stays light — and the hitbox is still just the head
+  // circle (DRAGON_RADIUS), unchanged from before.
   function drawDragon() {
     const skin = (currentTheme && currentTheme.dragon) || DEFAULT_DRAGON_SKIN;
     const now = performance.now();
+    const outline = "rgba(20, 15, 10, 0.35)";
+
+    // Ambient glow drawn first, behind everything — drawing it last (as
+    // before) additively brightened the whole dragon and washed the
+    // linework out into a fuzzy blob.
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const glow = ctx.createRadialGradient(DRAGON_X, dragonY, 2, DRAGON_X, dragonY, DRAGON_RADIUS * 1.7);
+    glow.addColorStop(0, `rgba(${skin.glowRGB}, ${skin.glowAlpha * 0.7})`);
+    glow.addColorStop(1, `rgba(${skin.glowRGB}, 0)`);
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(DRAGON_X, dragonY, DRAGON_RADIUS * 1.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.save();
     ctx.translate(DRAGON_X, dragonY);
     const tilt = Math.max(-0.35, Math.min(0.8, dragonVY / 650));
@@ -624,42 +639,46 @@
     tailGrad.addColorStop(0, skin.body[1]);
     tailGrad.addColorStop(1, skin.body[0]);
     ctx.fillStyle = tailGrad;
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.ellipse(-14, 5 + sway * 0.35, 12, 7.5, -0.12, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
     ctx.beginPath();
     ctx.ellipse(-27, 9 + sway * 0.75, 8.5, 5.5, -0.08, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
     ctx.beginPath();
     ctx.ellipse(-37, 12 + sway, 5, 3.2, -0.05, 0, Math.PI * 2);
     ctx.fill();
-    // Tail tuft.
-    ctx.fillStyle = skin.wing;
-    ctx.beginPath();
-    ctx.moveTo(-39, 12 + sway);
-    ctx.quadraticCurveTo(-47, 9 + sway, -45, 17 + sway);
-    ctx.quadraticCurveTo(-42, 14 + sway, -39, 12 + sway);
-    ctx.fill();
+    ctx.stroke();
 
-    // Flowing mane — three tapered streamers on a hinge at the neck. This
-    // is what carries the flap motion (swept up right after a jump,
-    // trailing low otherwise), the same contract the old wing had.
-    const maneSwing = Math.sin(wingPhase) * 0.5 + 0.5; // 0..1
-    const maneAngle = -1.0 + maneSwing * 1.1;
+    // Wing — swings from raised (flap up, just after a jump) to trailing
+    // low, same contract as a classic dragon wing, but with a scalloped
+    // fan-like trailing edge for an oriental feel instead of a bat membrane.
+    const wingSwing = Math.sin(wingPhase) * 0.5 + 0.5; // 0..1
+    const wingAngle = -1.15 + wingSwing * 1.35; // radians
     ctx.save();
-    ctx.translate(-3, -9);
-    ctx.rotate(maneAngle);
-    ctx.strokeStyle = skin.wing;
-    ctx.lineCap = "round";
-    for (let i = 0; i < 3; i++) {
-      const len = 17 - i * 3;
-      const drop = -4 + i * 5;
-      ctx.lineWidth = 3 - i * 0.7;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(-len * 0.55, -len * 0.35, -len, drop);
-      ctx.stroke();
-    }
+    ctx.translate(-7, -6);
+    ctx.rotate(wingAngle);
+    const wingGrad = ctx.createLinearGradient(0, 0, -37, -30);
+    wingGrad.addColorStop(0, skin.wing);
+    wingGrad.addColorStop(1, skin.body[1]);
+    ctx.fillStyle = wingGrad;
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(0, 3);
+    ctx.quadraticCurveTo(-7, -16, -22, -29);
+    ctx.quadraticCurveTo(-31, -36, -40, -33);
+    ctx.quadraticCurveTo(-29, -27, -27, -18);
+    ctx.quadraticCurveTo(-20, -16, -18, -7);
+    ctx.quadraticCurveTo(-11, -5, -9, 5);
+    ctx.quadraticCurveTo(-4, 7, 0, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
 
     // Head.
@@ -667,9 +686,12 @@
     bodyGrad.addColorStop(0, skin.body[0]);
     bodyGrad.addColorStop(1, skin.body[1]);
     ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.ellipse(0, 0, DRAGON_RADIUS, DRAGON_RADIUS * 0.82, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
 
     // Elongated, tapered snout.
     ctx.fillStyle = skin.snout;
@@ -680,7 +702,7 @@
     ctx.closePath();
     ctx.fill();
 
-    // Whisker trailing from the jaw, drifting independently of the mane.
+    // Whisker trailing from the jaw.
     const whiskerDrift = Math.sin(now / 220) * 3;
     ctx.strokeStyle = skin.horn;
     ctx.lineWidth = 1.3;
@@ -715,18 +737,6 @@
     ctx.arc(8.5, -5, 2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.restore();
-
-    // Glow.
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    const glow = ctx.createRadialGradient(DRAGON_X, dragonY, 2, DRAGON_X, dragonY, DRAGON_RADIUS * 2.2);
-    glow.addColorStop(0, `rgba(${skin.glowRGB}, ${skin.glowAlpha})`);
-    glow.addColorStop(1, `rgba(${skin.glowRGB}, 0)`);
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(DRAGON_X, dragonY, DRAGON_RADIUS * 2.2, 0, Math.PI * 2);
-    ctx.fill();
     ctx.restore();
   }
 
