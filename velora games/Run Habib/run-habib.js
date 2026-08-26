@@ -30,6 +30,7 @@
   const MAX_FALL_SPEED = 920;
   const COYOTE_TIME = 0.09;
   const JUMP_BUFFER = 0.1;
+  const MAX_JUMPS = 2;
   const PLAYER_W = 30;
   const PLAYER_H = 44;
 
@@ -161,16 +162,17 @@
   // everything else (tiles, backdrop, props) is drawn with canvas
   // primitives, same lightweight approach as the rest of Velora's games.
   // ---------------------------------------------------------------------
+  const ASSET_V = "3";
   const habibImg = new Image();
-  habibImg.src = "assets/habib.png";
+  habibImg.src = "assets/habib.png?v=" + ASSET_V;
   const monsterImg = new Image();
-  monsterImg.src = "assets/arab-monster.png";
+  monsterImg.src = "assets/arab-monster.png?v=" + ASSET_V;
   const princessImg = new Image();
-  princessImg.src = "assets/princess.png";
+  princessImg.src = "assets/princess.png?v=" + ASSET_V;
   const scorpionImg = new Image();
-  scorpionImg.src = "assets/scorpion.png";
+  scorpionImg.src = "assets/scorpion.png?v=" + ASSET_V;
   const beetleImg = new Image();
-  beetleImg.src = "assets/beetle.png";
+  beetleImg.src = "assets/beetle.png?v=" + ASSET_V;
   const ENEMY_SPRITES = { scorpion: scorpionImg, beetle: beetleImg };
 
   // ---------------------------------------------------------------------
@@ -365,7 +367,7 @@
     player = {
       x: 2 * TILE, y: (GROUND_ROW - 2) * TILE, vx: 0, vy: 0,
       w: PLAYER_W, h: PLAYER_H, onGround: false, facing: 1,
-      coyote: 0, runPhase: 0, hurtTimer: 0, squash: 1,
+      coyote: 0, jumpsUsed: 0, runPhase: 0, hurtTimer: 0, squash: 1,
     };
     respawnX = player.x; respawnY = player.y;
     // Enemies/boss have no gravity of their own (they only ever patrol flat
@@ -429,7 +431,7 @@
   showOverlay(
     "Run Habib",
     "The Arab Monster has taken the Princess into the old kingdom. Habib's not waiting for anyone else to go get her.",
-    "assets/habib.png",
+    "assets/habib.png?v=3",
     "▶ Start Running"
   );
 
@@ -475,12 +477,13 @@
     updateHud();
     if (lives <= 0) {
       state = "gameover";
-      showOverlay("Habib is out of chances", `You collected ${coinCount} coins this run. The Princess is still waiting.`, "assets/habib.png", "↻ Try Again");
+      showOverlay("Habib is out of chances", `You collected ${coinCount} coins this run. The Princess is still waiting.`, "assets/habib.png?v=3", "↻ Try Again");
       return;
     }
     // Respawn in place rather than restarting the whole level — losing a
     // life should cost you, not send you back to the very start.
     player.x = respawnX; player.y = respawnY; player.vx = 0; player.vy = 0;
+    player.jumpsUsed = 0;
     invincibleTimer = 1.4;
     startMusic();
   }
@@ -491,7 +494,7 @@
     stopMusic();
     setTimeout(() => {
       state = "win";
-      showOverlay("The Princess is safe", `Habib got her out with ${coinCount} coins to spare. The old kingdom can rest easy.`, "assets/princess.png", "↻ Play Again");
+      showOverlay("The Princess is safe", `Habib got her out with ${coinCount} coins to spare. The old kingdom can rest easy.`, "assets/princess.png?v=3", "↻ Play Again");
     }, 1600);
   }
 
@@ -507,7 +510,12 @@
       const dir = dx > 0 ? 1 : -1;
       const edgeX = dir > 0 ? ent.x + ent.w : ent.x;
       const topRow = Math.floor(ent.y / TILE);
-      const botRow = Math.floor((ent.y + ent.h - 1) / TILE);
+      // While falling, don't let a grazing overlap with the very bottom of
+      // the body count as a wall — that's a landing, not a wall hit, and
+      // should be resolved by the vertical check below instead. Without
+      // this, clearing a pit while still slightly descending snags the far
+      // ledge's face and drags the player straight down along it.
+      const botRow = Math.floor((ent.y + ent.h - (ent.vy > 0 ? TILE * 0.6 : 1)) / TILE);
       const col = Math.floor(edgeX / TILE);
       for (let r = topRow; r <= botRow; r++) {
         if (isSolid(tileAt(r, col))) {
@@ -579,13 +587,22 @@
       player.vx = Math.min(0, player.vx + MOVE_DECEL * dt);
     }
 
-    // --- Jump: coyote time + input buffer make edge-of-platform jumps feel fair ---
+    // --- Jump: coyote time + input buffer make edge-of-platform jumps feel fair.
+    // Habib also gets one extra mid-air jump (double jump) to clear taller
+    // obstacles — jumpsUsed resets the moment he touches ground again.
     player.coyote = player.onGround ? COYOTE_TIME : Math.max(0, player.coyote - dt);
+    if (player.onGround) player.jumpsUsed = 0;
     const now = performance.now() / 1000;
     const jumpBuffered = keys.jumpPressedAt > 0 && now - keys.jumpPressedAt < JUMP_BUFFER;
-    if (jumpBuffered && player.coyote > 0) {
-      player.vy = JUMP_VELOCITY;
+    const groundJump = jumpBuffered && player.coyote > 0;
+    const airJump = jumpBuffered && !groundJump && player.jumpsUsed < MAX_JUMPS;
+    if (groundJump || airJump) {
+      // The air jump takes the stronger of the player's current upward speed
+      // or its own kick, so it always adds real height instead of clipping
+      // an already-fast rise from an instant double-tap.
+      player.vy = groundJump ? JUMP_VELOCITY : Math.min(player.vy, JUMP_VELOCITY * 0.85);
       player.coyote = 0;
+      player.jumpsUsed++;
       keys.jumpPressedAt = -1;
       playJump();
       player.squash = 1.25;
@@ -801,12 +818,34 @@
     ctx.fillRect(FLAG_COL * TILE - camX - 4, GROUND_ROW * TILE - 4, TILE + 8, 6);
   }
 
-  function drawCoinIcon(x, y, r) {
-    const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 1, x, y, r);
-    g.addColorStop(0, "#fffbe6"); g.addColorStop(0.55, "#ffd54f"); g.addColorStop(1, "#e8a317");
+  // A coin spinning on its vertical axis: squash it horizontally by
+  // cos(spin) to fake the 3D turn, with a "$" that fades in/out as the
+  // coin turns face-on vs edge-on.
+  function drawCoinIcon(x, y, r, spin) {
+    const s = Math.cos(spin || 0);
+    const scaleX = Math.max(0.14, Math.abs(s));
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scaleX, 1);
+    const g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 1, 0, 0, r);
+    g.addColorStop(0, "#fffbe6"); g.addColorStop(0.55, "#ffd54f"); g.addColorStop(1, "#c8860a");
     ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "#8a5a10"; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#8a5a10"; ctx.lineWidth = 1.4 / scaleX;
+    ctx.stroke();
+    ctx.restore();
+
+    const facing = Math.abs(s);
+    if (facing > 0.3) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, (facing - 0.3) / 0.35);
+      ctx.fillStyle = "#8a5a10";
+      ctx.font = `700 ${Math.max(8, Math.round(r * 1.2))}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("$", x, y + 1);
+      ctx.restore();
+    }
   }
 
   function drawEnemies() {
@@ -855,15 +894,14 @@
       const sx = c.x - camX;
       if (sx < -20 || sx > WIDTH + 20) continue;
       const bob = Math.sin(c.phase) * 4;
-      const squash = Math.abs(Math.sin(c.phase * 0.7));
-      drawCoinIcon(sx, c.y + bob, 9 * (0.4 + squash * 0.6));
+      drawCoinIcon(sx, c.y + bob, 9, c.phase * 2.2);
     }
   }
 
   function drawParticles() {
     for (const p of particles) {
       const sx = p.x - camX;
-      if (p.kind === "coinPop") { ctx.globalAlpha = Math.max(0, p.life / 0.5); drawCoinIcon(sx, p.y, 8); ctx.globalAlpha = 1; }
+      if (p.kind === "coinPop") { ctx.globalAlpha = Math.max(0, p.life / 0.5); drawCoinIcon(sx, p.y, 8, elapsedInLevel * 12); ctx.globalAlpha = 1; }
       else if (p.kind === "star") {
         ctx.save();
         ctx.translate(sx, p.y);
