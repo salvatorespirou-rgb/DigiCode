@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flappy Dragon — Velora Gaming</title>
+  <meta name="description" content="Flappy Dragon — keep the dragon airborne through the castle pylons." />
+  <link rel="icon" href="../../assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="flappy-dragon.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../../js/supabase-client.js"></script>
+</head>
+<body>
+
+  <img src="../../assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../index.html#services">Services</a></li>
+          <li><a href="../../index.html#work">Management</a></li>
+          <li><a href="../../velora-gaming.html">Velora Gaming</a></li>
+          <li><a href="../../index.html#about">About</a></li>
+          <li><a href="../../index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="header-icons">
+      <a href="../../signin.html" class="profile-icon-link" aria-label="Sign in">
+        <svg class="profile-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </a>
+      <a href="../../cart.html" class="cart-icon-link" aria-label="View cart">
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="cart-badge" hidden>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow"><a href="../../velora-gaming.html" style="color: inherit;">Velora Gaming</a> / Flappy Dragon</p>
+        <h1>Keep the dragon <span class="gradient-text">airborne.</span></h1>
+        <p class="hero-sub">Space, click, or tap to flap. Collect coins, unlock dragons, and chase the leaderboard.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container">
+        <div class="dragon-game-layout">
+          <div class="dragon-leaderboard">
+            <h3 class="dashboard-section-title">Top 10</h3>
+            <p class="form-hint" id="dragonPlayingAs" style="margin-bottom: 4px;">Beat your own score to move up the board.</p>
+            <p class="dragon-auth-status" id="dragonAuthStatus"></p>
+            <p class="dragon-coin-balance" id="dragonCoinBalance" hidden>🪙 <strong id="dragonCoinAmount">0</strong></p>
+            <div id="dragonLeaderboardList"><p class="dev-empty">Loading…</p></div>
+          </div>
+
+          <div class="dragon-game-stage">
+            <canvas id="dragonCanvas" width="480" height="700"></canvas>
+            <div class="dragon-overlay" id="dragonOverlay">
+              <h3 id="dragonOverlayTitle">Flappy Dragon</h3>
+              <p id="dragonOverlayBody">Keep the dragon airborne through the castle pylons.</p>
+              <p class="dragon-start-hint" id="dragonStartHint">Space, click, or tap to start</p>
+              <button type="button" class="dragon-store-open-btn" id="dragonStoreOpenBtn">🐉 Dragon Store</button>
+              <button type="button" class="dragon-store-open-btn coin-store-open-btn" id="coinStoreOpenBtn">🪙 Coin Store</button>
+              <button type="button" class="dragon-store-open-btn quest-open-btn" id="dailyQuestOpenBtn">📜 Daily Quests<span class="cart-badge" id="questClaimBadge" hidden>0</span></button>
+              <form id="dragonRegisterForm" class="dragon-name-form" hidden>
+                <input type="text" id="dragonNameInput" placeholder="Your name" maxlength="24" autocomplete="off" required />
+                <label class="dragon-avatar-upload" id="dragonAvatarLabel">
+                  <span id="dragonAvatarLabelText">+ Photo</span>
+                  <input type="file" id="dragonAvatarInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+                </label>
+                <button type="submit" class="btn btn-primary btn-small-inline">Join Leaderboard</button>
+              </form>
+            </div>
+            <div class="dragon-hud">
+              <span>Level <strong id="dragonLevel">1</strong></span>
+              <span>Score <strong id="dragonScore">0</strong></span>
+              <span>Best <strong id="dragonBest">0</strong></span>
+            </div>
+            <button type="button" class="dragon-mute-btn" id="dragonMuteBtn" aria-label="Mute game sound">🔊</button>
+          </div>
+        </div>
+
+        <div class="dragon-store-modal" id="dragonStoreModal" hidden>
+          <div class="dragon-store-panel">
+            <div class="dragon-store-header">
+              <h3>Dragon Store</h3>
+              <p class="dragon-store-balance">🪙 <strong id="dragonStoreCoinAmount">0</strong></p>
+              <button type="button" class="dragon-store-close-btn" id="dragonStoreCloseBtn" aria-label="Close">&times;</button>
+            </div>
+            <p class="dragon-store-sub" id="dragonStoreSub">Join the leaderboard to start earning coins and collecting dragons.</p>
+            <div class="dragon-store-grid" id="dragonStoreGrid"></div>
+          </div>
+        </div>
+
+        <div class="dragon-store-modal" id="coinStoreModal" hidden>
+          <div class="dragon-store-panel">
+            <div class="dragon-store-header">
+              <h3>Coin Store</h3>
+              <button type="button" class="dragon-store-close-btn" id="coinStoreCloseBtn" aria-label="Close">&times;</button>
+            </div>
+            <p class="dragon-store-sub" id="coinStoreSub">Top up your coins instantly — bigger bundles, bigger savings.</p>
+            <p class="coin-store-message" id="coinStoreMessage" hidden></p>
+            <div class="coin-bundle-grid" id="coinBundleGrid"></div>
+          </div>
+        </div>
+
+        <div class="dragon-store-modal" id="dailyQuestModal" hidden>
+          <div class="dragon-store-panel">
+            <div class="dragon-store-header">
+              <h3>Daily Quests</h3>
+              <span class="quest-reset-countdown" id="questResetCountdown">Resets in —</span>
+              <button type="button" class="dragon-store-close-btn" id="dailyQuestCloseBtn" aria-label="Close">&times;</button>
+            </div>
+            <p class="dragon-store-sub" id="dailyQuestSub">Complete quests to earn bonus coins — everything resets every day.</p>
+            <p class="coin-store-message" id="dailyQuestMessage" hidden></p>
+            <div class="quest-list" id="dailyQuestList"></div>
+          </div>
+        </div>
+
+        <div class="dragon-store-modal" id="dragonAuthModal" hidden>
+          <div class="dragon-store-panel dragon-auth-panel">
+            <div class="dragon-store-header">
+              <h3 id="dragonAuthTitle">Sign In</h3>
+              <button type="button" class="dragon-store-close-btn" id="dragonAuthCloseBtn" aria-label="Close">&times;</button>
+            </div>
+            <p class="dragon-store-sub">Sync your coins, dragons, and score across every device — this account is just for the game, separate from the main site login.</p>
+
+            <form id="dragonAuthForm" class="dragon-auth-form">
+              <input type="email" id="dragonAuthEmail" placeholder="Email" autocomplete="email" required />
+              <input type="password" id="dragonAuthPassword" placeholder="Password" autocomplete="current-password" required minlength="6" />
+              <p class="dragon-auth-error" id="dragonAuthError" hidden></p>
+              <button type="submit" class="btn btn-primary" id="dragonAuthSubmitBtn" style="width: 100%;">Sign In</button>
+            </form>
+
+            <p class="dragon-auth-switch"><span id="dragonAuthSwitchModeText">New here?</span> <button type="button" class="dragon-auth-link" id="dragonAuthSwitchModeBtn">Create an account</button></p>
+            <p class="dragon-auth-switch"><button type="button" class="dragon-auth-link" id="dragonAuthForgotBtn">Forgot your password?</button></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="../../privacy-policy.html">Privacy Policy</a> · <a href="../../terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="../../js/main.js"></script>
+  <script src="flappy-dragon.js?v=34"></script>
+</body>
+</html>
