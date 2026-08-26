@@ -642,12 +642,18 @@
   // top half lifts into the ceiling and the bottom half sinks into the
   // ground, clearing the sky) so they read as one family of moments, then
   // branches into whatever that level's event actually is.
-  const LEVEL_EVENTS = {
-    5: { type: "coinRush", duration: 10 },
-    10: { type: "jetChase", duration: 10 },
-    15: { type: "coinRush", duration: 20 },
-    20: { type: "rage", duration: 20 },
-  };
+  // Every 5th level picks one of these at random instead of a fixed level →
+  // event lookup — players can't learn "level 10 is always the jet" and
+  // adding a new event later is just adding another entry here, no level
+  // numbers to juggle. Also no longer capped at level 20: since the pick
+  // is random rather than a lookup keyed by specific level numbers, this
+  // now keeps firing every 5 levels for as long as a run lasts.
+  const EVENT_POOL = [
+    { type: "coinRush", duration: 10 },
+    { type: "coinRush", duration: 20 },
+    { type: "jetChase", duration: 10 },
+    { type: "rage", duration: 20 },
+  ];
   const EVENT_SHAKE_DURATION = 0.5;
   const EVENT_RETRACT_DURATION = 0.6;
   const COIN_RUSH_COIN_VALUE = 1; // a normal in-flight coin is worth COIN_VALUE (5)
@@ -724,8 +730,10 @@
     level = newLevel;
     currentTheme = themeForLevel(level);
     if (levelEl) levelEl.textContent = String(level);
-    const config = LEVEL_EVENTS[level];
-    if (config && !levelEvent.triggeredLevels.has(level)) startLevelEvent(level, config);
+    if (level % 5 === 0 && !levelEvent.triggeredLevels.has(level)) {
+      const config = EVENT_POOL[Math.floor(Math.random() * EVENT_POOL.length)];
+      startLevelEvent(level, config);
+    }
   }
 
   function startLevelEvent(lvl, config) {
