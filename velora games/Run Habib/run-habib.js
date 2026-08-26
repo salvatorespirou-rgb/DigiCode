@@ -41,89 +41,177 @@
   // A "world" (kingdom) theme so the palette/props are Run Habib's own,
   // not a reskinned copy of anything.
   // ---------------------------------------------------------------------
-  const GROUND_ROW = 10; // first solid row (top surface)
+  const GROUND_ROW = 10; // first solid row (top surface) — same every stage
   const GROUND_ROWS = 3;
   const LEVEL_ROWS = 13;
-  const LEVEL_COLS = 124;
 
-  const PITS = [
-    [21, 23],
-    [46, 48],
-    [77, 80],
-    [96, 98],
-  ];
+  // ---------------------------------------------------------------------
+  // Stages — each stage's layout lives in its own definition function and
+  // gets loaded into these mutable bindings by loadStage(). Every regular
+  // stage ends in a run up a staircase to a flagpole, Mario-style; the
+  // Arab Monster showdown (see the boss-arena block in update(), and
+  // drawMonsterAndPrincess()) is fully built and still works, but is held
+  // back to run as the true final stage once the rest of the 12 exist —
+  // for now, clearing the last built stage just shows a "more coming
+  // soon" screen instead of the boss fight.
+  // ---------------------------------------------------------------------
+  let LEVEL_COLS, PITS, PLATFORMS, BLOCKS, COINS, URNS, ENEMIES, PIPES, STAIRS;
+  let FLAG_COL, MONSTER_COL, ARENA_START_COL;
 
-  // Floating brick platforms: {col, row, len}
-  // Row 8 sits only one tile (40px) above the ground — less than Habib's
-  // own height (44px) — so a platform there leaves no room to actually
-  // stand underneath and jump up into it. Row 7 (80px clearance) is the
-  // lowest row that comfortably fits him.
-  const PLATFORMS = [
-    { col: 10, row: 7, len: 3 },
-    { col: 18, row: 6, len: 2 },
-    { col: 30, row: 7, len: 4 },
-    { col: 38, row: 5, len: 3 },
-    { col: 52, row: 7, len: 3 },
-    { col: 60, row: 5, len: 2 },
-    { col: 68, row: 7, len: 4 },
-    { col: 84, row: 7, len: 3 },
-    { col: 90, row: 5, len: 3 },
-    { col: 101, row: 7, len: 4 },
-  ];
+  // Builds a run of 1-tile-high ascending steps — {col, height} in tiles
+  // above the ground — the classic Mario staircase leading up to a flag.
+  function stairsUp(startCol, count) {
+    const out = [];
+    for (let i = 0; i < count; i++) out.push({ col: startCol + i, height: i + 1 });
+    return out;
+  }
 
-  // Interactive boxes: {col, row, type: "coin"|"star"|"brick"}
-  const BLOCKS = [
-    { col: 6, row: 7, type: "coin" },
-    { col: 7, row: 7, type: "coin" },
-    { col: 8, row: 7, type: "brick" },
-    { col: 19, row: 6, type: "coin" },
-    { col: 31, row: 7, type: "coin" },
-    { col: 33, row: 7, type: "star" },
-    { col: 39, row: 5, type: "coin" },
-    { col: 53, row: 7, type: "coin" },
-    { col: 61, row: 5, type: "coin" },
-    { col: 69, row: 7, type: "coin" },
-    { col: 71, row: 7, type: "coin" },
-    { col: 85, row: 7, type: "brick" },
-    { col: 91, row: 5, type: "star" },
-    { col: 102, row: 7, type: "coin" },
-    { col: 104, row: 7, type: "coin" },
-  ];
+  function stage1() {
+    return {
+      name: "Stage 1",
+      levelCols: 120,
+      pits: [[21, 23], [46, 48], [77, 80], [96, 98]],
+      // Row 8 sits only one tile (40px) above the ground — less than
+      // Habib's own height (44px) — so a platform there leaves no room
+      // to actually stand underneath and jump up into it. Row 7 (80px
+      // clearance) is the lowest row that comfortably fits him.
+      platforms: [
+        { col: 10, row: 7, len: 3 },
+        { col: 18, row: 6, len: 2 },
+        { col: 30, row: 7, len: 4 },
+        { col: 38, row: 5, len: 3 },
+        { col: 52, row: 7, len: 3 },
+        { col: 60, row: 5, len: 2 },
+        { col: 68, row: 7, len: 4 },
+        { col: 84, row: 7, len: 3 },
+        { col: 90, row: 5, len: 3 },
+        { col: 101, row: 7, len: 4 },
+      ],
+      blocks: [
+        { col: 6, row: 7, type: "coin" },
+        { col: 7, row: 7, type: "coin" },
+        { col: 8, row: 7, type: "brick" },
+        { col: 19, row: 6, type: "coin" },
+        { col: 31, row: 7, type: "coin" },
+        { col: 33, row: 7, type: "star" },
+        { col: 39, row: 5, type: "coin" },
+        { col: 53, row: 7, type: "coin" },
+        { col: 61, row: 5, type: "coin" },
+        { col: 69, row: 7, type: "coin" },
+        { col: 71, row: 7, type: "coin" },
+        { col: 85, row: 7, type: "brick" },
+        { col: 91, row: 5, type: "star" },
+        { col: 102, row: 7, type: "coin" },
+        { col: 104, row: 7, type: "coin" },
+      ],
+      coins: [
+        { col: 14, row: 8 }, { col: 15, row: 8 }, { col: 16, row: 8 },
+        { col: 42, row: 7 }, { col: 43, row: 6 }, { col: 44, row: 5 },
+        { col: 63, row: 8 }, { col: 64, row: 8 }, { col: 65, row: 8 },
+        { col: 93, row: 5 }, { col: 94, row: 5 },
+      ],
+      // Urns — solid obstacles; some periodically hiss out a sand-cobra
+      // that retreats after a moment (an original creature, not a
+      // reskinned trap plant — it stays inside its urn rather than
+      // sitting exposed in a tube; that's Stage 2's pipes below).
+      urns: [
+        { col: 26, row: 10, height: 2, spawnsCobra: true },
+        { col: 56, row: 10, height: 3, spawnsCobra: false },
+        { col: 73, row: 10, height: 2, spawnsCobra: true },
+        { col: 88, row: 10, height: 3, spawnsCobra: true },
+      ],
+      enemies: [
+        { col: 12, row: 9, min: 11, max: 17, variant: "scorpion" },
+        { col: 35, row: 9, min: 34, max: 41, variant: "beetle" },
+        { col: 50, row: 9, min: 49, max: 55, variant: "scorpion" },
+        { col: 66, row: 9, min: 64, max: 70, variant: "beetle" },
+        { col: 82, row: 9, min: 81, max: 87, variant: "scorpion" },
+        { col: 93, row: 9, min: 92, max: 99, variant: "beetle" },
+        { col: 100, row: 9, min: 99, max: 103, variant: "scorpion" },
+      ],
+      pipes: [],
+      flagCol: 113,
+      stairs: stairsUp(105, 7),
+      monsterCol: null,
+    };
+  }
 
-  // Loose floating coins (no block underneath, just collectibles)
-  const COINS = [
-    { col: 14, row: 8 }, { col: 15, row: 8 }, { col: 16, row: 8 },
-    { col: 42, row: 7 }, { col: 43, row: 6 }, { col: 44, row: 5 },
-    { col: 63, row: 8 }, { col: 64, row: 8 }, { col: 65, row: 8 },
-    { col: 108, row: 6 }, { col: 109, row: 6 },
-  ];
+  function stage2() {
+    return {
+      name: "Stage 2",
+      levelCols: 118,
+      pits: [[18, 20], [42, 44], [70, 73], [92, 94]],
+      platforms: [
+        { col: 8, row: 7, len: 3 },
+        { col: 24, row: 6, len: 3 },
+        { col: 48, row: 7, len: 3 },
+        { col: 60, row: 5, len: 2 },
+        { col: 76, row: 7, len: 4 },
+        { col: 95, row: 6, len: 3 },
+      ],
+      blocks: [
+        { col: 9, row: 7, type: "coin" },
+        { col: 10, row: 7, type: "brick" },
+        { col: 25, row: 6, type: "coin" },
+        { col: 26, row: 6, type: "star" },
+        { col: 49, row: 7, type: "coin" },
+        { col: 61, row: 5, type: "coin" },
+        { col: 77, row: 7, type: "coin" },
+        { col: 79, row: 7, type: "brick" },
+        { col: 96, row: 6, type: "coin" },
+        { col: 97, row: 6, type: "coin" },
+      ],
+      coins: [
+        { col: 34, row: 6 }, { col: 35, row: 5 }, { col: 36, row: 6 },
+        { col: 64, row: 8 }, { col: 65, row: 8 },
+        { col: 101, row: 5 }, { col: 102, row: 5 },
+      ],
+      urns: [
+        { col: 16, row: 10, height: 2, spawnsCobra: true },
+        { col: 55, row: 10, height: 2, spawnsCobra: true },
+      ],
+      enemies: [
+        { col: 12, row: 9, min: 11, max: 15, variant: "beetle" },
+        { col: 30, row: 9, min: 28, max: 40, variant: "scorpion" },
+        { col: 52, row: 9, min: 50, max: 54, variant: "beetle" },
+        { col: 82, row: 9, min: 80, max: 90, variant: "scorpion" },
+      ],
+      // Pipes — Stage 2's signature hazard: a flytrap-like creature pops
+      // up out of each one on a cycle, same "jump over it or wait it
+      // out" idea as the classic pipe-and-plant obstacle, but built as
+      // an original creature/color rather than a reskin of it.
+      pipes: [
+        { col: 22, height: 2 },
+        { col: 46, height: 3 },
+        { col: 74, height: 2 },
+        { col: 98, height: 4 },
+      ],
+      flagCol: 111,
+      stairs: stairsUp(103, 7),
+      monsterCol: null,
+    };
+  }
 
-  // Urns — solid obstacles; some periodically hiss out a sand-cobra that
-  // retreats after a moment (an original creature, not a reskinned trap
-  // plant — it stays inside its urn and pokes out rather than sitting
-  // exposed in a tube).
-  const URNS = [
-    { col: 26, row: 10, height: 2, spawnsCobra: true },
-    { col: 56, row: 10, height: 3, spawnsCobra: false },
-    { col: 73, row: 10, height: 2, spawnsCobra: true },
-    { col: 88, row: 10, height: 3, spawnsCobra: true },
-  ];
+  const STAGES = [stage1, stage2];
+  let currentStageIndex = 0;
 
-  // Ground-patrol enemies — alternating the two real creature sprites
-  // (scorpion/beetle) instead of the placeholder drawn shapes.
-  const ENEMIES = [
-    { col: 12, row: 9, min: 11, max: 17, variant: "scorpion" },
-    { col: 35, row: 9, min: 34, max: 41, variant: "beetle" },
-    { col: 50, row: 9, min: 49, max: 55, variant: "scorpion" },
-    { col: 66, row: 9, min: 64, max: 70, variant: "beetle" },
-    { col: 82, row: 9, min: 81, max: 87, variant: "scorpion" },
-    { col: 93, row: 9, min: 92, max: 99, variant: "beetle" },
-    { col: 106, row: 9, min: 104, max: 110, variant: "scorpion" },
-  ];
-
-  const FLAG_COL = 113;
-  const ARENA_START_COL = 114; // small closed arena for the monster past the flag
-  const MONSTER_COL = 119;
+  function loadStage(idx) {
+    const s = STAGES[idx]();
+    LEVEL_COLS = s.levelCols;
+    PITS = s.pits;
+    PLATFORMS = s.platforms;
+    BLOCKS = s.blocks;
+    COINS = s.coins;
+    URNS = s.urns;
+    ENEMIES = s.enemies;
+    PIPES = s.pipes;
+    STAIRS = s.stairs;
+    FLAG_COL = s.flagCol;
+    MONSTER_COL = s.monsterCol;
+    ARENA_START_COL = s.monsterCol ? s.flagCol + 1 : null;
+    const worldEl = document.getElementById("rhWorld");
+    if (worldEl) worldEl.textContent = String(idx + 1);
+  }
 
   function inPit(col) {
     return PITS.some(([a, b]) => col >= a && col <= b);
@@ -135,7 +223,7 @@
   function buildTileGrid() {
     tiles = Array.from({ length: LEVEL_ROWS }, () => new Array(LEVEL_COLS).fill(null));
     for (let col = 0; col < LEVEL_COLS; col++) {
-      if (inPit(col) && col < ARENA_START_COL) continue;
+      if (inPit(col) && (!ARENA_START_COL || col < ARENA_START_COL)) continue;
       for (let r = 0; r < GROUND_ROWS; r++) {
         tiles[GROUND_ROW + r][col] = "ground";
       }
@@ -149,7 +237,22 @@
     for (const u of URNS) {
       for (let i = 0; i < u.height; i++) tiles[GROUND_ROW - 1 - i][u.col] = "urn";
     }
-    tiles[GROUND_ROW - 1][FLAG_COL] = "flagpole-tip";
+    for (const p of PIPES) {
+      for (let i = 0; i < p.height; i++) {
+        tiles[GROUND_ROW - 1 - i][p.col] = "pipe";
+        tiles[GROUND_ROW - 1 - i][p.col + 1] = "pipe";
+      }
+    }
+    for (const s of STAIRS) {
+      for (let h = 0; h < s.height; h++) tiles[GROUND_ROW - 1 - h][s.col] = "brick";
+    }
+    // The flagpole's tip sits just above the staircase's peak so jumping
+    // off the top step reaches high on the pole, the way it does in the
+    // games this is patterned after — its shaft (drawn in drawTile) then
+    // stretches dynamically down to the ground from wherever this is.
+    const peakHeight = STAIRS.length ? Math.max(...STAIRS.map((s) => s.height)) : 0;
+    const tipRow = Math.max(1, GROUND_ROW - peakHeight - 1);
+    tiles[tipRow][FLAG_COL] = "flagpole-tip";
     for (let r = GROUND_ROW; r < GROUND_ROW + GROUND_ROWS; r++) tiles[r][FLAG_COL] = null;
   }
 
@@ -158,7 +261,7 @@
     return tiles[row][col];
   }
   function isSolid(t) {
-    return t === "ground" || t === "brick" || t === "urn" || (t && t.kind === "box");
+    return t === "ground" || t === "brick" || t === "urn" || t === "pipe" || (t && t.kind === "box");
   }
 
   // ---------------------------------------------------------------------
@@ -189,7 +292,7 @@
     else if (e.code === "Space") {
       if (!keys.jump) keys.jumpPressedAt = performance.now() / 1000;
       keys.jump = true;
-      if (state === "intro" || state === "gameover" || state === "win" || state === "paused") { e.preventDefault(); startOrRestart(); }
+      if (state === "intro" || state === "gameover" || state === "win" || state === "paused" || state === "stageClear" || state === "allClear") { e.preventDefault(); startOrRestart(); }
       if (state === "playing") e.preventDefault();
     } else if (e.code === "KeyP" || e.code === "Escape") {
       togglePause();
@@ -359,7 +462,7 @@
   // ---------------------------------------------------------------------
   // Entities
   // ---------------------------------------------------------------------
-  let player, enemies, coins, cobras, particles, camX, flagRaised, monster, elapsedInLevel;
+  let player, enemies, coins, cobras, plants, particles, camX, flagRaised, monster, elapsedInLevel;
   let coinCount, lives, state, invincibleTimer, starTimer, respawnX, respawnY;
 
   function resetRun() {
@@ -394,6 +497,10 @@
     cobras = URNS.filter((u) => u.spawnsCobra).map((u) => ({
       x: u.col * TILE + TILE / 2, baseY: (GROUND_ROW - u.height) * TILE,
       urnTopY: (GROUND_ROW - u.height) * TILE, phase: Math.random() * 3, alive: true,
+    }));
+    plants = PIPES.map((p) => ({
+      x: p.col * TILE + TILE, pipeTopY: (GROUND_ROW - p.height) * TILE,
+      y: (GROUND_ROW - p.height) * TILE, phase: Math.random() * 3, alive: true,
     }));
     coins = COINS.map((c) => ({ x: c.col * TILE + TILE / 2, y: c.row * TILE + TILE / 2, taken: false, phase: Math.random() * 6 }));
     particles = [];
@@ -433,6 +540,7 @@
   function hideOverlay() { overlay.hidden = true; }
 
   state = "intro";
+  loadStage(currentStageIndex);
   resetRun();
   showOverlay(
     "Run Habib",
@@ -453,6 +561,8 @@
     }
     if (state === "gameover") {
       hideOverlay();
+      currentStageIndex = 0;
+      loadStage(0);
       resetRun();
       state = "playing";
       startMusic();
@@ -460,9 +570,23 @@
       requestAnimationFrame(loop);
       return;
     }
-    if (state === "win") {
+    if (state === "win" || state === "allClear") {
       hideOverlay();
+      currentStageIndex = 0;
+      loadStage(0);
       resetRun();
+      state = "playing";
+      startMusic();
+      lastTime = null;
+      requestAnimationFrame(loop);
+      return;
+    }
+    if (state === "stageClear") {
+      hideOverlay();
+      currentStageIndex++;
+      loadStage(currentStageIndex);
+      resetLevel();
+      updateHud();
       state = "playing";
       startMusic();
       lastTime = null;
@@ -476,6 +600,36 @@
       lastTime = null;
       requestAnimationFrame(loop);
     }
+  }
+
+  // Reaching a stage's flag (on any stage without a boss arena past it —
+  // see the flagpole block in update()) ends the stage: a brief pause on
+  // the fanfare, then either the next stage loads or, if this was the
+  // last stage built so far, a "more coming soon" screen shows instead
+  // of the Arab Monster fight that's still waiting for the rest of the 12.
+  function clearStage() {
+    state = "cutscene";
+    stopMusic();
+    setTimeout(() => {
+      const isLast = currentStageIndex >= STAGES.length - 1;
+      if (isLast) {
+        state = "allClear";
+        showOverlay(
+          "More of the Old Kingdom Awaits",
+          `Stage ${currentStageIndex + 1} down with ${coinCount} coins. The rest of the road to the Arab Monster is still being built — check back soon.`,
+          "assets/habib.png?v=4",
+          "↻ Play Stage 1 Again"
+        );
+      } else {
+        state = "stageClear";
+        showOverlay(
+          "Stage Clear!",
+          `Habib made the flag with ${coinCount} coins. On to the next stretch of the kingdom.`,
+          "assets/habib.png?v=4",
+          "▶ Next Stage"
+        );
+      }
+    }, 1400);
   }
   startBtn.addEventListener("click", startOrRestart);
 
@@ -550,6 +704,14 @@
       const col = Math.floor(edgeX / TILE);
       for (let r = topRow; r <= botRow; r++) {
         if (isSolid(tileAt(r, col))) {
+          // Auto step-up: a single 1-tile-high ledge (solid only at foot
+          // level, clear the row above) climbs instead of blocking dead —
+          // this is what makes a staircase (or any low ledge) walkable at
+          // a run instead of needing a hop up every single step.
+          if (ent.onGround && r === botRow && !isSolid(tileAt(r - 1, col))) {
+            ent.y -= TILE;
+            break;
+          }
           ent.x = dir > 0 ? col * TILE - ent.w : (col + 1) * TILE;
           dx = 0;
           break;
@@ -667,6 +829,14 @@
       co.y = co.emerged ? co.urnTopY - Math.min(1, (cycle - 1.6) / 0.5) * TILE : co.urnTopY;
     }
 
+    // --- Plants: same peek-and-retreat cycle as cobras, out of a pipe ---
+    for (const pl of plants) {
+      pl.phase += dt;
+      const cycle = pl.phase % 3.6;
+      pl.emerged = cycle > 1.8 && cycle < 3.2;
+      pl.y = pl.emerged ? pl.pipeTopY - Math.min(1, (cycle - 1.8) / 0.6) * TILE : pl.pipeTopY;
+    }
+
     // --- Coins float gently; collect on touch ---
     for (const c of coins) {
       if (c.taken) continue;
@@ -702,19 +872,31 @@
         else if (invincibleTimer <= 0) { loseLife(false); return; }
       }
     }
+    for (const pl of plants) {
+      if (!pl.alive || !pl.emerged) continue;
+      if (overlap({ x: pl.x - 16, y: pl.y - 26, w: 32, h: 34 })) {
+        if (starTimer > 0) { pl.alive = false; playStomp(); }
+        else if (invincibleTimer <= 0) { loseLife(false); return; }
+      }
+    }
 
-    // --- Flagpole — a checkpoint fanfare, not the actual win condition.
-    // The real finish is beating the monster just past it: if this returned
-    // here like a normal flagpole finish would, the player could never
-    // reach the boss arena at all, since state would already have left
-    // "playing" before the boss-arena check below ever ran.
+    // --- Flagpole ---
+    // On a stage with a boss arena past it (the eventual final stage),
+    // this is just a checkpoint fanfare — the real finish is beating the
+    // monster, and returning here would end "playing" before the
+    // boss-arena check below ever got to run. Every other stage's flag
+    // IS the finish, so it clears the stage outright.
     if (!flagRaised && player.x + player.w > FLAG_COL * TILE) {
       flagRaised = true;
       playFlag();
+      if (!MONSTER_COL) {
+        clearStage();
+        return;
+      }
     }
 
-    // --- Boss arena ---
-    if (!monster.defeated && player.x > (MONSTER_COL - 2) * TILE) {
+    // --- Boss arena (final stage only) ---
+    if (MONSTER_COL && !monster.defeated && player.x > (MONSTER_COL - 2) * TILE) {
       monster.phase += dt;
       monster.hurtFlash = Math.max(0, monster.hurtFlash - dt);
       const bob = Math.sin(monster.phase * 1.6) * 6;
@@ -808,8 +990,11 @@
       ctx.strokeStyle = "rgba(60, 30, 10, 0.5)";
       ctx.stroke();
     } else if (type === "flagpole-tip") {
+      // Shaft reaches all the way down to the ground from wherever the
+      // tip is placed, rather than a fixed height — so it always looks
+      // right regardless of how tall that stage's staircase is.
       ctx.fillStyle = "#d8c48a";
-      ctx.fillRect(x + TILE / 2 - 3, y, 6, TILE * 4);
+      ctx.fillRect(x + TILE / 2 - 3, y, 6, GROUND_ROW * TILE - y);
       ctx.fillStyle = "#e0473a";
       ctx.beginPath();
       ctx.moveTo(x + TILE / 2 + 3, y + 6);
@@ -817,6 +1002,19 @@
       ctx.lineTo(x + TILE / 2 + 3, y + 26);
       ctx.closePath();
       ctx.fill();
+    } else if (type === "pipe") {
+      // An original pipe — weathered bronze/verdigris rather than the
+      // bright saturated green of the game this is inspired by, so the
+      // shape reads as "pipe" without the palette reading as a reskin.
+      // Each column of a (2-wide) pipe draws its own tile-width slice so
+      // the two cells tile seamlessly without overlapping redraws.
+      ctx.fillStyle = "#3a7d6b";
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = "#2c5c4f";
+      ctx.fillRect(x, y, TILE, 5);
+      ctx.strokeStyle = "rgba(15, 35, 30, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
     } else if (type && type.kind === "box") {
       if (type.hit && type.type !== "brick") {
         ctx.fillStyle = "#7a5a3a";
@@ -917,6 +1115,28 @@
       }
       ctx.restore();
     }
+    for (const pl of plants) {
+      if (!pl.alive) continue;
+      const sx = pl.x - camX;
+      if (sx < -40 || sx > WIDTH + 40) continue;
+      ctx.save();
+      ctx.translate(sx, pl.y + TILE);
+      const stretch = Math.max(0, (pl.pipeTopY - pl.y) / TILE);
+      ctx.fillStyle = "#3f8f5c";
+      ctx.fillRect(-6, -TILE * stretch, 12, TILE * stretch + 6);
+      if (stretch > 0.25) {
+        ctx.fillStyle = "#e0546b";
+        ctx.beginPath();
+        ctx.moveTo(-17, -TILE * stretch - 4);
+        ctx.quadraticCurveTo(0, -TILE * stretch - 24, 17, -TILE * stretch - 4);
+        ctx.quadraticCurveTo(0, -TILE * stretch + 6, -17, -TILE * stretch - 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#7a1f30";
+        ctx.beginPath(); ctx.arc(0, -TILE * stretch - 9, 3.5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
   }
 
   function drawCoins() {
@@ -1005,7 +1225,7 @@
   }
 
   function drawMonsterAndPrincess() {
-    if (player.x < (MONSTER_COL - 6) * TILE) return;
+    if (!MONSTER_COL || player.x < (MONSTER_COL - 6) * TILE) return;
     const sx = monster.x - camX;
     if (!monster.defeated) {
       const bob = Math.sin(monster.phase * 1.6) * 6;
