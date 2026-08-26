@@ -1,0 +1,183 @@
+/* ---------- Run Habib — game stage ---------- */
+/* Wide/landscape by design (unlike Flappy Dragon's portrait stage) — a
+   side-scroller reads best stretched across the screen, and this is the
+   shape that makes sense fullscreen on a rotated phone too. */
+.rh-stage-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.rh-stage {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(220, 140, 40, 0.15);
+  background: #1a1006;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+/* Fullscreen drops the card chrome — the stage should fill the whole
+   screen edge to edge, not float inside a rounded, bordered box. */
+.rh-stage:fullscreen,
+.rh-stage:-webkit-full-screen {
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border-radius: 0;
+  border: none;
+}
+
+.rh-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  image-rendering: pixelated;
+}
+
+.rh-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(10, 6, 4, 0.75), rgba(10, 6, 4, 0));
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  pointer-events: none;
+  z-index: 3;
+}
+.rh-hud-item strong { color: #ffd873; }
+.rh-hud-right { margin-left: auto; color: rgba(255, 255, 255, 0.75); font-weight: 600; }
+.rh-hud-right strong { color: #fff; }
+
+.rh-fullscreen-btn,
+.rh-mute-btn {
+  position: absolute;
+  top: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 6, 4, 0.55);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+.rh-fullscreen-btn:hover,
+.rh-mute-btn:hover { background: rgba(10, 6, 4, 0.8); }
+.rh-fullscreen-btn { right: 10px; }
+.rh-mute-btn { right: 50px; }
+
+.rh-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  background: rgba(10, 6, 4, 0.78);
+  backdrop-filter: blur(4px);
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+.rh-overlay[hidden] { display: none; }
+
+.rh-overlay-panel { max-width: 380px; }
+
+.rh-overlay-art {
+  width: 84px;
+  height: auto;
+  margin: 0 auto 12px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+}
+
+.rh-overlay-panel h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.rh-overlay-panel p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+/* ---------- Touch controls (mobile only, toggled via JS — see IS_TOUCH) ---------- */
+.rh-touch-controls {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+  z-index: 4;
+}
+.rh-stage.is-touch .rh-touch-controls { display: block; }
+
+.rh-touch-dpad {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.rh-touch-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(10, 6, 4, 0.5);
+  color: #fff;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.rh-touch-btn:active { background: rgba(255, 255, 255, 0.25); }
+
+.rh-touch-jump {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 74px;
+  height: 74px;
+  font-size: 1.6rem;
+  pointer-events: auto;
+  border-color: rgba(240, 193, 75, 0.6);
+  background: rgba(240, 193, 75, 0.18);
+}
+
+@media (max-width: 640px) {
+  .rh-hud { font-size: 0.75rem; gap: 10px; padding: 8px 10px; }
+  .rh-touch-btn { width: 50px; height: 50px; }
+  .rh-touch-jump { width: 64px; height: 64px; }
+}

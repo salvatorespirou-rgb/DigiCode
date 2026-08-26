@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Run Habib — Velora Gaming</title>
+  <meta name="description" content="Run Habib — a side-scrolling platformer. Save the Princess from the Arab Monster." />
+  <link rel="icon" href="../../assets/images/velora-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="run-habib.css" />
+</head>
+<body>
+
+  <img src="../../assets/images/velora-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../index.html#services">Services</a></li>
+          <li><a href="../../index.html#work">Management</a></li>
+          <li><a href="../../velora-gaming.html">Velora Gaming</a></li>
+          <li><a href="../../index.html#about">About</a></li>
+          <li><a href="../../index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="header-icons">
+      <a href="../../signin.html" class="profile-icon-link" aria-label="Sign in">
+        <svg class="profile-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </a>
+      <a href="../../cart.html" class="cart-icon-link" aria-label="View cart">
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="cart-badge" hidden>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="eyebrow"><a href="../../velora-gaming.html" style="color: inherit;">Velora Gaming</a> / Run Habib</p>
+        <h1>Save the <span class="gradient-text">Princess.</span></h1>
+        <p class="hero-sub">Arrow keys (or the on-screen pad) to run, Space or the jump button to leap. Reach the flag, dodge the sand, and get Habib home.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container">
+        <div class="rh-stage-wrap">
+          <div class="rh-stage" id="rhStage">
+            <canvas id="rhCanvas" width="960" height="540"></canvas>
+
+            <div class="rh-hud" id="rhHud">
+              <span class="rh-hud-item">🪙 <strong id="rhCoins">0</strong></span>
+              <span class="rh-hud-item">❤ <strong id="rhLives">3</strong></span>
+              <span class="rh-hud-item rh-hud-right">Habib — World <strong id="rhWorld">1-1</strong></span>
+            </div>
+
+            <button type="button" class="rh-fullscreen-btn" id="rhFullscreenBtn" aria-label="Toggle fullscreen">⛶</button>
+            <button type="button" class="rh-mute-btn" id="rhMuteBtn" aria-label="Mute game sound">🔊</button>
+
+            <div class="rh-overlay" id="rhOverlay">
+              <div class="rh-overlay-panel" id="rhOverlayPanel">
+                <img src="assets/habib.png" alt="" class="rh-overlay-art" id="rhOverlayArt" />
+                <h3 id="rhOverlayTitle">Run Habib</h3>
+                <p id="rhOverlayBody">The Arab Monster has taken the Princess into the old kingdom. Habib's not waiting for anyone else to go get her.</p>
+                <button type="button" class="dragon-store-open-btn" id="rhStartBtn">▶ Start Running</button>
+              </div>
+            </div>
+
+            <!-- On-screen controls, mobile/touch only (see run-habib.css) -->
+            <div class="rh-touch-controls" id="rhTouchControls">
+              <div class="rh-touch-dpad">
+                <button type="button" class="rh-touch-btn" id="rhLeftBtn" aria-label="Move left">◀</button>
+                <button type="button" class="rh-touch-btn" id="rhRightBtn" aria-label="Move right">▶</button>
+              </div>
+              <button type="button" class="rh-touch-btn rh-touch-jump" id="rhJumpBtn" aria-label="Jump">⬤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> Velora Digital Services. All rights reserved. · <a href="../../privacy-policy.html">Privacy Policy</a> · <a href="../../terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="../../js/main.js"></script>
+  <script src="run-habib.js?v=1"></script>
+</body>
+</html>
