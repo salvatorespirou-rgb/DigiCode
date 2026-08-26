@@ -65,7 +65,8 @@
 .rh-hud-right strong { color: #fff; }
 
 .rh-fullscreen-btn,
-.rh-mute-btn {
+.rh-mute-btn,
+.rh-pause-btn {
   position: absolute;
   top: 10px;
   width: 32px;
@@ -86,9 +87,11 @@
   transition: background 0.15s ease;
 }
 .rh-fullscreen-btn:hover,
-.rh-mute-btn:hover { background: rgba(10, 6, 4, 0.8); }
+.rh-mute-btn:hover,
+.rh-pause-btn:hover { background: rgba(10, 6, 4, 0.8); }
 .rh-fullscreen-btn { right: 10px; }
 .rh-mute-btn { right: 50px; }
+.rh-pause-btn { right: 90px; }
 
 .rh-overlay {
   position: absolute;
@@ -102,31 +105,83 @@
   backdrop-filter: blur(4px);
   z-index: 5;
   -webkit-tap-highlight-color: transparent;
+  /* The stage is short on narrow phones (16:9 at ~340px wide is only
+     ~190px tall) — if the panel's content is ever taller than that,
+     scroll it into reach instead of letting `.rh-stage`'s overflow:hidden
+     clip the start/resume button out of existence. */
+  overflow-y: auto;
 }
 .rh-overlay[hidden] { display: none; }
 
-.rh-overlay-panel { max-width: 380px; }
+/* A carved-stone/parchment tablet instead of a plain dark rectangle —
+   matches the desert-kingdom theme rather than a generic modal. */
+.rh-overlay-panel {
+  max-width: 380px;
+  padding: 30px 28px 26px;
+  position: relative;
+  background:
+    radial-gradient(120% 140% at 50% -10%, rgba(255, 200, 120, 0.14), transparent 55%),
+    linear-gradient(180deg, #4a3018 0%, #2b1a0c 60%, #20130a 100%);
+  border: 1px solid rgba(255, 210, 140, 0.4);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 220, 160, 0.15);
+}
+.rh-overlay-panel::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(255, 210, 140, 0.28);
+  border-radius: 11px;
+  pointer-events: none;
+}
 
 .rh-overlay-art {
   width: 84px;
   height: auto;
-  margin: 0 auto 12px;
+  margin: 0 auto 14px;
   filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
 }
 
 .rh-overlay-panel h3 {
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  color: #fff;
-  margin-bottom: 10px;
+  font-family: "Cinzel", var(--font-heading), serif;
+  font-weight: 700;
+  font-size: 1.7rem;
+  letter-spacing: 0.01em;
+  color: #ffd873;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 184, 77, 0.3);
+  margin-bottom: 12px;
 }
 
 .rh-overlay-panel p {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 18px;
+  color: rgba(255, 232, 205, 0.82);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
 }
+
+.rh-overlay-panel .dragon-store-open-btn {
+  margin-top: 0;
+  padding: 10px 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 210, 140, 0.55);
+  background: linear-gradient(180deg, rgba(255, 200, 120, 0.22), rgba(255, 170, 70, 0.1));
+  color: #ffd873;
+  font-family: "Cinzel", var(--font-heading), serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.rh-overlay-panel .dragon-store-open-btn:hover {
+  background: linear-gradient(180deg, rgba(255, 200, 120, 0.34), rgba(255, 170, 70, 0.18));
+  border-color: rgba(255, 210, 140, 0.85);
+}
+.rh-overlay-panel .dragon-store-open-btn:active { transform: scale(0.96); }
 
 /* ---------- Touch controls (mobile only, toggled via JS — see IS_TOUCH) ---------- */
 .rh-touch-controls {
@@ -180,4 +235,9 @@
   .rh-hud { font-size: 0.75rem; gap: 10px; padding: 8px 10px; }
   .rh-touch-btn { width: 50px; height: 50px; }
   .rh-touch-jump { width: 64px; height: 64px; }
+  .rh-overlay-panel { padding: 18px 18px 16px; }
+  .rh-overlay-art { width: 56px; margin-bottom: 8px; }
+  .rh-overlay-panel h3 { font-size: 1.25rem; margin-bottom: 6px; }
+  .rh-overlay-panel p { font-size: 0.82rem; line-height: 1.45; margin-bottom: 12px; }
+  .rh-overlay-panel .dragon-store-open-btn { padding: 8px 20px; font-size: 0.85rem; }
 }

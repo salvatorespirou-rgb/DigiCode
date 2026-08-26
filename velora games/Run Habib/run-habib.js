@@ -54,14 +54,18 @@
   ];
 
   // Floating brick platforms: {col, row, len}
+  // Row 8 sits only one tile (40px) above the ground — less than Habib's
+  // own height (44px) — so a platform there leaves no room to actually
+  // stand underneath and jump up into it. Row 7 (80px clearance) is the
+  // lowest row that comfortably fits him.
   const PLATFORMS = [
     { col: 10, row: 7, len: 3 },
     { col: 18, row: 6, len: 2 },
-    { col: 30, row: 8, len: 4 },
+    { col: 30, row: 7, len: 4 },
     { col: 38, row: 5, len: 3 },
     { col: 52, row: 7, len: 3 },
     { col: 60, row: 5, len: 2 },
-    { col: 68, row: 8, len: 4 },
+    { col: 68, row: 7, len: 4 },
     { col: 84, row: 7, len: 3 },
     { col: 90, row: 5, len: 3 },
     { col: 101, row: 7, len: 4 },
@@ -73,13 +77,13 @@
     { col: 7, row: 7, type: "coin" },
     { col: 8, row: 7, type: "brick" },
     { col: 19, row: 6, type: "coin" },
-    { col: 31, row: 8, type: "coin" },
-    { col: 33, row: 8, type: "star" },
+    { col: 31, row: 7, type: "coin" },
+    { col: 33, row: 7, type: "star" },
     { col: 39, row: 5, type: "coin" },
     { col: 53, row: 7, type: "coin" },
     { col: 61, row: 5, type: "coin" },
-    { col: 69, row: 8, type: "coin" },
-    { col: 71, row: 8, type: "coin" },
+    { col: 69, row: 7, type: "coin" },
+    { col: 71, row: 7, type: "coin" },
     { col: 85, row: 7, type: "brick" },
     { col: 91, row: 5, type: "star" },
     { col: 102, row: 7, type: "coin" },
@@ -185,8 +189,10 @@
     else if (e.code === "Space") {
       if (!keys.jump) keys.jumpPressedAt = performance.now() / 1000;
       keys.jump = true;
-      if (state === "intro" || state === "gameover" || state === "win") { e.preventDefault(); startOrRestart(); }
+      if (state === "intro" || state === "gameover" || state === "win" || state === "paused") { e.preventDefault(); startOrRestart(); }
       if (state === "playing") e.preventDefault();
+    } else if (e.code === "KeyP" || e.code === "Escape") {
+      togglePause();
     }
   });
   document.addEventListener("keyup", (e) => {
@@ -461,9 +467,34 @@
       startMusic();
       lastTime = null;
       requestAnimationFrame(loop);
+      return;
+    }
+    if (state === "paused") {
+      hideOverlay();
+      state = "playing";
+      startMusic();
+      lastTime = null;
+      requestAnimationFrame(loop);
     }
   }
   startBtn.addEventListener("click", startOrRestart);
+
+  const pauseBtn = document.getElementById("rhPauseBtn");
+  function togglePause() {
+    if (state === "playing") {
+      state = "paused";
+      stopMusic();
+      showOverlay(
+        "Paused",
+        "Take a breath — the old kingdom will still be there when you get back.",
+        "assets/habib.png?v=3",
+        "▶ Resume"
+      );
+    } else if (state === "paused") {
+      startOrRestart();
+    }
+  }
+  pauseBtn?.addEventListener("click", togglePause);
 
   function onJumpReleased() {
     if (player && player.vy < 0) player.vy *= JUMP_CUT_MULTIPLIER;
