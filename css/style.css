@@ -575,9 +575,32 @@ section { padding: 100px 0; }
 
 /* ---------- Request form pages ---------- */
 .page-hero {
+  position: relative;
   padding: 160px 0 60px;
   text-align: center;
+  overflow: hidden;
 }
+
+/* A soft glow in the brand gradient's colors — every inner page shares this
+   one component, so this single background treatment is what was actually
+   missing across ~17 otherwise-plain hero sections, not something each
+   page needed its own fix for. Kept to a quiet radial glow rather than a
+   video or illustration to stay in the same understated register as the
+   rest of the site. */
+.page-hero::before {
+  content: "";
+  position: absolute;
+  top: -180px;
+  left: 50%;
+  translate: -50% 0;
+  width: min(900px, 160vw);
+  height: 480px;
+  background: radial-gradient(ellipse at center, rgba(147, 51, 234, 0.22), rgba(59, 130, 246, 0.12) 45%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-hero .container { position: relative; z-index: 1; }
 
 .page-hero .eyebrow { margin-bottom: 16px; }
 
@@ -1252,6 +1275,39 @@ body.custom-cursor-active button {
   padding-top: 48px;
   border-top: 1px solid var(--border);
 }
+
+/* A dedicated "not live yet" treatment for public marketing pages — same
+   icon-circle-over-card language as .portal-lock/.portal-card, so it reads
+   as a considered part of the site rather than a placeholder. Kept
+   separate from .dev-empty (still used as-is for the portal dashboard's
+   transient "no items yet" lists, where a plain dashed box is the right,
+   lower-key treatment). */
+.coming-soon-panel {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  text-align: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.coming-soon-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(147, 51, 234, 0.12);
+  color: var(--purple);
+}
+.coming-soon-icon svg { width: 26px; height: 26px; }
+
+.coming-soon-panel p { color: var(--text-muted); margin-bottom: 0; }
+.coming-soon-panel p + p { margin-top: 12px; }
+.coming-soon-panel strong { color: var(--text); }
 
 .info-cta p {
   color: var(--text-muted);
