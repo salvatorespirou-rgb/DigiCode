@@ -166,7 +166,7 @@
   // everything else (tiles, backdrop, props) is drawn with canvas
   // primitives, same lightweight approach as the rest of Velora's games.
   // ---------------------------------------------------------------------
-  const ASSET_V = "3";
+  const ASSET_V = "4";
   const habibImg = new Image();
   habibImg.src = "assets/habib.png?v=" + ASSET_V;
   const monsterImg = new Image();
@@ -437,7 +437,7 @@
   showOverlay(
     "Run Habib",
     "The Arab Monster has taken the Princess into the old kingdom. Habib's not waiting for anyone else to go get her.",
-    "assets/habib.png?v=3",
+    "assets/habib.png?v=4",
     "▶ Start Running"
   );
 
@@ -487,7 +487,7 @@
       showOverlay(
         "Paused",
         "Take a breath — the old kingdom will still be there when you get back.",
-        "assets/habib.png?v=3",
+        "assets/habib.png?v=4",
         "▶ Resume"
       );
     } else if (state === "paused") {
@@ -508,7 +508,7 @@
     updateHud();
     if (lives <= 0) {
       state = "gameover";
-      showOverlay("Habib is out of chances", `You collected ${coinCount} coins this run. The Princess is still waiting.`, "assets/habib.png?v=3", "↻ Try Again");
+      showOverlay("Habib is out of chances", `You collected ${coinCount} coins this run. The Princess is still waiting.`, "assets/habib.png?v=4", "↻ Try Again");
       return;
     }
     // Respawn in place rather than restarting the whole level — losing a
@@ -952,21 +952,52 @@
     }
   }
 
+  // habib.png is cropped at the hip (was the full 567x792 figure; now
+  // 567x708 with the original static boots trimmed off) so real, moving
+  // legs can be drawn under it each frame instead of the whole sprite
+  // just hopping in place. Boot geometry below is hand-measured from
+  // where those original boots sat, in the same source-pixel space.
+  const BOOT_L = { x: 78, w: 198 };
+  const BOOT_R = { x: 305, w: 193 };
+  const BOOT_H = 78;
+  const HABIB_HALF_W = 567 / 2;
+  function legStride(phase) {
+    const swing = Math.sin(phase);
+    return { dx: swing * 20, dy: Math.max(0, -Math.cos(phase)) * 12 };
+  }
+  function drawBoot(boot, dx, dy) {
+    const bx = boot.x - HABIB_HALF_W + dx;
+    ctx.fillStyle = "#a85a1c";
+    ctx.fillRect(bx, dy, boot.w, 22);
+    ctx.fillStyle = "#5a2410";
+    ctx.fillRect(bx, dy + 20, boot.w, BOOT_H - 20);
+  }
+
   function drawPlayer() {
     if (invincibleTimer > 0 && Math.floor(elapsedInLevel * 14) % 2 === 0) return; // hurt-flicker
     const sx = player.x - camX;
-    const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 5 : 0;
+    const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 2 : 0;
     ctx.save();
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
-    // habib.png is now trimmed tight to its actual content (was 1024x1153
-    // with 216px of dead transparent space below his feet, which is why he
-    // used to render floating above the ground — the old scale was tuned
-    // for that untrimmed size). 0.076 targets the same ~60px on-screen
-    // height against the new 567x792 source.
     ctx.scale(player.facing * 0.076, 0.076 * player.squash);
     if (starTimer > 0) {
       ctx.filter = `hue-rotate(${Math.floor(elapsedInLevel * 600) % 360}deg) saturate(1.6)`;
     }
+
+    let legA, legB;
+    if (!player.onGround) {
+      legA = { dx: -14, dy: -16 };
+      legB = { dx: 16, dy: -8 };
+    } else if (Math.abs(player.vx) < 5) {
+      legA = { dx: 0, dy: 0 };
+      legB = { dx: 0, dy: 0 };
+    } else {
+      legA = legStride(player.runPhase);
+      legB = legStride(player.runPhase + Math.PI);
+    }
+    drawBoot(BOOT_L, legA.dx, legA.dy);
+    drawBoot(BOOT_R, legB.dx, legB.dy);
+
     if (habibImg.complete && habibImg.naturalWidth) {
       ctx.drawImage(habibImg, -habibImg.width / 2, -habibImg.height);
     }
