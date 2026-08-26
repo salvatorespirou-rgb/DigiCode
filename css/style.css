@@ -1345,6 +1345,17 @@ body.custom-cursor-active button {
   background: linear-gradient(180deg, rgba(8, 8, 12, 0.1), rgba(8, 8, 12, 0.75));
 }
 
+/* A game's thumbnail can be a live illustration instead of a photo — this
+   fills the same card-image slot a background-image would, cropping via
+   preserveAspectRatio="xMidYMid slice" on the <svg> itself the way
+   background-size:cover crops a photo. */
+.game-thumb-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .portfolio-tag {
   position: absolute;
   top: 14px;
