@@ -104,15 +104,16 @@
     { col: 88, row: 10, height: 3, spawnsCobra: true },
   ];
 
-  // Ground-patrol enemies (scarabs): {col, row, patrolMin, patrolMax}
+  // Ground-patrol enemies — alternating the two real creature sprites
+  // (scorpion/beetle) instead of the placeholder drawn shapes.
   const ENEMIES = [
-    { col: 12, row: 9, min: 11, max: 17 },
-    { col: 35, row: 9, min: 34, max: 41 },
-    { col: 50, row: 9, min: 49, max: 55 },
-    { col: 66, row: 9, min: 64, max: 70 },
-    { col: 82, row: 9, min: 81, max: 87 },
-    { col: 93, row: 9, min: 92, max: 99 },
-    { col: 106, row: 9, min: 104, max: 110 },
+    { col: 12, row: 9, min: 11, max: 17, variant: "scorpion" },
+    { col: 35, row: 9, min: 34, max: 41, variant: "beetle" },
+    { col: 50, row: 9, min: 49, max: 55, variant: "scorpion" },
+    { col: 66, row: 9, min: 64, max: 70, variant: "beetle" },
+    { col: 82, row: 9, min: 81, max: 87, variant: "scorpion" },
+    { col: 93, row: 9, min: 92, max: 99, variant: "beetle" },
+    { col: 106, row: 9, min: 104, max: 110, variant: "scorpion" },
   ];
 
   const FLAG_COL = 113;
@@ -166,6 +167,11 @@
   monsterImg.src = "assets/arab-monster.png";
   const princessImg = new Image();
   princessImg.src = "assets/princess.png";
+  const scorpionImg = new Image();
+  scorpionImg.src = "assets/scorpion.png";
+  const beetleImg = new Image();
+  beetleImg.src = "assets/beetle.png";
+  const ENEMY_SPRITES = { scorpion: scorpionImg, beetle: beetleImg };
 
   // ---------------------------------------------------------------------
   // Input
@@ -366,11 +372,17 @@
     // ground segments), so their Y has to be derived from GROUND_ROW and
     // their own height to actually sit ON the ground rather than floating
     // — there's nothing to fall and settle into place the way the player does.
-    const ENEMY_H = 26;
-    enemies = ENEMIES.map((e) => ({
-      x: e.col * TILE, y: GROUND_ROW * TILE - ENEMY_H, w: 30, h: ENEMY_H, vx: -60,
-      minX: e.min * TILE, maxX: e.max * TILE, alive: true, squashTimer: 0,
-    }));
+    // Each variant's hitbox matches its sprite's real proportions (a
+    // scorpion and a beetle aren't the same shape) rather than one generic
+    // box for both.
+    const ENEMY_SIZE = { scorpion: { w: 52, h: 27 }, beetle: { w: 48, h: 20 } };
+    enemies = ENEMIES.map((e) => {
+      const size = ENEMY_SIZE[e.variant];
+      return {
+        x: e.col * TILE, y: GROUND_ROW * TILE - size.h, w: size.w, h: size.h, vx: -60,
+        variant: e.variant, minX: e.min * TILE, maxX: e.max * TILE, alive: true, squashTimer: 0,
+      };
+    });
     cobras = URNS.filter((u) => u.spawnsCobra).map((u) => ({
       x: u.col * TILE + TILE / 2, baseY: (GROUND_ROW - u.height) * TILE,
       urnTopY: (GROUND_ROW - u.height) * TILE, phase: Math.random() * 3, alive: true,
@@ -801,20 +813,18 @@
     for (const en of enemies) {
       const sx = en.x - camX;
       if (sx < -60 || sx > WIDTH + 60) continue;
+      const img = ENEMY_SPRITES[en.variant];
       ctx.save();
       const squashed = !en.alive;
       const sy = squashed ? en.y + en.h * 0.6 : en.y;
       ctx.translate(sx + en.w / 2, sy + en.h / 2);
-      ctx.scale(en.vx < 0 ? 1 : -1, squashed ? 0.3 : 1);
-      ctx.fillStyle = "#5a7a3a";
-      ctx.beginPath();
-      ctx.ellipse(0, 0, en.w / 2, en.h / 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(20,30,10,0.5)"; ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.fillStyle = "#3f5a28";
-      ctx.beginPath(); ctx.ellipse(0, -en.h * 0.1, en.w * 0.28, en.h * 0.22, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#1a1a1a";
-      ctx.beginPath(); ctx.arc(en.w * 0.28, -en.h * 0.1, 3, 0, Math.PI * 2); ctx.fill();
+      // Both sprites face right in their source art, so only flip when
+      // actually walking left — the opposite of "flip when idle-facing"
+      // would have the leading edge trailing instead of leading.
+      ctx.scale(en.vx < 0 ? -1 : 1, squashed ? 0.3 : 1);
+      if (img && img.complete && img.naturalWidth) {
+        ctx.drawImage(img, -en.w / 2, -en.h / 2, en.w, en.h);
+      }
       ctx.restore();
     }
     for (const co of cobras) {
@@ -879,7 +889,12 @@
     const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 5 : 0;
     ctx.save();
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
-    ctx.scale(player.facing * 0.052, 0.052 * player.squash);
+    // habib.png is now trimmed tight to its actual content (was 1024x1153
+    // with 216px of dead transparent space below his feet, which is why he
+    // used to render floating above the ground — the old scale was tuned
+    // for that untrimmed size). 0.076 targets the same ~60px on-screen
+    // height against the new 567x792 source.
+    ctx.scale(player.facing * 0.076, 0.076 * player.squash);
     if (starTimer > 0) {
       ctx.filter = `hue-rotate(${Math.floor(elapsedInLevel * 600) % 360}deg) saturate(1.6)`;
     }
