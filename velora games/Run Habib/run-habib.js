@@ -1140,18 +1140,111 @@
       ctx.save();
       ctx.translate(sx, pl.y + TILE);
       const stretch = Math.max(0, (pl.pipeTopY - pl.y) / TILE);
-      ctx.fillStyle = "#3f8f5c";
-      ctx.fillRect(-6, -TILE * stretch, 12, TILE * stretch + 6);
-      if (stretch > 0.25) {
-        ctx.fillStyle = "#e0546b";
+      const stemTop = -TILE * stretch;
+
+      // Stem — a ridged, thorned vine rather than a smooth tube.
+      const stemGrad = ctx.createLinearGradient(-7, 0, 7, 0);
+      stemGrad.addColorStop(0, "#254a2c"); stemGrad.addColorStop(0.5, "#4fa863"); stemGrad.addColorStop(1, "#1e3a23");
+      ctx.fillStyle = stemGrad;
+      ctx.fillRect(-7, stemTop, 14, TILE * stretch + 7);
+      ctx.fillStyle = "#16291a";
+      for (let ty = stemTop + 10, side = 1; ty < 4; ty += 13, side *= -1) {
         ctx.beginPath();
-        ctx.moveTo(-17, -TILE * stretch - 4);
-        ctx.quadraticCurveTo(0, -TILE * stretch - 24, 17, -TILE * stretch - 4);
-        ctx.quadraticCurveTo(0, -TILE * stretch + 6, -17, -TILE * stretch - 4);
+        ctx.moveTo(side * 7, ty);
+        ctx.lineTo(side * 14, ty + 3);
+        ctx.lineTo(side * 7, ty + 7);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = "#7a1f30";
-        ctx.beginPath(); ctx.arc(0, -TILE * stretch - 9, 3.5, 0, Math.PI * 2); ctx.fill();
+      }
+
+      if (stretch > 0.25) {
+        const gape = 7 + Math.sin(pl.phase * 5) * 2.5; // jaws work menacingly, not just idle
+        ctx.save();
+        const bloom = Math.min(1, (stretch - 0.25) / 0.4);
+        ctx.translate(0, stemTop);
+        ctx.scale(bloom, bloom);
+
+        // Hood (upper jaw) — a jagged, spotted maw flaring up and back.
+        const hoodGrad = ctx.createRadialGradient(0, -18, 2, 0, -14, 26);
+        hoodGrad.addColorStop(0, "#e0708a"); hoodGrad.addColorStop(1, "#7a1f38");
+        ctx.fillStyle = hoodGrad;
+        ctx.beginPath();
+        ctx.moveTo(-21, 0);
+        ctx.quadraticCurveTo(-26, -22, -8, -32 - gape);
+        ctx.quadraticCurveTo(0, -36 - gape, 8, -32 - gape);
+        ctx.quadraticCurveTo(26, -22, 21, 0);
+        ctx.quadraticCurveTo(0, 7, -21, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "rgba(50, 10, 22, 0.55)";
+        ctx.beginPath(); ctx.arc(-11, -20, 2.6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(9, -14, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -27 - gape * 0.6, 1.8, 0, Math.PI * 2); ctx.fill();
+
+        // Throat — dark interior showing between the fangs.
+        ctx.fillStyle = "#3a0d16";
+        ctx.beginPath();
+        ctx.moveTo(-14, -3);
+        ctx.quadraticCurveTo(0, -22 - gape, 14, -3);
+        ctx.quadraticCurveTo(0, 2, -14, -3);
+        ctx.closePath();
+        ctx.fill();
+
+        // Fangs ringing the rim, top and bottom.
+        ctx.fillStyle = "#fff3e2";
+        const fangCount = 4;
+        for (let i = 0; i < fangCount; i++) {
+          const fx = -13 + (26 / (fangCount - 1)) * i;
+          const rim = -3 - Math.abs(fx) * 0.15; // rim follows the mouth's curve
+          ctx.beginPath();
+          ctx.moveTo(fx - 2.6, rim);
+          ctx.lineTo(fx, rim - 7);
+          ctx.lineTo(fx + 2.6, rim);
+          ctx.closePath();
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(fx - 2.2, rim - 2 - gape - 12);
+          ctx.lineTo(fx, rim - 2 - gape - 5);
+          ctx.lineTo(fx + 2.2, rim - 2 - gape - 12);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        // Lolling forked tongue, wagging as it hangs.
+        const wag = Math.sin(pl.phase * 4) * 4;
+        ctx.fillStyle = "#e8607d";
+        ctx.beginPath();
+        ctx.moveTo(-3.5, -8);
+        ctx.quadraticCurveTo(-6 + wag * 0.3, 6, wag - 2, 14);
+        ctx.lineTo(wag, 17);
+        ctx.lineTo(wag + 4, 13);
+        ctx.quadraticCurveTo(6 + wag * 0.3, 5, 3.5, -8);
+        ctx.closePath();
+        ctx.fill();
+
+        // A drop of venomous drool, periodically falling.
+        const dripPhase = (pl.phase * 0.9) % 1;
+        if (dripPhase < 0.5) {
+          ctx.fillStyle = "rgba(200, 235, 190, 0.8)";
+          ctx.beginPath();
+          ctx.arc(10, -6 + dripPhase * 28, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Glowing stalked eyes peering over the hood.
+        for (const ex of [-10, 10]) {
+          ctx.strokeStyle = "#2f6b3f";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(ex * 0.5, -30 - gape);
+          ctx.lineTo(ex, -40 - gape);
+          ctx.stroke();
+          ctx.fillStyle = "#ffcf4d";
+          ctx.beginPath(); ctx.arc(ex, -42 - gape, 4.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#2a1608";
+          ctx.beginPath(); ctx.arc(ex + (ex > 0 ? 1.4 : -1.4), -42 - gape, 1.9, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
       }
       ctx.restore();
     }
