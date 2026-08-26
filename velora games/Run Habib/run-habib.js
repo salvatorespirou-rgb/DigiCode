@@ -270,16 +270,22 @@
   // primitives, same lightweight approach as the rest of Velora's games.
   // ---------------------------------------------------------------------
   const ASSET_V = "4";
+  // Every reference to an image anywhere in this file goes through this
+  // helper instead of a hand-typed "?v=4" — bumping ASSET_V once here is
+  // now the only thing a future asset change needs, instead of hunting
+  // down every hardcoded copy (one of those, princess.png's, was already
+  // caught stuck on an old version this way).
+  function asset(path) { return "assets/" + path + "?v=" + ASSET_V; }
   const habibImg = new Image();
-  habibImg.src = "assets/habib.png?v=" + ASSET_V;
+  habibImg.src = asset("habib.png");
   const monsterImg = new Image();
-  monsterImg.src = "assets/arab-monster.png?v=" + ASSET_V;
+  monsterImg.src = asset("arab-monster.png");
   const princessImg = new Image();
-  princessImg.src = "assets/princess.png?v=" + ASSET_V;
+  princessImg.src = asset("princess.png");
   const scorpionImg = new Image();
-  scorpionImg.src = "assets/scorpion.png?v=" + ASSET_V;
+  scorpionImg.src = asset("scorpion.png");
   const beetleImg = new Image();
-  beetleImg.src = "assets/beetle.png?v=" + ASSET_V;
+  beetleImg.src = asset("beetle.png");
   const ENEMY_SPRITES = { scorpion: scorpionImg, beetle: beetleImg };
 
   // ---------------------------------------------------------------------
@@ -545,7 +551,7 @@
   showOverlay(
     "Run Habib",
     "The Arab Monster has taken the Princess into the old kingdom. Habib's not waiting for anyone else to go get her.",
-    "assets/habib.png?v=4",
+    asset("habib.png"),
     "▶ Start Running"
   );
 
@@ -617,7 +623,7 @@
         showOverlay(
           "More of the Old Kingdom Awaits",
           `Stage ${currentStageIndex + 1} down with ${coinCount} coins. The rest of the road to the Arab Monster is still being built — check back soon.`,
-          "assets/habib.png?v=4",
+          asset("habib.png"),
           "↻ Play Stage 1 Again"
         );
       } else {
@@ -625,7 +631,7 @@
         showOverlay(
           "Stage Clear!",
           `Habib made the flag with ${coinCount} coins. On to the next stretch of the kingdom.`,
-          "assets/habib.png?v=4",
+          asset("habib.png"),
           "▶ Next Stage"
         );
       }
@@ -641,7 +647,7 @@
       showOverlay(
         "Paused",
         "Take a breath — the old kingdom will still be there when you get back.",
-        "assets/habib.png?v=4",
+        asset("habib.png"),
         "▶ Resume"
       );
     } else if (state === "paused") {
@@ -662,7 +668,7 @@
     updateHud();
     if (lives <= 0) {
       state = "gameover";
-      showOverlay("Habib is out of chances", `You collected ${coinCount} coins this run. The Princess is still waiting.`, "assets/habib.png?v=4", "↻ Try Again");
+      showOverlay("Habib is out of chances", `You collected ${coinCount} coins this run. The Princess is still waiting.`, asset("habib.png"), "↻ Try Again");
       return;
     }
     // Respawn in place rather than restarting the whole level — losing a
@@ -679,7 +685,7 @@
     stopMusic();
     setTimeout(() => {
       state = "win";
-      showOverlay("The Princess is safe", `Habib got her out with ${coinCount} coins to spare. The old kingdom can rest easy.`, "assets/princess.png?v=3", "↻ Play Again");
+      showOverlay("The Princess is safe", `Habib got her out with ${coinCount} coins to spare. The old kingdom can rest easy.`, asset("princess.png"), "↻ Play Again");
     }, 1600);
   }
 
@@ -1015,8 +1021,20 @@
       ctx.strokeStyle = "rgba(15, 35, 30, 0.5)";
       ctx.lineWidth = 1;
       ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+    } else if (type && type.kind === "box" && type.type === "brick") {
+      // A plain brick box never holds a coin — it should look like one of
+      // these from the start, not like a "?" block that turns out to be a
+      // dud. Same striped brick texture as the platform tiles above, so
+      // it's obvious at a glance which of a row of blocks are worth
+      // hitting and which are just solid scenery.
+      ctx.fillStyle = "#b5602f";
+      ctx.fillRect(x, y, TILE, TILE);
+      ctx.strokeStyle = "rgba(60, 25, 10, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE / 2 - 2);
+      ctx.strokeRect(x + 1, y + TILE / 2, TILE - 2, TILE / 2 - 2);
     } else if (type && type.kind === "box") {
-      if (type.hit && type.type !== "brick") {
+      if (type.hit) {
         ctx.fillStyle = "#7a5a3a";
         ctx.fillRect(x, y, TILE, TILE);
       } else {
