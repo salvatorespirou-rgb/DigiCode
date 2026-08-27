@@ -945,23 +945,60 @@
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    // Sun
-    ctx.fillStyle = "rgba(255, 240, 210, 0.9)";
-    ctx.beginPath();
-    ctx.arc(WIDTH - 120, 100, 46, 0, Math.PI * 2);
-    ctx.fill();
+    // Sun — a soft outer halo plus a brighter, slightly off-center core
+    // instead of one flat disc.
+    const sunX = WIDTH - 120, sunY = 100;
+    const halo = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 95);
+    halo.addColorStop(0, "rgba(255, 240, 210, 0.32)");
+    halo.addColorStop(1, "rgba(255, 240, 210, 0)");
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(sunX, sunY, 95, 0, Math.PI * 2); ctx.fill();
+    const core = ctx.createRadialGradient(sunX - 12, sunY - 12, 4, sunX, sunY, 46);
+    core.addColorStop(0, "#fffdf6"); core.addColorStop(1, "#ffd89a");
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.arc(sunX, sunY, 46, 0, Math.PI * 2); ctx.fill();
 
-    // Distant dunes/pyramids, parallax-scrolled slower than the world
+    // A few birds drifting slowly across the sky for a little life.
+    ctx.strokeStyle = "rgba(35, 22, 20, 0.45)";
+    ctx.lineWidth = 1.5;
+    const birdDrift = (camX * 0.05) % 400;
+    for (let i = 0; i < 3; i++) {
+      const bx = 220 + i * 170 - birdDrift;
+      const by = 65 + i * 22;
+      ctx.beginPath();
+      ctx.moveTo(bx - 8, by); ctx.quadraticCurveTo(bx - 3, by - 6, bx, by);
+      ctx.quadraticCurveTo(bx + 3, by - 6, bx + 8, by);
+      ctx.stroke();
+    }
+
+    // Distant pyramids, parallax-scrolled slower than the world, with
+    // faint block-course lines instead of a flat silhouette.
     const far = camX * 0.3;
-    ctx.fillStyle = "rgba(60, 40, 70, 0.55)";
     for (let i = -1; i < 6; i++) {
       const bx = i * 260 - (far % 260);
+      ctx.fillStyle = "rgba(60, 40, 70, 0.55)";
       ctx.beginPath();
       ctx.moveTo(bx, HEIGHT - 60);
       ctx.lineTo(bx + 90, HEIGHT - 170);
       ctx.lineTo(bx + 180, HEIGHT - 60);
       ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = "rgba(30, 20, 42, 0.4)";
+      ctx.lineWidth = 1;
+      for (let cy = HEIGHT - 78; cy > HEIGHT - 165; cy -= 16) {
+        const frac = Math.max(0, (cy - (HEIGHT - 170)) / 110);
+        const half = frac * 88;
+        ctx.beginPath(); ctx.moveTo(bx + 90 - half, cy); ctx.lineTo(bx + 90 + half, cy); ctx.stroke();
+      }
+    }
+    // Broken columns among the near dunes — a little ancient-kingdom
+    // set-dressing beyond just sand.
+    const colDrift = camX * 0.45;
+    for (let i = -1; i < 5; i++) {
+      const bx = i * 340 + 240 - (colDrift % 340);
+      ctx.fillStyle = "rgba(80, 60, 55, 0.4)";
+      ctx.fillRect(bx, HEIGHT - 95, 14, 55);
+      ctx.fillRect(bx - 4, HEIGHT - 100, 22, 8);
     }
     const near = camX * 0.6;
     ctx.fillStyle = "rgba(90, 55, 60, 0.5)";
@@ -973,28 +1010,68 @@
     }
   }
 
+  // Shared brick coursing — used by both the standalone "brick" tile
+  // (platforms/stairs) and the plain-brick box variant, so the two
+  // always read as the same material.
+  function drawBrickTexture(x, y) {
+    const g = ctx.createLinearGradient(x, y, x, y + TILE);
+    g.addColorStop(0, "#c96f38"); g.addColorStop(1, "#96491f");
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, TILE, TILE);
+    ctx.fillStyle = "rgba(255,255,255,0.14)";
+    ctx.fillRect(x, y, TILE, 2);
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(x, y + TILE - 3, TILE, 3);
+    ctx.strokeStyle = "rgba(55, 22, 8, 0.55)";
+    ctx.lineWidth = 1;
+    // Staggered coursing (offset joints row to row) instead of two flat
+    // stacked halves, so it reads as real brickwork up close.
+    ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE / 3 - 1);
+    ctx.strokeRect(x + 1, y + TILE / 3, TILE / 2 - 1, TILE / 3);
+    ctx.strokeRect(x + TILE / 2, y + TILE / 3, TILE / 2 - 1, TILE / 3);
+    ctx.strokeRect(x + 1, y + (2 * TILE) / 3, TILE - 2, TILE / 3 - 1);
+  }
+
   function drawTile(type, x, y) {
     if (type === "ground") {
-      ctx.fillStyle = "#c98a4b";
+      const g = ctx.createLinearGradient(x, y, x, y + TILE);
+      g.addColorStop(0, "#dda05e"); g.addColorStop(0.18, "#c98a4b"); g.addColorStop(1, "#a4713a");
+      ctx.fillStyle = g;
       ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = "rgba(0,0,0,0.15)";
-      ctx.fillRect(x, y, TILE, 4);
+      ctx.fillStyle = "rgba(255, 224, 176, 0.3)";
+      ctx.fillRect(x, y, TILE, 3);
       ctx.strokeStyle = "rgba(80, 45, 20, 0.35)";
       ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+      // Deterministic pebble/crack speckle (seeded off position, not
+      // Math.random()) so the ground has texture without flickering
+      // between frames.
+      const seed = (x * 13 + y * 7) % 97;
+      if (seed % 5 === 0) {
+        ctx.fillStyle = "rgba(90, 55, 25, 0.4)";
+        ctx.beginPath(); ctx.arc(x + 9 + (seed % 15), y + 22 + (seed % 10), 2, 0, Math.PI * 2); ctx.fill();
+      }
+      if (seed % 7 === 3) {
+        ctx.strokeStyle = "rgba(70, 38, 14, 0.35)"; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + 5 + (seed % 9), y + 30);
+        ctx.lineTo(x + 13 + (seed % 7), y + 34);
+        ctx.stroke();
+      }
     } else if (type === "brick") {
-      ctx.fillStyle = "#b5602f";
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.strokeStyle = "rgba(60, 25, 10, 0.5)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE / 2 - 2);
-      ctx.strokeRect(x + 1, y + TILE / 2, TILE - 2, TILE / 2 - 2);
+      drawBrickTexture(x, y);
     } else if (type === "urn") {
-      ctx.fillStyle = "#8a5a2e";
+      const g = ctx.createRadialGradient(x + TILE / 2 - 6, y + TILE / 2 - 8, 2, x + TILE / 2, y + TILE / 2, TILE / 2);
+      g.addColorStop(0, "#b8813f"); g.addColorStop(1, "#68401f");
+      ctx.fillStyle = g;
       ctx.beginPath();
       ctx.ellipse(x + TILE / 2, y + TILE / 2, TILE / 2 - 3, TILE / 2, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "rgba(60, 30, 10, 0.5)";
+      ctx.strokeStyle = "rgba(60, 30, 10, 0.55)";
       ctx.stroke();
+      // Decorative bands, like a real carved urn rather than a flat blob.
+      ctx.strokeStyle = "rgba(40, 20, 8, 0.5)"; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.ellipse(x + TILE / 2, y + TILE * 0.32, TILE / 2 - 5, 4.5, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(x + TILE / 2, y + TILE * 0.7, TILE / 2 - 5, 4.5, 0, 0, Math.PI * 2); ctx.stroke();
     } else if (type === "flagpole-tip") {
       // Shaft reaches all the way down to the ground from wherever the
       // tip is placed, rather than a fixed height — so it always looks
@@ -1009,45 +1086,94 @@
       ctx.closePath();
       ctx.fill();
     } else if (type === "pipe") {
-      // An original pipe — weathered bronze/verdigris rather than the
-      // bright saturated green of the game this is inspired by, so the
-      // shape reads as "pipe" without the palette reading as a reskin.
-      // Each column of a (2-wide) pipe draws its own tile-width slice so
-      // the two cells tile seamlessly without overlapping redraws.
-      ctx.fillStyle = "#3a7d6b";
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = "#2c5c4f";
-      ctx.fillRect(x, y, TILE, 5);
-      ctx.strokeStyle = "rgba(15, 35, 30, 0.5)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+      // Drawn as a whole in drawPipes() (needs the full column/height,
+      // which a single tile cell doesn't have) — nothing to do per-cell.
     } else if (type && type.kind === "box" && type.type === "brick") {
       // A plain brick box never holds a coin — it should look like one of
       // these from the start, not like a "?" block that turns out to be a
-      // dud. Same striped brick texture as the platform tiles above, so
-      // it's obvious at a glance which of a row of blocks are worth
-      // hitting and which are just solid scenery.
-      ctx.fillStyle = "#b5602f";
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.strokeStyle = "rgba(60, 25, 10, 0.5)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 1, y + 1, TILE - 2, TILE / 2 - 2);
-      ctx.strokeRect(x + 1, y + TILE / 2, TILE - 2, TILE / 2 - 2);
+      // dud. Same brick texture as the platform tiles, so it's obvious at
+      // a glance which of a row of blocks are worth hitting.
+      drawBrickTexture(x, y);
     } else if (type && type.kind === "box") {
       if (type.hit) {
-        ctx.fillStyle = "#7a5a3a";
+        const g = ctx.createLinearGradient(x, y, x, y + TILE);
+        g.addColorStop(0, "#8f6f4a"); g.addColorStop(1, "#5c4530");
+        ctx.fillStyle = g;
         ctx.fillRect(x, y, TILE, TILE);
+        ctx.strokeStyle = "rgba(40, 25, 10, 0.4)";
+        ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
       } else {
-        ctx.fillStyle = type.type === "star" ? "#e8b84b" : "#d99a3f";
+        const isStar = type.type === "star";
+        const g = ctx.createLinearGradient(x, y, x, y + TILE);
+        if (isStar) { g.addColorStop(0, "#fff3b0"); g.addColorStop(0.5, "#e8b84b"); g.addColorStop(1, "#b8811f"); }
+        else { g.addColorStop(0, "#f0c473"); g.addColorStop(0.5, "#d99a3f"); g.addColorStop(1, "#a8701f"); }
+        ctx.fillStyle = g;
         ctx.fillRect(x, y, TILE, TILE);
+        // Beveled inset (light top/left, dark bottom/right) for a carved,
+        // gilded-stone look instead of a flat color swatch.
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+        ctx.beginPath(); ctx.moveTo(x + 2, y + TILE - 2); ctx.lineTo(x + 2, y + 2); ctx.lineTo(x + TILE - 2, y + 2); ctx.stroke();
         ctx.strokeStyle = "rgba(70, 40, 10, 0.5)";
-        ctx.strokeRect(x + 1.5, y + 1.5, TILE - 3, TILE - 3);
-        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.beginPath(); ctx.moveTo(x + TILE - 2, y + 2); ctx.lineTo(x + TILE - 2, y + TILE - 2); ctx.lineTo(x + 2, y + TILE - 2); ctx.stroke();
+        ctx.fillStyle = "rgba(70, 40, 10, 0.4)";
+        for (const c of [[x + 5, y + 5], [x + TILE - 5, y + 5], [x + 5, y + TILE - 5], [x + TILE - 5, y + TILE - 5]]) {
+          ctx.beginPath(); ctx.arc(c[0], c[1], 1.6, 0, Math.PI * 2); ctx.fill();
+        }
+        // A slow pulse in the symbol's opacity — reads as faintly magical
+        // rather than a dead flat icon.
+        ctx.globalAlpha = 0.7 + Math.sin(elapsedInLevel * 3 + x * 0.05) * 0.15;
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
         ctx.font = "700 18px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(type.type === "star" ? "★" : "?", x + TILE / 2, y + TILE / 2 + 1);
+        ctx.fillText(isStar ? "★" : "?", x + TILE / 2, y + TILE / 2 + 1);
+        ctx.globalAlpha = 1;
       }
+    }
+  }
+
+  // Pipes are drawn whole (not per-tile) so the collar only appears once
+  // at the top and the body reads as one continuous shaft — an aged
+  // bronze well-shaft look (flared rivetted collar, weathered banding)
+  // instead of the smooth bright-green cartoon tube this is inspired by.
+  function drawPipes() {
+    for (const p of PIPES) {
+      const topRow = GROUND_ROW - p.height;
+      const x = p.col * TILE - camX;
+      const y = topRow * TILE;
+      const w = TILE * 2;
+      const h = p.height * TILE;
+      if (x + w < -20 || x > WIDTH + 20) continue;
+
+      const bodyGrad = ctx.createLinearGradient(x, 0, x + w, 0);
+      bodyGrad.addColorStop(0, "#1f3d36"); bodyGrad.addColorStop(0.16, "#3a7d6b");
+      bodyGrad.addColorStop(0.5, "#5cab94"); bodyGrad.addColorStop(0.84, "#3a7d6b"); bodyGrad.addColorStop(1, "#18302a");
+      ctx.fillStyle = bodyGrad;
+      ctx.fillRect(x, y + 14, w, h - 14);
+      ctx.strokeStyle = "rgba(8, 20, 16, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x + w / 2, y + 14); ctx.lineTo(x + w / 2, y + h); ctx.stroke();
+      for (let by = y + 14 + TILE; by < y + h; by += TILE) {
+        ctx.beginPath(); ctx.moveTo(x + 2, by); ctx.lineTo(x + w - 2, by); ctx.stroke();
+      }
+
+      // Flared, rivetted collar.
+      const collarGrad = ctx.createLinearGradient(x - 6, 0, x + w + 6, 0);
+      collarGrad.addColorStop(0, "#6b471f"); collarGrad.addColorStop(0.5, "#c48a3f"); collarGrad.addColorStop(1, "#553a18");
+      ctx.fillStyle = collarGrad;
+      ctx.fillRect(x - 6, y, w + 12, 16);
+      ctx.strokeStyle = "rgba(35, 22, 8, 0.6)";
+      ctx.strokeRect(x - 5.5, y + 0.5, w + 11, 15);
+      ctx.fillStyle = "#2e1c0a";
+      for (let rx = x - 1; rx <= x + w + 1; rx += 11) {
+        ctx.beginPath(); ctx.arc(rx, y + 8, 1.6, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Dark hollow opening at the very top.
+      ctx.fillStyle = "#0f1e19";
+      ctx.beginPath();
+      ctx.ellipse(x + w / 2, y + 3, w / 2 - 5, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
 
@@ -1397,6 +1523,7 @@
     drawBackground();
     ctx.save();
     drawWorld();
+    drawPipes();
     drawCoins();
     drawEnemies();
     drawMonsterAndPrincess();
