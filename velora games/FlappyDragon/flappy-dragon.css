@@ -720,4 +720,27 @@
   margin: 10px 0 0;
 }
 
+/* Rotate-to-landscape support. The stage itself is portrait-shaped, so
+   unlike Run Habib this doesn't get MORE playable in landscape — but a
+   phone still gets turned sideways sometimes, and the normal page chrome
+   (fixed header + a tall hero) would otherwise eat the whole short
+   viewport before the game even comes into view. Drop the chrome and the
+   leaderboard, and size the stage by height instead of width so its
+   portrait shape actually fits a landscape screen. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .site-header, .page-hero, .site-footer, .page-watermark { display: none; }
+  .request-form-section { padding: 0; }
+  .request-form-section .container { padding: 0; max-width: 100%; }
+  .dragon-game-layout { display: block; }
+  .dragon-leaderboard { display: none; }
+  .dragon-game-stage {
+    aspect-ratio: 480 / 700;
+    width: auto;
+    height: 100vh;
+    max-width: 100vw;
+    margin: 0 auto;
+  }
+  .dragon-game-stage canvas { width: 100%; height: 100%; }
+}
+
 

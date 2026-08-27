@@ -241,3 +241,25 @@
   .rh-overlay-panel p { font-size: 0.82rem; line-height: 1.45; margin-bottom: 12px; }
   .rh-overlay-panel .dragon-store-open-btn { padding: 8px 20px; font-size: 0.85rem; }
 }
+
+/* Rotate-to-landscape support. This is a wide, landscape-shaped game, so a
+   phone in landscape is exactly when someone wants to play it — but the
+   normal page chrome (fixed header + a tall hero) eats the entire short
+   viewport a landscape phone has, pushing the stage below the fold. On a
+   short landscape viewport, drop the chrome and let the stage use the
+   whole screen, height-first (aspect-ratio then derives the width) since
+   height is what's actually scarce in landscape. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .site-header, .page-hero, .site-footer, .page-watermark { display: none; }
+  .request-form-section { padding: 0; }
+  .request-form-section .container { padding: 0; max-width: 100%; }
+  .rh-stage-wrap { padding: 0; }
+  .rh-stage {
+    width: auto;
+    height: 100vh;
+    max-width: 100vw;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+}
