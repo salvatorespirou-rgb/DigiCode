@@ -118,26 +118,30 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   gap: 2px;
 }
 
-/* Brand mark, dead-center in the header on every page — always links home. */
+/* Brand mark, dead-center in the header on every page — always links home.
+   Anchored from the top (not vertically centered on the slim icon row)
+   since it's sized much taller than that row — centering it would clip
+   the top of the logo off-screen instead of letting it hang down over
+   the page underneath. */
 .site-logo {
   position: absolute;
-  top: 50%;
+  top: 6px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   transition: transform 0.15s ease, filter 0.15s ease;
 }
 .site-logo:hover {
-  transform: translate(-50%, -50%) scale(1.06);
+  transform: translateX(-50%) scale(1.06);
   filter: drop-shadow(0 0 10px rgba(109, 78, 232, 0.45));
 }
 .site-logo img {
-  height: 84px;
+  height: 150px;
   width: auto;
 }
 @media (max-width: 640px) {
-  .site-logo img { height: 58px; }
+  .site-logo img { height: 100px; }
 }
 
 .cart-icon-link,
@@ -242,7 +246,7 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
 /* ---------- Hero logo ---------- */
 .hero-logo-wrap {
   position: relative;
-  width: clamp(200px, 26vw, 320px);
+  width: clamp(280px, 38vw, 480px);
   margin: 0 auto 32px;
   perspective: 900px;
 }
