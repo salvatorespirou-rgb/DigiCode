@@ -111,6 +111,33 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
 
   document.addEventListener("mouseleave", () => { particles = []; });
 
+  // The homepage's quick-link tabs get an extra flourish: a short trickle
+  // of code raining down from the pill for as long as it's hovered, on top
+  // of the ambient cursor trail — a callback to the same "real code" idea
+  // that's otherwise a fairly plain row of pills.
+  document.querySelectorAll(".quick-link-tab").forEach((tab) => {
+    let dripInterval = null;
+    const spawnDrip = () => {
+      if (particles.length >= 90) return;
+      const rect = tab.getBoundingClientRect();
+      particles.push({
+        x: rect.left + Math.random() * rect.width,
+        y: rect.bottom - 2,
+        vy: 26 + Math.random() * 26,
+        char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        life: 0,
+        maxLife: 0.6 + Math.random() * 0.4,
+        size: 10 + Math.random() * 5,
+      });
+    };
+    tab.addEventListener("mouseenter", () => {
+      spawnDrip();
+      dripInterval = setInterval(spawnDrip, 90);
+    });
+    tab.addEventListener("mouseleave", () => clearInterval(dripInterval));
+  });
+
   let lastT = null;
   function tick(t) {
     if (lastT === null) lastT = t;

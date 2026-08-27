@@ -1172,19 +1172,25 @@ section { padding: 100px 0; }
 .quick-link-tab {
   padding: 12px 28px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(109, 78, 232, 0.3);
   background: rgba(16, 16, 24, 0.6);
   backdrop-filter: blur(8px);
   color: var(--text);
   font-weight: 600;
   font-size: 0.9rem;
-  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  position: relative;
+  /* A glow OUTSIDE the pill (box-shadow), not a tint fill inside it — kept
+     faint at rest and turned up on hover, rather than only appearing on
+     hover, so these read as "alive" instead of flat even before you touch
+     them. */
+  box-shadow: 0 0 10px rgba(109, 78, 232, 0.18);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .quick-link-tab:hover {
-  border-color: rgba(109, 78, 232, 0.5);
+  border-color: rgba(109, 78, 232, 0.75);
   transform: translateY(-2px);
-  background: rgba(109, 78, 232, 0.12);
+  box-shadow: 0 0 20px rgba(109, 78, 232, 0.65), 0 0 42px rgba(46, 159, 230, 0.4);
 }
 
 /* ---------- Custom cursor (desktop with a mouse, motion allowed, marketing pages only) ---------- */
