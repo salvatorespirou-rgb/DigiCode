@@ -340,6 +340,22 @@
     else stage.requestFullscreen?.();
   });
 
+  // iOS doesn't reliably drop real Fullscreen-API fullscreen on its own
+  // when the phone rotates — leaving the stage fighting between the
+  // browser's fullscreen layout and a portrait-shaped viewport (the
+  // "stretched when I turn it back to portrait" report). This is a wide
+  // game with nothing useful to show in portrait anyway, so just exit
+  // fullscreen outright the moment portrait is detected, same as if the
+  // player had tapped the fullscreen button themselves.
+  const portraitQuery = window.matchMedia("(orientation: portrait)");
+  function exitFullscreenIfPortrait() {
+    if (document.fullscreenElement && portraitQuery.matches) {
+      document.exitFullscreen?.();
+    }
+  }
+  portraitQuery.addEventListener?.("change", exitFullscreenIfPortrait);
+  window.addEventListener("orientationchange", exitFullscreenIfPortrait);
+
   // ---------------------------------------------------------------------
   // Audio — every effect below is a synthesized tone (Web Audio
   // oscillators), the same approach as Flappy Dragon's. Nothing here is a
