@@ -33,6 +33,8 @@
   const MAX_JUMPS = 2;
   const PLAYER_W = 30;
   const PLAYER_H = 44;
+  const PLAYER_W_BIG = 34;
+  const PLAYER_H_BIG = 62;
 
   // ---------------------------------------------------------------------
   // Level — declarative placement lists rather than a hand-aligned ASCII
@@ -414,6 +416,8 @@
   function playFlag() { const t = getAudioCtx()?.currentTime; if (t != null) [523, 659, 784, 1046].forEach((f, i) => tone(f, t + i * 0.09, 0.22, 0.15, "square")); }
   function playHurt() { const t = getAudioCtx()?.currentTime; if (t != null) sweep(200, 80, t, 0.2, 0.16, "square"); }
   function playRoar() { const t = getAudioCtx()?.currentTime; if (t != null) sweep(140, 45, t, 0.5, 0.22, "sawtooth"); }
+  function playPowerUp() { const t = getAudioCtx()?.currentTime; if (t != null) [392, 494, 587, 784, 987].forEach((f, i) => tone(f, t + i * 0.05, 0.12, 0.13, "square")); }
+  function playBrickBreak() { const t = getAudioCtx()?.currentTime; if (t != null) sweep(180, 40, t, 0.16, 0.2, "sawtooth"); }
   // Placeholder hook — drop a real recorded line in as assets/run-habib-voice.mp3
   // and this plays it; until then it just plays the synthesized star jingle.
   function playStarVoiceLine() {
@@ -468,7 +472,7 @@
   // ---------------------------------------------------------------------
   // Entities
   // ---------------------------------------------------------------------
-  let player, enemies, coins, cobras, plants, particles, camX, flagRaised, monster, elapsedInLevel;
+  let player, enemies, coins, cobras, plants, mushrooms, particles, camX, flagRaised, monster, elapsedInLevel;
   let coinCount, lives, state, invincibleTimer, starTimer, respawnX, respawnY;
 
   function resetRun() {
@@ -482,7 +486,7 @@
     player = {
       x: 2 * TILE, y: (GROUND_ROW - 2) * TILE, vx: 0, vy: 0,
       w: PLAYER_W, h: PLAYER_H, onGround: false, facing: 1,
-      coyote: 0, jumpsUsed: 0, runPhase: 0, hurtTimer: 0, squash: 1,
+      coyote: 0, jumpsUsed: 0, runPhase: 0, hurtTimer: 0, squash: 1, big: false,
     };
     respawnX = player.x; respawnY = player.y;
     // Enemies/boss have no gravity of their own (they only ever patrol flat
@@ -509,6 +513,7 @@
       y: (GROUND_ROW - p.height) * TILE, phase: Math.random() * 3, alive: true,
     }));
     coins = COINS.map((c) => ({ x: c.col * TILE + TILE / 2, y: c.row * TILE + TILE / 2, taken: false, phase: Math.random() * 6 }));
+    mushrooms = [];
     particles = [];
     camX = 0;
     flagRaised = false;
@@ -672,11 +677,41 @@
       return;
     }
     // Respawn in place rather than restarting the whole level — losing a
-    // life should cost you, not send you back to the very start.
+    // life should cost you, not send you back to the very start. A life
+    // is only ever lost while already small (see hitPlayer()) or from a
+    // pit, so always respawn small regardless of which one it was.
     player.x = respawnX; player.y = respawnY; player.vx = 0; player.vy = 0;
     player.jumpsUsed = 0;
+    player.big = false; player.w = PLAYER_W; player.h = PLAYER_H;
     invincibleTimer = 1.4;
     startMusic();
+  }
+
+  // Growing/shrinking keeps Habib's feet planted and his footprint
+  // horizontally centered, rather than expanding down-and-right from the
+  // top-left corner the way a naive width/height change would.
+  function growTo(big) {
+    const newW = big ? PLAYER_W_BIG : PLAYER_W;
+    const newH = big ? PLAYER_H_BIG : PLAYER_H;
+    player.x += (player.w - newW) / 2;
+    player.y += player.h - newH;
+    player.w = newW;
+    player.h = newH;
+    player.big = big;
+  }
+
+  // A hazard touch either shrinks Big Habib back to normal (no life
+  // lost — the whole point of the mushroom) or costs a life if he was
+  // already small. Falling in a pit bypasses this and always costs a
+  // life/respawns small, same as the games this is patterned after.
+  function hitPlayer() {
+    if (player.big) {
+      growTo(false);
+      invincibleTimer = 1.6;
+      playHurt();
+    } else {
+      loseLife(false);
+    }
   }
 
   function winLevel() {
@@ -748,11 +783,46 @@
     return dx;
   }
 
+  // The mushroom itself is an original design (gold cap, teal spots) —
+  // see drawMushroom() — not a reskin of the classic red-and-white one.
+  const MUSHROOM_W = 26, MUSHROOM_H = 24;
+  function spawnMushroom(col, row) {
+    const startY = row * TILE - MUSHROOM_H;
+    mushrooms.push({
+      x: col * TILE + TILE / 2 - MUSHROOM_W / 2, y: startY, w: MUSHROOM_W, h: MUSHROOM_H,
+      vx: 55, vy: 0, onGround: false, alive: true, taken: false,
+      emergeTimer: 0.3, startY,
+    });
+  }
+
   function hitBlock(row, col, t) {
-    if (t.type === "brick") { playBlockHit(); return; }
+    if (t.type === "brick") {
+      if (player.big) {
+        // Big Habib smashes plain bricks outright — gone for good, with
+        // a few chunks flying, rather than just bopping like normal size.
+        tiles[row][col] = null;
+        playBrickBreak();
+        for (const dx of [-8, 8]) {
+          particles.push({ x: col * TILE + TILE / 2 + dx, y: row * TILE + TILE / 2, vy: -160, life: 0.5, kind: "debris" });
+        }
+      } else {
+        t.bumpAt = elapsedInLevel; // a little hop-in-place, no other effect
+        playBlockHit();
+      }
+      return;
+    }
     if (t.hit) { playBlockHit(); return; }
     t.hit = true;
+    t.bumpAt = elapsedInLevel;
     if (t.type === "coin") {
+      // A coin block has a small chance of holding a mushroom instead —
+      // only worth rolling for while still small, since there's nothing
+      // for a second mushroom to do.
+      if (!player.big && Math.random() < 0.18) {
+        spawnMushroom(col, row);
+        playBlockHit();
+        return;
+      }
       coinCount++;
       updateHud();
       playCoin();
@@ -852,6 +922,26 @@
       if (Math.hypot(dx, dy) < 24) { c.taken = true; coinCount++; updateHud(); playCoin(); }
     }
 
+    // --- Mushrooms: pop out of their block, then walk until collected ---
+    for (const m of mushrooms) {
+      if (m.taken || !m.alive) continue;
+      if (m.emergeTimer > 0) {
+        m.emergeTimer = Math.max(0, m.emergeTimer - dt);
+        m.y = m.startY - (1 - m.emergeTimer / 0.3) * TILE;
+      } else {
+        m.vy = Math.min(m.vy + GRAVITY * dt, MAX_FALL_SPEED);
+        const movedX = moveAndCollide(m, m.vx * dt, 0);
+        if (movedX === 0) m.vx *= -1;
+        moveAndCollide(m, 0, m.vy * dt);
+        if (m.y > HEIGHT + 80) { m.alive = false; continue; }
+      }
+      if (m.x < player.x + player.w && m.x + m.w > player.x && m.y < player.y + player.h && m.y + m.h > player.y) {
+        m.taken = true;
+        if (!player.big) growTo(true);
+        playPowerUp();
+      }
+    }
+
     // --- Collisions with hazards (enemies/cobras) ---
     const pRect = { x: player.x + 4, y: player.y + 4, w: player.w - 8, h: player.h - 8 };
     function overlap(r) { return pRect.x < r.x + r.w && pRect.x + pRect.w > r.x && pRect.y < r.y + r.h && pRect.y + pRect.h > r.y; }
@@ -867,7 +957,7 @@
       } else if (starTimer > 0) {
         en.alive = false; en.squashTimer = 0.3; playStomp();
       } else if (invincibleTimer <= 0) {
-        loseLife(false);
+        hitPlayer();
         return;
       }
     }
@@ -875,14 +965,14 @@
       if (!co.alive || !co.emerged) continue;
       if (overlap({ x: co.x - 12, y: co.y, w: 24, h: 26 })) {
         if (starTimer > 0) { co.alive = false; playStomp(); }
-        else if (invincibleTimer <= 0) { loseLife(false); return; }
+        else if (invincibleTimer <= 0) { hitPlayer(); return; }
       }
     }
     for (const pl of plants) {
       if (!pl.alive || !pl.emerged) continue;
       if (overlap({ x: pl.x - 16, y: pl.y - 26, w: 32, h: 34 })) {
         if (starTimer > 0) { pl.alive = false; playStomp(); }
-        else if (invincibleTimer <= 0) { loseLife(false); return; }
+        else if (invincibleTimer <= 0) { hitPlayer(); return; }
       }
     }
 
@@ -919,7 +1009,7 @@
             winLevel();
           }
         } else if (invincibleTimer <= 0) {
-          loseLife(false);
+          hitPlayer();
           return;
         }
       }
@@ -1088,35 +1178,42 @@
     } else if (type === "pipe") {
       // Drawn as a whole in drawPipes() (needs the full column/height,
       // which a single tile cell doesn't have) — nothing to do per-cell.
-    } else if (type && type.kind === "box" && type.type === "brick") {
-      // A plain brick box never holds a coin — it should look like one of
-      // these from the start, not like a "?" block that turns out to be a
-      // dud. Same brick texture as the platform tiles, so it's obvious at
-      // a glance which of a row of blocks are worth hitting.
-      drawBrickTexture(x, y);
     } else if (type && type.kind === "box") {
+      // A short upward hop right after being hit — bumpAt is a timestamp
+      // (elapsedInLevel when it happened), not a persistent flag, so this
+      // naturally decays back to 0 on its own without any cleanup pass.
+      const bump = Math.max(0, 1 - (elapsedInLevel - (type.bumpAt ?? -999)) / 0.12);
+      const by = y - bump * 6;
+      if (type.type === "brick") {
+        // A plain brick box never holds a coin — it should look like one
+        // of these from the start, not like a "?" block that turns out to
+        // be a dud. Same brick texture as the platform tiles, so it's
+        // obvious at a glance which of a row of blocks are worth hitting.
+        drawBrickTexture(x, by);
+        return;
+      }
       if (type.hit) {
-        const g = ctx.createLinearGradient(x, y, x, y + TILE);
+        const g = ctx.createLinearGradient(x, by, x, by + TILE);
         g.addColorStop(0, "#8f6f4a"); g.addColorStop(1, "#5c4530");
         ctx.fillStyle = g;
-        ctx.fillRect(x, y, TILE, TILE);
+        ctx.fillRect(x, by, TILE, TILE);
         ctx.strokeStyle = "rgba(40, 25, 10, 0.4)";
-        ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+        ctx.strokeRect(x + 0.5, by + 0.5, TILE - 1, TILE - 1);
       } else {
         const isStar = type.type === "star";
-        const g = ctx.createLinearGradient(x, y, x, y + TILE);
+        const g = ctx.createLinearGradient(x, by, x, by + TILE);
         if (isStar) { g.addColorStop(0, "#fff3b0"); g.addColorStop(0.5, "#e8b84b"); g.addColorStop(1, "#b8811f"); }
         else { g.addColorStop(0, "#f0c473"); g.addColorStop(0.5, "#d99a3f"); g.addColorStop(1, "#a8701f"); }
         ctx.fillStyle = g;
-        ctx.fillRect(x, y, TILE, TILE);
+        ctx.fillRect(x, by, TILE, TILE);
         // Beveled inset (light top/left, dark bottom/right) for a carved,
         // gilded-stone look instead of a flat color swatch.
         ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-        ctx.beginPath(); ctx.moveTo(x + 2, y + TILE - 2); ctx.lineTo(x + 2, y + 2); ctx.lineTo(x + TILE - 2, y + 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + 2, by + TILE - 2); ctx.lineTo(x + 2, by + 2); ctx.lineTo(x + TILE - 2, by + 2); ctx.stroke();
         ctx.strokeStyle = "rgba(70, 40, 10, 0.5)";
-        ctx.beginPath(); ctx.moveTo(x + TILE - 2, y + 2); ctx.lineTo(x + TILE - 2, y + TILE - 2); ctx.lineTo(x + 2, y + TILE - 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + TILE - 2, by + 2); ctx.lineTo(x + TILE - 2, by + TILE - 2); ctx.lineTo(x + 2, by + TILE - 2); ctx.stroke();
         ctx.fillStyle = "rgba(70, 40, 10, 0.4)";
-        for (const c of [[x + 5, y + 5], [x + TILE - 5, y + 5], [x + 5, y + TILE - 5], [x + TILE - 5, y + TILE - 5]]) {
+        for (const c of [[x + 5, by + 5], [x + TILE - 5, by + 5], [x + 5, by + TILE - 5], [x + TILE - 5, by + TILE - 5]]) {
           ctx.beginPath(); ctx.arc(c[0], c[1], 1.6, 0, Math.PI * 2); ctx.fill();
         }
         // A slow pulse in the symbol's opacity — reads as faintly magical
@@ -1126,7 +1223,7 @@
         ctx.font = "700 18px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(isStar ? "★" : "?", x + TILE / 2, y + TILE / 2 + 1);
+        ctx.fillText(isStar ? "★" : "?", x + TILE / 2, by + TILE / 2 + 1);
         ctx.globalAlpha = 1;
       }
     }
@@ -1440,7 +1537,49 @@
         ctx.closePath();
         ctx.fill();
         ctx.restore();
+      } else if (p.kind === "debris") {
+        ctx.save();
+        ctx.translate(sx, p.y);
+        ctx.rotate(p.life * 6);
+        ctx.fillStyle = "#96491f";
+        ctx.fillRect(-4, -4, 8, 8);
+        ctx.restore();
       }
+    }
+  }
+
+  // An original power-up — a gold-capped, teal-spotted mushroom rather
+  // than a reskin of the classic red-and-white one — that grows Habib a
+  // size up when touched.
+  function drawMushroom(m) {
+    const sx = m.x + m.w / 2 - camX;
+    const sy = m.y + m.h;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.fillStyle = "#f0e6c8";
+    ctx.fillRect(-6, -11, 12, 11);
+    const g = ctx.createRadialGradient(-4, -16, 2, 0, -13, 17);
+    g.addColorStop(0, "#ffd97a"); g.addColorStop(1, "#c47a1f");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(0, -11, 14, 12, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(120, 70, 10, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(0, -11, 14, 12, 0, Math.PI, 0); ctx.stroke();
+    ctx.fillStyle = "#3fa89a";
+    for (const s of [[-7, -17, 2.4], [6, -19, 2], [0, -10, 1.8], [10, -8, 1.6], [-11, -9, 1.6]]) {
+      ctx.beginPath(); ctx.arc(s[0], s[1], s[2], 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawMushrooms() {
+    for (const m of mushrooms) {
+      if (m.taken || !m.alive) continue;
+      const sx = m.x - camX;
+      if (sx < -30 || sx > WIDTH + 30) continue;
+      drawMushroom(m);
     }
   }
 
@@ -1471,7 +1610,8 @@
     const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 2 : 0;
     ctx.save();
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
-    ctx.scale(player.facing * 0.076, 0.076 * player.squash);
+    const sizeMult = player.h / PLAYER_H; // scales boots + sprite together when big
+    ctx.scale(player.facing * 0.076 * sizeMult, 0.076 * sizeMult * player.squash);
     if (starTimer > 0) {
       ctx.filter = `hue-rotate(${Math.floor(elapsedInLevel * 600) % 360}deg) saturate(1.6)`;
     }
@@ -1525,6 +1665,7 @@
     drawWorld();
     drawPipes();
     drawCoins();
+    drawMushrooms();
     drawEnemies();
     drawMonsterAndPrincess();
     drawPlayer();
