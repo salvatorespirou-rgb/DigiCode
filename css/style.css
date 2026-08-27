@@ -118,30 +118,27 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   gap: 2px;
 }
 
-/* Brand mark, dead-center in the header on every page — always links home.
-   Anchored from the top (not vertically centered on the slim icon row)
-   since it's sized much taller than that row — centering it would clip
-   the top of the logo off-screen instead of letting it hang down over
-   the page underneath. */
-.site-logo {
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: flex-start;
+/* The brand mark is deliberately NOT part of the fixed header — the header
+   stays fixed on every page (so nav/cart/profile are always reachable),
+   and a big logo living inside it would permanently cover page content
+   while scrolling. Instead, same as the homepage's own hero, a large logo
+   sits once at the top of the scrolling page content (see .page-hero-logo
+   below and .hero-logo on the homepage) and scrolls away naturally. */
+.page-hero-logo-link {
+  display: inline-block;
+  margin-bottom: 20px;
   transition: transform 0.15s ease, filter 0.15s ease;
 }
-.site-logo:hover {
-  transform: translateX(-50%) scale(1.06);
-  filter: drop-shadow(0 0 10px rgba(109, 78, 232, 0.45));
+.page-hero-logo-link:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 14px rgba(109, 78, 232, 0.5));
 }
-.site-logo img {
-  height: 220px;
+.page-hero-logo {
+  height: 170px;
   width: auto;
 }
 @media (max-width: 640px) {
-  .site-logo img { height: 150px; }
+  .page-hero-logo { height: 110px; }
 }
 
 .cart-icon-link,
@@ -603,7 +600,7 @@ section { padding: 100px 0; }
 /* ---------- Request form pages ---------- */
 .page-hero {
   position: relative;
-  padding: 260px 0 60px;
+  padding: 160px 0 60px;
   text-align: center;
   overflow: hidden;
 }
