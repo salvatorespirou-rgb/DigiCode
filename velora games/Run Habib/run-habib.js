@@ -279,7 +279,7 @@
   // everything else (tiles, backdrop, props) is drawn with canvas
   // primitives, same lightweight approach as the rest of Velora's games.
   // ---------------------------------------------------------------------
-  const ASSET_V = "5";
+  const ASSET_V = "6";
   // Every reference to an image anywhere in this file goes through this
   // helper instead of a hand-typed "?v=4" — bumping ASSET_V once here is
   // now the only thing a future asset change needs, instead of hunting
