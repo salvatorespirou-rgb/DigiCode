@@ -1147,6 +1147,8 @@
       stemGrad.addColorStop(0, "#254a2c"); stemGrad.addColorStop(0.5, "#4fa863"); stemGrad.addColorStop(1, "#1e3a23");
       ctx.fillStyle = stemGrad;
       ctx.fillRect(-7, stemTop, 14, TILE * stretch + 7);
+      ctx.fillStyle = "rgba(150, 220, 160, 0.35)";
+      ctx.fillRect(-2, stemTop, 2.5, TILE * stretch + 7); // gloss streak
       ctx.fillStyle = "#16291a";
       for (let ty = stemTop + 10, side = 1; ty < 4; ty += 13, side *= -1) {
         ctx.beginPath();
@@ -1158,91 +1160,124 @@
       }
 
       if (stretch > 0.25) {
-        const gape = 7 + Math.sin(pl.phase * 5) * 2.5; // jaws work menacingly, not just idle
+        const gape = 8 + Math.sin(pl.phase * 5) * 3; // jaws work menacingly, not just idle
         ctx.save();
         const bloom = Math.min(1, (stretch - 0.25) / 0.4);
         ctx.translate(0, stemTop);
         ctx.scale(bloom, bloom);
 
-        // Hood (upper jaw) — a jagged, spotted maw flaring up and back.
-        const hoodGrad = ctx.createRadialGradient(0, -18, 2, 0, -14, 26);
-        hoodGrad.addColorStop(0, "#e0708a"); hoodGrad.addColorStop(1, "#7a1f38");
-        ctx.fillStyle = hoodGrad;
+        // Hood — bigger and more dome-forward than a flat petal, so it
+        // reads as a real head rather than a flower. Two gradient passes
+        // (a base tone, then an offset highlight) fake the glossy,
+        // rounded-volume look of a rendered creature instead of flat fill.
+        ctx.fillStyle = "#6a1830";
         ctx.beginPath();
-        ctx.moveTo(-21, 0);
-        ctx.quadraticCurveTo(-26, -22, -8, -32 - gape);
-        ctx.quadraticCurveTo(0, -36 - gape, 8, -32 - gape);
-        ctx.quadraticCurveTo(26, -22, 21, 0);
-        ctx.quadraticCurveTo(0, 7, -21, 0);
+        ctx.moveTo(-25, 2);
+        ctx.quadraticCurveTo(-32, -26, -10, -38 - gape);
+        ctx.quadraticCurveTo(0, -43 - gape, 10, -38 - gape);
+        ctx.quadraticCurveTo(32, -26, 25, 2);
+        ctx.quadraticCurveTo(0, 9, -25, 2);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = "rgba(50, 10, 22, 0.55)";
-        ctx.beginPath(); ctx.arc(-11, -20, 2.6, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(9, -14, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(0, -27 - gape * 0.6, 1.8, 0, Math.PI * 2); ctx.fill();
+        const hoodShade = ctx.createRadialGradient(-8, -30, 2, -4, -18, 34);
+        hoodShade.addColorStop(0, "#ec8298"); hoodShade.addColorStop(0.55, "#c4415f"); hoodShade.addColorStop(1, "rgba(122, 31, 56, 0)");
+        ctx.fillStyle = hoodShade;
+        ctx.beginPath();
+        ctx.moveTo(-25, 2);
+        ctx.quadraticCurveTo(-32, -26, -10, -38 - gape);
+        ctx.quadraticCurveTo(0, -43 - gape, 10, -38 - gape);
+        ctx.quadraticCurveTo(32, -26, 25, 2);
+        ctx.quadraticCurveTo(0, 9, -25, 2);
+        ctx.closePath();
+        ctx.fill();
+        // Warts/sores — a few raised bumps, each shaded like a real bump.
+        for (const w of [[-14, -24, 3], [11, -17, 2.4], [-3, -34 - gape * 0.6, 2], [17, -6, 2.2]]) {
+          const wg = ctx.createRadialGradient(w[0] - 0.8, w[1] - 0.8, 0.3, w[0], w[1], w[2]);
+          wg.addColorStop(0, "rgba(90, 20, 35, 0.75)"); wg.addColorStop(1, "rgba(40, 8, 16, 0.35)");
+          ctx.fillStyle = wg;
+          ctx.beginPath(); ctx.arc(w[0], w[1], w[2], 0, Math.PI * 2); ctx.fill();
+        }
 
         // Throat — dark interior showing between the fangs.
-        ctx.fillStyle = "#3a0d16";
+        ctx.fillStyle = "#2e0a12";
         ctx.beginPath();
-        ctx.moveTo(-14, -3);
-        ctx.quadraticCurveTo(0, -22 - gape, 14, -3);
-        ctx.quadraticCurveTo(0, 2, -14, -3);
+        ctx.moveTo(-16, -3);
+        ctx.quadraticCurveTo(0, -26 - gape, 16, -3);
+        ctx.quadraticCurveTo(0, 3, -16, -3);
         ctx.closePath();
         ctx.fill();
 
-        // Fangs ringing the rim, top and bottom.
-        ctx.fillStyle = "#fff3e2";
-        const fangCount = 4;
+        // Fangs ringing the rim, top and bottom — tapered with a glossy
+        // highlight sliver down one edge instead of a flat triangle.
+        const fangCount = 5;
         for (let i = 0; i < fangCount; i++) {
-          const fx = -13 + (26 / (fangCount - 1)) * i;
+          const fx = -15 + (30 / (fangCount - 1)) * i;
           const rim = -3 - Math.abs(fx) * 0.15; // rim follows the mouth's curve
+          ctx.fillStyle = "#fff8ec";
           ctx.beginPath();
-          ctx.moveTo(fx - 2.6, rim);
-          ctx.lineTo(fx, rim - 7);
-          ctx.lineTo(fx + 2.6, rim);
+          ctx.moveTo(fx - 2.8, rim);
+          ctx.quadraticCurveTo(fx - 1, rim - 4, fx, rim - 8);
+          ctx.quadraticCurveTo(fx + 1, rim - 4, fx + 2.8, rim);
           ctx.closePath();
           ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.9)";
+          ctx.beginPath(); ctx.moveTo(fx - 1.2, rim - 1); ctx.lineTo(fx - 0.5, rim - 6); ctx.lineTo(fx, rim - 1); ctx.closePath(); ctx.fill();
+
+          const ly = rim - 2 - gape - 14;
+          ctx.fillStyle = "#fff8ec";
           ctx.beginPath();
-          ctx.moveTo(fx - 2.2, rim - 2 - gape - 12);
-          ctx.lineTo(fx, rim - 2 - gape - 5);
-          ctx.lineTo(fx + 2.2, rim - 2 - gape - 12);
+          ctx.moveTo(fx - 2.4, ly + 7);
+          ctx.quadraticCurveTo(fx - 1, ly + 3, fx, ly);
+          ctx.quadraticCurveTo(fx + 1, ly + 3, fx + 2.4, ly + 7);
           ctx.closePath();
           ctx.fill();
         }
 
-        // Lolling forked tongue, wagging as it hangs.
+        // Lolling forked tongue, wagging as it hangs — a center highlight
+        // streak sells the wet-glossy look.
         const wag = Math.sin(pl.phase * 4) * 4;
-        ctx.fillStyle = "#e8607d";
+        const tongueGrad = ctx.createLinearGradient(-5, -8, 5, 18);
+        tongueGrad.addColorStop(0, "#f07890"); tongueGrad.addColorStop(1, "#c43f5c");
+        ctx.fillStyle = tongueGrad;
         ctx.beginPath();
-        ctx.moveTo(-3.5, -8);
-        ctx.quadraticCurveTo(-6 + wag * 0.3, 6, wag - 2, 14);
-        ctx.lineTo(wag, 17);
-        ctx.lineTo(wag + 4, 13);
-        ctx.quadraticCurveTo(6 + wag * 0.3, 5, 3.5, -8);
+        ctx.moveTo(-4, -8);
+        ctx.quadraticCurveTo(-7 + wag * 0.3, 7, wag - 2.5, 16);
+        ctx.lineTo(wag, 20);
+        ctx.lineTo(wag + 4.5, 15);
+        ctx.quadraticCurveTo(7 + wag * 0.3, 6, 4, -8);
         ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle = "rgba(255, 230, 235, 0.55)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(wag * 0.3, -4); ctx.lineTo(wag * 0.7, 12); ctx.stroke();
 
-        // A drop of venomous drool, periodically falling.
+        // A drop of venomous drool, periodically falling, with a glint.
         const dripPhase = (pl.phase * 0.9) % 1;
-        if (dripPhase < 0.5) {
-          ctx.fillStyle = "rgba(200, 235, 190, 0.8)";
-          ctx.beginPath();
-          ctx.arc(10, -6 + dripPhase * 28, 2.2, 0, Math.PI * 2);
-          ctx.fill();
+        if (dripPhase < 0.55) {
+          const dy = -4 + dripPhase * 30;
+          ctx.fillStyle = "rgba(200, 235, 190, 0.85)";
+          ctx.beginPath(); ctx.arc(wag + 4, dy, 2.4, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.8)";
+          ctx.beginPath(); ctx.arc(wag + 3.3, dy - 0.6, 0.7, 0, Math.PI * 2); ctx.fill();
         }
 
-        // Glowing stalked eyes peering over the hood.
-        for (const ex of [-10, 10]) {
+        // Glowing stalked eyes peering over the hood — ringed iris and a
+        // glint highlight instead of a flat pupil dot.
+        for (const ex of [-12, 12]) {
           ctx.strokeStyle = "#2f6b3f";
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 3.2;
           ctx.beginPath();
-          ctx.moveTo(ex * 0.5, -30 - gape);
-          ctx.lineTo(ex, -40 - gape);
+          ctx.moveTo(ex * 0.5, -36 - gape);
+          ctx.lineTo(ex, -48 - gape);
           ctx.stroke();
           ctx.fillStyle = "#ffcf4d";
-          ctx.beginPath(); ctx.arc(ex, -42 - gape, 4.2, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(ex, -50 - gape, 5, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#a8621a"; ctx.lineWidth = 0.8;
+          ctx.beginPath(); ctx.arc(ex, -50 - gape, 5, 0, Math.PI * 2); ctx.stroke();
           ctx.fillStyle = "#2a1608";
-          ctx.beginPath(); ctx.arc(ex + (ex > 0 ? 1.4 : -1.4), -42 - gape, 1.9, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(ex + (ex > 0 ? 1.6 : -1.6), -50 - gape, 2.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.beginPath(); ctx.arc(ex + (ex > 0 ? 0.2 : -2.6), -52 - gape, 0.9, 0, Math.PI * 2); ctx.fill();
         }
         ctx.restore();
       }
