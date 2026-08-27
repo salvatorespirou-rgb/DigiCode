@@ -28,6 +28,7 @@
   const JUMP_VELOCITY = -640;
   const JUMP_CUT_MULTIPLIER = 0.45;
   const MAX_FALL_SPEED = 920;
+  const EMBER_LAUNCH_SPEED = 780;
   const COYOTE_TIME = 0.09;
   const JUMP_BUFFER = 0.1;
   const MAX_JUMPS = 2;
@@ -67,6 +68,7 @@
   // ---------------------------------------------------------------------
   let LEVEL_COLS, PITS, PLATFORMS, BLOCKS, COINS, URNS, ENEMIES, PIPES, STAIRS;
   let FLAG_COL, MONSTER_COL, ARENA_START_COL;
+  let STAGE_THEME, HAS_LAVA, EMBERS, MOVERS;
 
   // Builds a run of 1-tile-high ascending steps — {col, height} in tiles
   // above the ground — the classic Mario staircase leading up to a flag.
@@ -202,7 +204,90 @@
     };
   }
 
-  const STAGES = [stage1, stage2];
+  // Stage 3 — a lava castle interior. Its own hazard identity instead of
+  // Stage 1/2's urns and pipes: molten pits crossed either by a direct
+  // jump or by riding a slab platform that ping-pongs back and forth, plus
+  // embers that leap out of the lava on a timer. No boss at the end yet
+  // (monsterCol stays null, same as Stage 1 and 2).
+  function stage3() {
+    return {
+      name: "Stage 3",
+      theme: "castle",
+      hasLava: true,
+      levelCols: 134,
+      pits: [[21, 25], [44, 46], [64, 70], [88, 93]],
+      platforms: [
+        { col: 9, row: 7, len: 3 },
+        { col: 29, row: 6, len: 3 },
+        { col: 36, row: 7, len: 3 },
+        { col: 50, row: 7, len: 4 },
+        { col: 58, row: 5, len: 2 },
+        { col: 74, row: 7, len: 3 },
+        { col: 80, row: 6, len: 3 },
+        { col: 97, row: 7, len: 3 },
+        { col: 105, row: 5, len: 2 },
+      ],
+      blocks: [
+        { col: 5, row: 7, type: "coin" },
+        { col: 6, row: 7, type: "coin" },
+        { col: 7, row: 7, type: "brick" },
+        { col: 10, row: 7, type: "star" },
+        { col: 30, row: 6, type: "coin" },
+        { col: 31, row: 6, type: "coin" },
+        { col: 37, row: 7, type: "brick" },
+        { col: 38, row: 7, type: "coin" },
+        { col: 51, row: 7, type: "coin" },
+        { col: 52, row: 7, type: "coin" },
+        { col: 53, row: 7, type: "star" },
+        { col: 59, row: 5, type: "coin" },
+        { col: 75, row: 7, type: "coin" },
+        { col: 76, row: 7, type: "brick" },
+        { col: 81, row: 6, type: "coin" },
+        { col: 82, row: 6, type: "coin" },
+        { col: 98, row: 7, type: "coin" },
+        { col: 99, row: 7, type: "coin" },
+        { col: 106, row: 5, type: "star" },
+      ],
+      coins: [
+        { col: 13, row: 8 }, { col: 14, row: 8 }, { col: 15, row: 8 },
+        { col: 33, row: 5 }, { col: 34, row: 5 },
+        { col: 55, row: 8 }, { col: 56, row: 8 },
+        { col: 84, row: 8 }, { col: 85, row: 8 },
+        { col: 101, row: 8 }, { col: 102, row: 8 }, { col: 103, row: 8 },
+      ],
+      urns: [],
+      // Only a couple of ground enemies (buzzy-beetle-style, fireproof
+      // grubs) — the lava/embers/platforms carry most of this stage's
+      // challenge, same way a castle level leans on hazards over patrols.
+      enemies: [
+        { col: 12, row: 9, min: 10, max: 18, variant: "beetle" },
+        { col: 78, row: 9, min: 76, max: 86, variant: "beetle" },
+      ],
+      pipes: [],
+      // Embers rest in a pit and leap straight up on a timer (see the
+      // launch/arc physics in update()) — one at each of the trickier
+      // crossings, positioned at the ledge you wait on rather than mid-air
+      // over the platform's own path.
+      embers: [
+        { col: 21, row: GROUND_ROW },
+        { col: 45, row: GROUND_ROW },
+        { col: 89, row: GROUND_ROW },
+      ],
+      // Slab platforms ping-ponging over the three widest gaps — sine-eased
+      // so they linger at each end, which is what makes "time it before you
+      // jump" actually mean something instead of a constant linear sweep.
+      movers: [
+        { col: 22, row: GROUND_ROW - 0.4, len: 2, axis: "horizontal", range: 2, speed: 1.1, phase: 0 },
+        { col: 66, row: GROUND_ROW - 0.4, len: 2, axis: "horizontal", range: 3, speed: 0.85, phase: Math.PI / 2 },
+        { col: 90, row: GROUND_ROW - 0.4, len: 2, axis: "horizontal", range: 2.3, speed: 1.0, phase: Math.PI },
+      ],
+      flagCol: 127,
+      stairs: stairsUp(119, 7),
+      monsterCol: null,
+    };
+  }
+
+  const STAGES = [stage1, stage2, stage3];
   let currentStageIndex = 0;
 
   function loadStage(idx) {
@@ -219,6 +304,10 @@
     FLAG_COL = s.flagCol;
     MONSTER_COL = s.monsterCol;
     ARENA_START_COL = s.monsterCol ? s.flagCol + 1 : null;
+    STAGE_THEME = s.theme || "desert";
+    HAS_LAVA = !!s.hasLava;
+    EMBERS = s.embers || [];
+    MOVERS = s.movers || [];
     const worldEl = document.getElementById("rhWorld");
     if (worldEl) worldEl.textContent = String(idx + 1);
   }
@@ -233,7 +322,16 @@
   function buildTileGrid() {
     tiles = Array.from({ length: LEVEL_ROWS }, () => new Array(LEVEL_COLS).fill(null));
     for (let col = 0; col < LEVEL_COLS; col++) {
-      if (inPit(col) && (!ARENA_START_COL || col < ARENA_START_COL)) continue;
+      if (inPit(col) && (!ARENA_START_COL || col < ARENA_START_COL)) {
+        // A lava stage fills its pits with actual molten floor instead of
+        // an empty gap — touching it (see the lava check in update()) is
+        // instant death at the surface, not just falling off the bottom
+        // of the screen.
+        if (HAS_LAVA) {
+          for (let r = GROUND_ROW; r < GROUND_ROW + GROUND_ROWS; r++) tiles[r][col] = "lava";
+        }
+        continue;
+      }
       for (let r = 0; r < GROUND_ROWS; r++) {
         tiles[GROUND_ROW + r][col] = "ground";
       }
@@ -499,7 +597,7 @@
   // ---------------------------------------------------------------------
   // Entities
   // ---------------------------------------------------------------------
-  let player, enemies, coins, cobras, plants, mushrooms, particles, camX, flagRaised, monster, elapsedInLevel;
+  let player, enemies, coins, cobras, plants, mushrooms, embers, movers, particles, camX, flagRaised, monster, elapsedInLevel;
   let coinCount, lives, state, invincibleTimer, starTimer, respawnX, respawnY;
 
   function resetRun() {
@@ -514,6 +612,7 @@
       x: 2 * TILE, y: (GROUND_ROW - 2) * TILE, vx: 0, vy: 0,
       w: PLAYER_W, h: PLAYER_H, onGround: false, facing: 1,
       coyote: 0, jumpsUsed: 0, runPhase: 0, hurtTimer: 0, squash: 1, big: false, squatting: false,
+      ridingMover: null,
     };
     respawnX = player.x; respawnY = player.y;
     // Enemies/boss have no gravity of their own (they only ever patrol flat
@@ -541,6 +640,22 @@
     }));
     coins = COINS.map((c) => ({ x: c.col * TILE + TILE / 2, y: c.row * TILE + TILE / 2, taken: false, phase: Math.random() * 6 }));
     mushrooms = [];
+    // Embers leap up out of lava on a wait-then-launch cycle (real gravity
+    // arc, not the linear emerge/retreat cobras and plants use) — an
+    // original molten-imp creature, not a reskin of any specific game's
+    // lava enemy.
+    embers = EMBERS.map((e) => ({
+      x: e.col * TILE + TILE / 2, restY: e.row * TILE + TILE / 2, y: e.row * TILE + TILE / 2,
+      vy: 0, waitTimer: 1 + Math.random() * 1.5, launched: false, alive: true,
+    }));
+    // Movers ping-pong at a constant speed between their start point and a
+    // point `range` tiles away along one axis — the timed lift platforms
+    // over the lava gaps.
+    movers = MOVERS.map((m) => ({
+      axis: m.axis, baseX: m.col * TILE, baseY: m.row * TILE,
+      x: m.col * TILE, y: m.row * TILE, w: m.len * TILE, h: 14,
+      range: m.range * TILE, speed: m.speed, phase: m.phase || 0, dx: 0, dy: 0,
+    }));
     particles = [];
     camX = 0;
     flagRaised = false;
@@ -710,6 +825,7 @@
     player.x = respawnX; player.y = respawnY; player.vx = 0; player.vy = 0;
     player.jumpsUsed = 0;
     player.big = false; player.squatting = false; player.w = PLAYER_W; player.h = PLAYER_H;
+    player.ridingMover = null;
     invincibleTimer = 1.4;
     startMusic();
   }
@@ -878,6 +994,24 @@
     if (invincibleTimer > 0) invincibleTimer = Math.max(0, invincibleTimer - dt);
     if (starTimer > 0) starTimer = Math.max(0, starTimer - dt);
 
+    // --- Moving platforms: ping-pong along one axis via a sine offset (smooth
+    // ease at each end, unlike a linear back-and-forth) and carry whoever is
+    // riding along with them, since they aren't part of the static tile grid
+    // moveAndCollide() already knows how to walk on.
+    for (const mv of movers) {
+      const prevX = mv.x, prevY = mv.y;
+      mv.phase += dt * mv.speed;
+      const offset = Math.sin(mv.phase) * mv.range;
+      if (mv.axis === "horizontal") { mv.x = mv.baseX + offset; mv.y = mv.baseY; }
+      else { mv.y = mv.baseY + offset; mv.x = mv.baseX; }
+      mv.dx = mv.x - prevX;
+      mv.dy = mv.y - prevY;
+      if (player.ridingMover === mv) {
+        player.x += mv.dx;
+        player.y += mv.dy;
+      }
+    }
+
     // --- Squat: hold Down to duck, shrinking the hitbox (and the look,
     // via squatSquash in drawPlayer) to fit under low obstacles — only
     // while grounded, matching genre convention. Standing height is
@@ -935,10 +1069,68 @@
     moveAndCollide(player, 0, player.vy * dt);
     player.squash += (1 - player.squash) * Math.min(1, dt * 10);
 
+    // --- Land on top of a moving platform — one-way, only catches a foot
+    // that's falling onto (or resting right at) the platform's surface, so
+    // it never blocks from underneath or the side.
+    player.ridingMover = null;
+    if (!player.onGround) {
+      for (const mv of movers) {
+        const withinX = player.x + player.w > mv.x + 2 && player.x < mv.x + mv.w - 2;
+        const feetY = player.y + player.h;
+        if (withinX && player.vy >= 0 && feetY >= mv.y - 6 && feetY <= mv.y + 10) {
+          player.y = mv.y - player.h;
+          player.vy = 0;
+          player.onGround = true;
+          player.ridingMover = mv;
+          break;
+        }
+      }
+    }
+
     if (player.onGround) player.runPhase += Math.abs(player.vx) * dt * 0.05;
 
     // --- Fell in a pit ---
     if (player.y > HEIGHT + 80) { loseLife(true); return; }
+
+    // --- Lava: instant death on contact, no big/small buffer — fire kills
+    // regardless of size, same convention as the pit fall above.
+    if (HAS_LAVA) {
+      const leftCol = Math.floor((player.x + 3) / TILE);
+      const rightCol = Math.floor((player.x + player.w - 4) / TILE);
+      const footRow = Math.floor((player.y + player.h - 2) / TILE);
+      const midRow = Math.floor((player.y + player.h * 0.5) / TILE);
+      for (const r of [footRow, midRow]) {
+        for (let c = leftCol; c <= rightCol; c++) {
+          if (tileAt(r, c) === "lava") { loseLife(true); return; }
+        }
+      }
+    }
+
+    // --- Embers: rest in the lava, then launch straight up on a timer and
+    // arc back down under gravity — an original molten-imp creature, not a
+    // reskin of the classic fireball. ---
+    for (const em of embers) {
+      if (!em.alive) continue;
+      if (!em.launched) {
+        em.waitTimer -= dt;
+        if (em.waitTimer <= 0) { em.launched = true; em.vy = -EMBER_LAUNCH_SPEED; }
+      } else {
+        em.vy += GRAVITY * dt;
+        em.y += em.vy * dt;
+        if (em.y >= em.restY) {
+          em.y = em.restY;
+          em.vy = 0;
+          em.launched = false;
+          em.waitTimer = 1 + Math.random() * 1.5;
+        }
+      }
+      const edx = em.x - (player.x + player.w / 2);
+      const edy = em.y - (player.y + player.h / 2);
+      if (Math.hypot(edx, edy) < 20) {
+        if (starTimer > 0) { /* immune while starred, same as other hazards */ }
+        else if (invincibleTimer <= 0) { loseLife(true); return; }
+      }
+    }
 
     // --- Enemies: simple patrol, turn at their leash or a wall/ledge ---
     for (const en of enemies) {
@@ -1081,6 +1273,7 @@
   // Render
   // ---------------------------------------------------------------------
   function drawBackground() {
+    if (STAGE_THEME === "castle") { drawCastleBackground(); return; }
     const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
     g.addColorStop(0, "#2b2158");
     g.addColorStop(0.55, "#7a4a6b");
@@ -1153,19 +1346,72 @@
     }
   }
 
+  // Stage 3's dark castle interior — a moody obsidian-and-torchlight
+  // corridor instead of the open desert sky, with a warm lava-glow ambient
+  // wash standing in for the sun.
+  function drawCastleBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    g.addColorStop(0, "#0b0812"); g.addColorStop(0.6, "#221329"); g.addColorStop(1, "#3a1710");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    const glow = ctx.createLinearGradient(0, HEIGHT * 0.45, 0, HEIGHT);
+    glow.addColorStop(0, "rgba(255, 110, 30, 0)");
+    glow.addColorStop(1, "rgba(255, 120, 40, 0.3)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    // Distant crenellated wall, parallax-scrolled slower than the world.
+    const far = camX * 0.3;
+    ctx.fillStyle = "rgba(28, 18, 32, 0.75)";
+    for (let i = -1; i < 9; i++) {
+      const bx = i * 130 - (far % 130);
+      ctx.fillRect(bx, HEIGHT - 210, 92, 150);
+      for (let cx = bx; cx < bx + 92; cx += 22) {
+        ctx.fillRect(cx, HEIGHT - 226, 14, 18);
+      }
+    }
+
+    // Tall support pillars, midground.
+    const mid = camX * 0.55;
+    for (let i = -1; i < 6; i++) {
+      const bx = i * 220 + 80 - (mid % 220);
+      ctx.fillStyle = "rgba(45, 26, 42, 0.85)";
+      ctx.fillRect(bx, HEIGHT - 260, 26, 260);
+      ctx.fillStyle = "rgba(18, 9, 18, 0.5)";
+      ctx.fillRect(bx + 4, HEIGHT - 260, 4, 260);
+    }
+
+    // Flickering wall torches for a little warm life in the gloom.
+    const near = camX * 0.75;
+    for (let i = -1; i < 10; i++) {
+      const bx = i * 160 + 60 - (near % 160);
+      const flick = 0.6 + Math.sin(elapsedInLevel * 9 + i * 2) * 0.2 + Math.random() * 0.05;
+      ctx.fillStyle = "rgba(70, 45, 30, 0.9)";
+      ctx.fillRect(bx - 3, HEIGHT - 180, 6, 22);
+      const flame = ctx.createRadialGradient(bx, HEIGHT - 190, 1, bx, HEIGHT - 190, 16);
+      flame.addColorStop(0, `rgba(255, 220, 140, ${flick})`);
+      flame.addColorStop(1, "rgba(255, 120, 30, 0)");
+      ctx.fillStyle = flame;
+      ctx.beginPath(); ctx.arc(bx, HEIGHT - 190, 16, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
   // Shared brick coursing — used by both the standalone "brick" tile
   // (platforms/stairs) and the plain-brick box variant, so the two
   // always read as the same material.
   function drawBrickTexture(x, y) {
+    const castle = STAGE_THEME === "castle";
     const g = ctx.createLinearGradient(x, y, x, y + TILE);
-    g.addColorStop(0, "#c96f38"); g.addColorStop(1, "#96491f");
+    if (castle) { g.addColorStop(0, "#4c4660"); g.addColorStop(1, "#2a2536"); }
+    else { g.addColorStop(0, "#c96f38"); g.addColorStop(1, "#96491f"); }
     ctx.fillStyle = g;
     ctx.fillRect(x, y, TILE, TILE);
-    ctx.fillStyle = "rgba(255,255,255,0.14)";
+    ctx.fillStyle = castle ? "rgba(215, 200, 235, 0.16)" : "rgba(255,255,255,0.14)";
     ctx.fillRect(x, y, TILE, 2);
     ctx.fillStyle = "rgba(0,0,0,0.18)";
     ctx.fillRect(x, y + TILE - 3, TILE, 3);
-    ctx.strokeStyle = "rgba(55, 22, 8, 0.55)";
+    ctx.strokeStyle = castle ? "rgba(10, 6, 16, 0.6)" : "rgba(55, 22, 8, 0.55)";
     ctx.lineWidth = 1;
     // Staggered coursing (offset joints row to row) instead of two flat
     // stacked halves, so it reads as real brickwork up close.
@@ -1177,24 +1423,26 @@
 
   function drawTile(type, x, y) {
     if (type === "ground") {
+      const castle = STAGE_THEME === "castle";
       const g = ctx.createLinearGradient(x, y, x, y + TILE);
-      g.addColorStop(0, "#dda05e"); g.addColorStop(0.18, "#c98a4b"); g.addColorStop(1, "#a4713a");
+      if (castle) { g.addColorStop(0, "#5c5670"); g.addColorStop(0.18, "#413c52"); g.addColorStop(1, "#221e2c"); }
+      else { g.addColorStop(0, "#dda05e"); g.addColorStop(0.18, "#c98a4b"); g.addColorStop(1, "#a4713a"); }
       ctx.fillStyle = g;
       ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = "rgba(255, 224, 176, 0.3)";
+      ctx.fillStyle = castle ? "rgba(210, 195, 235, 0.18)" : "rgba(255, 224, 176, 0.3)";
       ctx.fillRect(x, y, TILE, 3);
-      ctx.strokeStyle = "rgba(80, 45, 20, 0.35)";
+      ctx.strokeStyle = castle ? "rgba(8, 6, 14, 0.5)" : "rgba(80, 45, 20, 0.35)";
       ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
       // Deterministic pebble/crack speckle (seeded off position, not
       // Math.random()) so the ground has texture without flickering
       // between frames.
       const seed = (x * 13 + y * 7) % 97;
       if (seed % 5 === 0) {
-        ctx.fillStyle = "rgba(90, 55, 25, 0.4)";
+        ctx.fillStyle = castle ? "rgba(150, 110, 200, 0.35)" : "rgba(90, 55, 25, 0.4)";
         ctx.beginPath(); ctx.arc(x + 9 + (seed % 15), y + 22 + (seed % 10), 2, 0, Math.PI * 2); ctx.fill();
       }
       if (seed % 7 === 3) {
-        ctx.strokeStyle = "rgba(70, 38, 14, 0.35)"; ctx.lineWidth = 1;
+        ctx.strokeStyle = castle ? "rgba(8, 6, 16, 0.4)" : "rgba(70, 38, 14, 0.35)"; ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(x + 5 + (seed % 9), y + 30);
         ctx.lineTo(x + 13 + (seed % 7), y + 34);
@@ -1202,6 +1450,21 @@
       }
     } else if (type === "brick") {
       drawBrickTexture(x, y);
+    } else if (type === "lava") {
+      // Layered molten glow with slow-shifting bright veins, seeded by
+      // position so neighboring tiles don't pulse in perfect unison.
+      const g = ctx.createLinearGradient(x, y, x, y + TILE);
+      g.addColorStop(0, "#ffdd66"); g.addColorStop(0.35, "#ff8a2a"); g.addColorStop(1, "#8a1a0a");
+      ctx.fillStyle = g;
+      ctx.fillRect(x, y, TILE, TILE);
+      const seed = (x * 17 + y * 11) % 100;
+      const wob = Math.sin(elapsedInLevel * 2 + seed) * 0.5 + 0.5;
+      ctx.fillStyle = `rgba(255, 220, 120, ${0.25 + wob * 0.35})`;
+      ctx.beginPath();
+      ctx.ellipse(x + TILE / 2 + Math.sin(elapsedInLevel * 1.3 + seed) * 8, y + 10 + wob * 6, 10, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(120, 20, 5, 0.4)";
+      ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
     } else if (type === "urn") {
       const g = ctx.createRadialGradient(x + TILE / 2 - 6, y + TILE / 2 - 8, 2, x + TILE / 2, y + TILE / 2, TILE / 2);
       g.addColorStop(0, "#b8813f"); g.addColorStop(1, "#68401f");
@@ -1718,11 +1981,83 @@
     }
   }
 
+  // Moving platforms — a weathered stone slab hung on chains from off-screen
+  // above, an original look rather than a bare floating rectangle.
+  function drawMovers() {
+    for (const mv of movers) {
+      const x = mv.x - camX, y = mv.y;
+      if (x + mv.w < -20 || x > WIDTH + 20) continue;
+      // A warm-lit slab, bright enough to read clearly against both the
+      // dark castle backdrop and the glowing lava it floats above.
+      const g = ctx.createLinearGradient(x, y, x, y + mv.h);
+      g.addColorStop(0, "#cbb9a0"); g.addColorStop(0.4, "#8f7a63"); g.addColorStop(1, "#5b4a3a");
+      ctx.fillStyle = g;
+      ctx.fillRect(x, y, mv.w, mv.h);
+      ctx.fillStyle = "rgba(255, 235, 200, 0.55)";
+      ctx.fillRect(x, y, mv.w, 3);
+      ctx.strokeStyle = "rgba(30, 18, 10, 0.7)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, mv.w - 1, mv.h - 1);
+      for (let cx = x + 8; cx < x + mv.w; cx += 16) {
+        ctx.beginPath(); ctx.moveTo(cx, y + 2); ctx.lineTo(cx, y + mv.h - 1); ctx.stroke();
+      }
+      // A soft under-glow from the lava it's hovering over.
+      const underGlow = ctx.createLinearGradient(x, y + mv.h, x, y + mv.h + 10);
+      underGlow.addColorStop(0, "rgba(255, 140, 40, 0.35)");
+      underGlow.addColorStop(1, "rgba(255, 140, 40, 0)");
+      ctx.fillStyle = underGlow;
+      ctx.fillRect(x, y + mv.h, mv.w, 10);
+      // Chain links hinting it's suspended, anchored off-screen above.
+      ctx.strokeStyle = "rgba(210, 195, 170, 0.6)";
+      ctx.lineWidth = 1.5;
+      for (const cx of [x + 6, x + mv.w - 6]) {
+        ctx.beginPath();
+        for (let ly = y - 22; ly < y; ly += 7) { ctx.moveTo(cx, ly); ctx.lineTo(cx, ly + 5); }
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Embers — an original molten-imp creature (glowing core, tiny angry
+  // face, a wisping tail), not the classic fireball reskinned.
+  function drawEmbers() {
+    for (const em of embers) {
+      if (!em.alive) continue;
+      const x = em.x - camX, y = em.y;
+      if (x < -30 || x > WIDTH + 30) continue;
+      const glow = ctx.createRadialGradient(x, y, 1, x, y, 18);
+      glow.addColorStop(0, "rgba(255, 230, 150, 0.7)");
+      glow.addColorStop(1, "rgba(255, 120, 30, 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
+
+      const core = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, 9);
+      core.addColorStop(0, "#fff2c2"); core.addColorStop(0.5, "#ff9d3f"); core.addColorStop(1, "#c8401a");
+      ctx.fillStyle = core;
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = "#2a0e04";
+      ctx.beginPath(); ctx.arc(x - 3, y - 1, 1.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 3, y - 1, 1.3, 0, Math.PI * 2); ctx.fill();
+
+      // A wispy trailing tail, pointed opposite the current direction of travel.
+      ctx.fillStyle = "rgba(255, 140, 40, 0.55)";
+      const tailDir = em.vy < 0 ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y + 6 * tailDir);
+      ctx.quadraticCurveTo(x, y + (6 + 14) * tailDir, x + 5, y + 6 * tailDir);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
   function render() {
     drawBackground();
     ctx.save();
     drawWorld();
+    drawMovers();
     drawPipes();
+    drawEmbers();
     drawCoins();
     drawMushrooms();
     drawEnemies();
