@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/style.css" />
-  <link rel="stylesheet" href="run-habib.css?v=2" />
+  <link rel="stylesheet" href="run-habib.css?v=3" />
 </head>
 <body>
 
@@ -86,8 +86,11 @@
             <!-- On-screen controls, mobile/touch only (see run-habib.css) -->
             <div class="rh-touch-controls" id="rhTouchControls">
               <div class="rh-touch-dpad">
-                <button type="button" class="rh-touch-btn" id="rhLeftBtn" aria-label="Move left">◀</button>
-                <button type="button" class="rh-touch-btn" id="rhRightBtn" aria-label="Move right">▶</button>
+                <div class="rh-touch-dpad-row">
+                  <button type="button" class="rh-touch-btn" id="rhLeftBtn" aria-label="Move left">◀</button>
+                  <button type="button" class="rh-touch-btn" id="rhRightBtn" aria-label="Move right">▶</button>
+                </div>
+                <button type="button" class="rh-touch-btn" id="rhDownBtn" aria-label="Squat">▼</button>
               </div>
               <button type="button" class="rh-touch-btn rh-touch-jump" id="rhJumpBtn" aria-label="Jump">⬤</button>
             </div>
@@ -104,6 +107,6 @@
   </footer>
 
   <script src="../../js/main.js"></script>
-  <script src="run-habib.js?v=11"></script>
+  <script src="run-habib.js?v=12"></script>
 </body>
 </html>

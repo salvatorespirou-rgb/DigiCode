@@ -216,8 +216,15 @@
   left: 16px;
   bottom: 16px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   pointer-events: auto;
+}
+
+.rh-touch-dpad-row {
+  display: flex;
+  gap: 10px;
 }
 
 .rh-touch-btn {

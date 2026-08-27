@@ -31,10 +31,18 @@
   const COYOTE_TIME = 0.09;
   const JUMP_BUFFER = 0.1;
   const MAX_JUMPS = 2;
-  const PLAYER_W = 30;
-  const PLAYER_H = 44;
-  const PLAYER_W_BIG = 34;
-  const PLAYER_H_BIG = 62;
+  // Small Habib is now genuinely smaller than before; Big Habib (post-
+  // mushroom) is exactly the size he used to default to, so the growth
+  // actually reads as a transformation instead of a modest bump.
+  const PLAYER_W = 22;
+  const PLAYER_H = 32;
+  const PLAYER_W_BIG = 30;
+  const PLAYER_H_BIG = 44;
+  // The 0.076 sprite scale below was tuned against the old default
+  // (44px-tall hitbox) — keep that fixed reference independent of
+  // whatever PLAYER_H/PLAYER_H_BIG happen to be, so drawPlayer() can
+  // derive a correct size multiplier for either tier.
+  const SPRITE_REF_H = 44;
 
   // ---------------------------------------------------------------------
   // Level — declarative placement lists rather than a hand-aligned ASCII
@@ -271,7 +279,7 @@
   // everything else (tiles, backdrop, props) is drawn with canvas
   // primitives, same lightweight approach as the rest of Velora's games.
   // ---------------------------------------------------------------------
-  const ASSET_V = "4";
+  const ASSET_V = "5";
   // Every reference to an image anywhere in this file goes through this
   // helper instead of a hand-typed "?v=4" — bumping ASSET_V once here is
   // now the only thing a future asset change needs, instead of hunting
@@ -293,10 +301,11 @@
   // ---------------------------------------------------------------------
   // Input
   // ---------------------------------------------------------------------
-  const keys = { left: false, right: false, jump: false, jumpPressedAt: -1 };
+  const keys = { left: false, right: false, jump: false, jumpPressedAt: -1, down: false };
   document.addEventListener("keydown", (e) => {
     if (e.code === "ArrowLeft") keys.left = true;
     else if (e.code === "ArrowRight") keys.right = true;
+    else if (e.code === "ArrowDown") { keys.down = true; e.preventDefault(); }
     else if (e.code === "Space") {
       if (!keys.jump) keys.jumpPressedAt = performance.now() / 1000;
       keys.jump = true;
@@ -309,6 +318,7 @@
   document.addEventListener("keyup", (e) => {
     if (e.code === "ArrowLeft") keys.left = false;
     else if (e.code === "ArrowRight") keys.right = false;
+    else if (e.code === "ArrowDown") keys.down = false;
     else if (e.code === "Space") { keys.jump = false; onJumpReleased(); }
   });
 
@@ -324,6 +334,7 @@
   }
   bindHoldButton("rhLeftBtn", () => (keys.left = true), () => (keys.left = false));
   bindHoldButton("rhRightBtn", () => (keys.right = true), () => (keys.right = false));
+  bindHoldButton("rhDownBtn", () => (keys.down = true), () => (keys.down = false));
   bindHoldButton(
     "rhJumpBtn",
     () => {
@@ -502,7 +513,7 @@
     player = {
       x: 2 * TILE, y: (GROUND_ROW - 2) * TILE, vx: 0, vy: 0,
       w: PLAYER_W, h: PLAYER_H, onGround: false, facing: 1,
-      coyote: 0, jumpsUsed: 0, runPhase: 0, hurtTimer: 0, squash: 1, big: false,
+      coyote: 0, jumpsUsed: 0, runPhase: 0, hurtTimer: 0, squash: 1, big: false, squatting: false,
     };
     respawnX = player.x; respawnY = player.y;
     // Enemies/boss have no gravity of their own (they only ever patrol flat
@@ -698,7 +709,7 @@
     // pit, so always respawn small regardless of which one it was.
     player.x = respawnX; player.y = respawnY; player.vx = 0; player.vy = 0;
     player.jumpsUsed = 0;
-    player.big = false; player.w = PLAYER_W; player.h = PLAYER_H;
+    player.big = false; player.squatting = false; player.w = PLAYER_W; player.h = PLAYER_H;
     invincibleTimer = 1.4;
     startMusic();
   }
@@ -707,6 +718,15 @@
   // horizontally centered, rather than expanding down-and-right from the
   // top-left corner the way a naive width/height change would.
   function growTo(big) {
+    if (player.squatting) {
+      // Stand up first, from the OLD tier's normal height — otherwise
+      // the feet-planting math below would be measuring from a
+      // squatted height instead of a standing one and land wrong.
+      const oldNormalH = player.big ? PLAYER_H_BIG : PLAYER_H;
+      player.y += player.h - oldNormalH;
+      player.h = oldNormalH;
+      player.squatting = false;
+    }
     const newW = big ? PLAYER_W_BIG : PLAYER_W;
     const newH = big ? PLAYER_H_BIG : PLAYER_H;
     player.x += (player.w - newW) / 2;
@@ -858,9 +878,26 @@
     if (invincibleTimer > 0) invincibleTimer = Math.max(0, invincibleTimer - dt);
     if (starTimer > 0) starTimer = Math.max(0, starTimer - dt);
 
+    // --- Squat: hold Down to duck, shrinking the hitbox (and the look,
+    // via squatSquash in drawPlayer) to fit under low obstacles — only
+    // while grounded, matching genre convention. Standing height is
+    // whatever the CURRENT size tier's normal height is, so this stays
+    // correct whether Habib is big or small when he ducks.
+    const wantsSquat = keys.down && player.onGround;
+    if (wantsSquat !== player.squatting) {
+      const tierH = player.big ? PLAYER_H_BIG : PLAYER_H;
+      const newH = wantsSquat ? tierH * 0.62 : tierH;
+      player.y += player.h - newH;
+      player.h = newH;
+      player.squatting = wantsSquat;
+    }
+
     // --- Player horizontal movement (accelerate/decelerate, not snap-to-speed) ---
     const runMult = starTimer > 0 ? 1.4 : 1;
-    if (keys.left && !keys.right) {
+    if (player.squatting) {
+      // Can't run while ducking — bleed off speed to a stop instead.
+      player.vx = player.vx > 0 ? Math.max(0, player.vx - MOVE_DECEL * dt) : Math.min(0, player.vx + MOVE_DECEL * dt);
+    } else if (keys.left && !keys.right) {
       player.vx = Math.max(player.vx - MOVE_ACCEL * dt, -MAX_RUN_SPEED * runMult);
       player.facing = -1;
     } else if (keys.right && !keys.left) {
@@ -1626,8 +1663,14 @@
     const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 2 : 0;
     ctx.save();
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
-    const sizeMult = player.h / PLAYER_H; // scales boots + sprite together when big
-    ctx.scale(player.facing * 0.076 * sizeMult, 0.076 * sizeMult * player.squash);
+    // Driven by the current size TIER (big/small), not the live hitbox
+    // height, so squatting — which also shrinks player.h — reads as a
+    // squash (see squatSquash below) rather than as shrinking a whole
+    // size tier down.
+    const tierH = player.big ? PLAYER_H_BIG : PLAYER_H;
+    const sizeMult = tierH / SPRITE_REF_H;
+    const squatSquash = player.squatting ? 0.68 : 1;
+    ctx.scale(player.facing * 0.076 * sizeMult, 0.076 * sizeMult * player.squash * squatSquash);
     if (starTimer > 0) {
       ctx.filter = `hue-rotate(${Math.floor(elapsedInLevel * 600) % 360}deg) saturate(1.6)`;
     }
