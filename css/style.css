@@ -127,11 +127,10 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   display: flex;
   align-items: center;
   transition: transform 0.15s ease, filter 0.15s ease;
-  filter: drop-shadow(0 0 10px rgba(46, 159, 230, 0.35));
 }
 .site-logo:hover {
   transform: translate(-50%, -50%) scale(1.06);
-  filter: drop-shadow(0 0 16px rgba(109, 78, 232, 0.55));
+  filter: drop-shadow(0 0 10px rgba(109, 78, 232, 0.45));
 }
 .site-logo img {
   height: 44px;
