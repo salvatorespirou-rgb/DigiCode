@@ -183,7 +183,7 @@
     },
     {
       id: "celestial-wyrm", name: "Celestial Wyrm", rarity: "Legendary", price: 1000000,
-      blurb: "The rarest dragon in Velora skies. Own the sky.",
+      blurb: "The rarest dragon in DigiCode skies. Own the sky.",
       skin: { body: ["#ffffff", "#d9c27a"], snout: "#e8dcae", horn: "#f0c14b", wing: "#fff2c2", glowRGB: "255, 240, 190", glowAlpha: 0.55, eyeIris: "#c9a53a" },
       flap: { type: "sine", chime: [1100, 1500], duration: 0.1, gain: 0.15 },
     },

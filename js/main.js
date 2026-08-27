@@ -60,6 +60,79 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
   });
 })();
 
+// Matrix-style code trail — a DigiCode signature touch: moving the mouse
+// "reveals" a scatter of falling code glyphs behind the cursor, a literal
+// nod to building in real code rather than a drag-and-drop template. Same
+// support/skip gating as the cursor dot above.
+(function initMatrixCursorTrail() {
+  const supportsCursor =
+    window.matchMedia("(pointer: fine)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!supportsCursor || document.querySelector(".dev-tabs")) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "matrix-trail-canvas";
+  document.body.append(canvas);
+  const ctx = canvas.getContext("2d");
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  const GLYPHS = ["0", "1", "0", "1", "0", "1", "{", "}", "<", ">", "/", "01"];
+  const COLORS = ["109, 78, 232", "46, 159, 230"];
+  let particles = [];
+  let lastSpawnAt = 0;
+  let lastX = null;
+  let lastY = null;
+
+  document.addEventListener("mousemove", (e) => {
+    const now = performance.now();
+    const moved = lastX === null || Math.hypot(e.clientX - lastX, e.clientY - lastY) > 10;
+    if (moved && now - lastSpawnAt > 45 && particles.length < 70) {
+      lastSpawnAt = now;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      particles.push({
+        x: e.clientX + (Math.random() - 0.5) * 14,
+        y: e.clientY + (Math.random() - 0.5) * 14,
+        vy: 18 + Math.random() * 22,
+        char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        life: 0,
+        maxLife: 0.7 + Math.random() * 0.5,
+        size: 11 + Math.random() * 6,
+      });
+    }
+  });
+
+  document.addEventListener("mouseleave", () => { particles = []; });
+
+  let lastT = null;
+  function tick(t) {
+    if (lastT === null) lastT = t;
+    const dt = Math.min((t - lastT) / 1000, 0.05);
+    lastT = t;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles = particles.filter((p) => p.life < p.maxLife);
+    for (const p of particles) {
+      p.life += dt;
+      p.y += p.vy * dt;
+      const fade = 1 - p.life / p.maxLife;
+      ctx.font = `700 ${p.size}px "Space Grotesk", monospace`;
+      ctx.fillStyle = `rgba(${p.color}, ${fade * 0.85})`;
+      ctx.shadowColor = `rgba(${p.color}, ${fade * 0.9})`;
+      ctx.shadowBlur = 6;
+      ctx.fillText(p.char, p.x, p.y);
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
 // Background videos: skip entirely on slow/data-saver connections, and only
 // fetch the below-the-fold one once it's about to scroll into view.
 function isConstrainedConnection() {
@@ -562,7 +635,7 @@ if (cartItemsEl) {
       customer.lines.forEach((l) => lines.push(l));
     }
 
-    const subject = encodeURIComponent("New Velora Order");
+    const subject = encodeURIComponent("New DigiCode Order");
     const body = encodeURIComponent(lines.join("\n"));
     window.location.href = `mailto:hello@veloradigital.com?subject=${subject}&body=${body}`;
   });
@@ -891,7 +964,7 @@ if (devTabs.length) {
     if (project.clientEmail) {
       const subject = encodeURIComponent(`Your ${project.service} project is underway`);
       const body = encodeURIComponent(
-        `Hi ${project.clientName || "there"},\n\nA developer has been assigned to your project and will be in touch with you soon via the contact details you provided.\n\nThanks,\nVelora Digital`
+        `Hi ${project.clientName || "there"},\n\nA developer has been assigned to your project and will be in touch with you soon via the contact details you provided.\n\nThanks,\nDigiCode`
       );
       window.location.href = `mailto:${project.clientEmail}?subject=${subject}&body=${body}`;
     }

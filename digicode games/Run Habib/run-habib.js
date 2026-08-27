@@ -375,7 +375,7 @@
   // ---------------------------------------------------------------------
   // Assets — the three character portraits are the only external images;
   // everything else (tiles, backdrop, props) is drawn with canvas
-  // primitives, same lightweight approach as the rest of Velora's games.
+  // primitives, same lightweight approach as the rest of DigiCode's games.
   // ---------------------------------------------------------------------
   const ASSET_V = "6";
   // Every reference to an image anywhere in this file goes through this
