@@ -1,6 +1,6 @@
-# Velora Digital
+# DigiCode
 
-Portfolio and business site for Velora Digital, a web design studio.
+Portfolio and business site for DigiCode, a web design studio.
 
 ## Structure
 
