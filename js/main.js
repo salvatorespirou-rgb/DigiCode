@@ -84,6 +84,7 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
 
   const GLYPHS = ["0", "1", "0", "1", "0", "1", "{", "}", "<", ">", "/", "01"];
   const COLORS = ["109, 78, 232", "46, 159, 230"];
+  const MAX_PARTICLES = 160;
   let particles = [];
   let lastSpawnAt = 0;
   let lastX = null;
@@ -92,7 +93,7 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
   document.addEventListener("mousemove", (e) => {
     const now = performance.now();
     const moved = lastX === null || Math.hypot(e.clientX - lastX, e.clientY - lastY) > 10;
-    if (moved && now - lastSpawnAt > 45 && particles.length < 70) {
+    if (moved && now - lastSpawnAt > 45 && particles.length < MAX_PARTICLES) {
       lastSpawnAt = now;
       lastX = e.clientX;
       lastY = e.clientY;
@@ -109,17 +110,22 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
     }
   });
 
-  document.addEventListener("mouseleave", () => { particles = []; });
+  // Only the cursor-following particles clear when the mouse leaves the
+  // page — the ambient rain below is tagged `ambient: true` specifically
+  // so it keeps going on its own, independent of the cursor entirely.
+  document.addEventListener("mouseleave", () => {
+    particles = particles.filter((p) => p.ambient);
+  });
 
-  // The homepage's quick-link tabs get an extra flourish: a short trickle
-  // of code raining down from the pill for as long as it's hovered, on top
-  // of the ambient cursor trail — a callback to the same "real code" idea
-  // that's otherwise a fairly plain row of pills.
-  document.querySelectorAll(".quick-link-tab").forEach((tab) => {
-    let dripInterval = null;
+  // The homepage's quick-link tabs and service rows get an extra flourish:
+  // a steady trickle of code raining down from each one, continuously, not
+  // just on hover — a callback to the same "real code" idea that's
+  // otherwise a fairly plain row of pills/cards.
+  function attachCodeRain(el, intervalMs) {
     const spawnDrip = () => {
-      if (particles.length >= 90) return;
-      const rect = tab.getBoundingClientRect();
+      if (particles.length >= MAX_PARTICLES) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return; // off-screen, skip
       particles.push({
         x: rect.left + Math.random() * rect.width,
         y: rect.bottom - 2,
@@ -129,13 +135,15 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
         life: 0,
         maxLife: 0.6 + Math.random() * 0.4,
         size: 10 + Math.random() * 5,
+        ambient: true,
       });
     };
-    tab.addEventListener("mouseenter", () => {
-      spawnDrip();
-      dripInterval = setInterval(spawnDrip, 90);
-    });
-    tab.addEventListener("mouseleave", () => clearInterval(dripInterval));
+    setInterval(spawnDrip, intervalMs);
+    setTimeout(spawnDrip, Math.random() * intervalMs); // stagger so tabs don't all drip in lockstep
+  }
+
+  document.querySelectorAll(".quick-link-tab, .service-row").forEach((el) => {
+    attachCodeRain(el, 500 + Math.random() * 400);
   });
 
   let lastT = null;
