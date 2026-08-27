@@ -133,11 +133,11 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   filter: drop-shadow(0 0 10px rgba(109, 78, 232, 0.45));
 }
 .site-logo img {
-  height: 44px;
+  height: 84px;
   width: auto;
 }
 @media (max-width: 640px) {
-  .site-logo img { height: 34px; }
+  .site-logo img { height: 58px; }
 }
 
 .cart-icon-link,
