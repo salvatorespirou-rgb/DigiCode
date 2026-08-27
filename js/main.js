@@ -60,15 +60,15 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
   });
 })();
 
-// Matrix-style code trail — a DigiCode signature touch: moving the mouse
-// "reveals" a scatter of falling code glyphs behind the cursor, a literal
-// nod to building in real code rather than a drag-and-drop template. Same
-// support/skip gating as the cursor dot above.
-(function initMatrixCursorTrail() {
-  const supportsCursor =
-    window.matchMedia("(pointer: fine)").matches &&
-    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!supportsCursor || document.querySelector(".dev-tabs")) return;
+// Matrix-style code trail — a DigiCode signature touch. Two independent
+// pieces share one canvas/particle system: a cursor-following trail
+// (desktop/mouse only — there's no cursor to follow on a touch device),
+// and an ambient rain on the homepage's quick-link tabs and service rows
+// that isn't cursor-driven at all and so runs on every device, phones
+// included. Only `prefers-reduced-motion` and the dev portal skip both.
+(function initMatrixTrail() {
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reducedMotion || document.querySelector(".dev-tabs")) return;
 
   const canvas = document.createElement("canvas");
   canvas.className = "matrix-trail-canvas";
@@ -86,36 +86,40 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
   const COLORS = ["109, 78, 232", "46, 159, 230"];
   const MAX_PARTICLES = 160;
   let particles = [];
-  let lastSpawnAt = 0;
-  let lastX = null;
-  let lastY = null;
 
-  document.addEventListener("mousemove", (e) => {
-    const now = performance.now();
-    const moved = lastX === null || Math.hypot(e.clientX - lastX, e.clientY - lastY) > 10;
-    if (moved && now - lastSpawnAt > 45 && particles.length < MAX_PARTICLES) {
-      lastSpawnAt = now;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      particles.push({
-        x: e.clientX + (Math.random() - 0.5) * 14,
-        y: e.clientY + (Math.random() - 0.5) * 14,
-        vy: 18 + Math.random() * 22,
-        char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        life: 0,
-        maxLife: 0.7 + Math.random() * 0.5,
-        size: 11 + Math.random() * 6,
-      });
-    }
-  });
+  const supportsCursor = window.matchMedia("(pointer: fine)").matches;
+  if (supportsCursor) {
+    let lastSpawnAt = 0;
+    let lastX = null;
+    let lastY = null;
 
-  // Only the cursor-following particles clear when the mouse leaves the
-  // page — the ambient rain below is tagged `ambient: true` specifically
-  // so it keeps going on its own, independent of the cursor entirely.
-  document.addEventListener("mouseleave", () => {
-    particles = particles.filter((p) => p.ambient);
-  });
+    document.addEventListener("mousemove", (e) => {
+      const now = performance.now();
+      const moved = lastX === null || Math.hypot(e.clientX - lastX, e.clientY - lastY) > 10;
+      if (moved && now - lastSpawnAt > 45 && particles.length < MAX_PARTICLES) {
+        lastSpawnAt = now;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        particles.push({
+          x: e.clientX + (Math.random() - 0.5) * 14,
+          y: e.clientY + (Math.random() - 0.5) * 14,
+          vy: 18 + Math.random() * 22,
+          char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          life: 0,
+          maxLife: 0.7 + Math.random() * 0.5,
+          size: 11 + Math.random() * 6,
+        });
+      }
+    });
+
+    // Only the cursor-following particles clear when the mouse leaves the
+    // page — the ambient rain below is tagged `ambient: true` specifically
+    // so it keeps going on its own, independent of the cursor entirely.
+    document.addEventListener("mouseleave", () => {
+      particles = particles.filter((p) => p.ambient);
+    });
+  }
 
   // The homepage's quick-link tabs and service rows get an extra flourish:
   // a steady trickle of code raining down from each one, continuously, not
