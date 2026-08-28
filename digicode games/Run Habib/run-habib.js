@@ -2707,11 +2707,6 @@
     if (finishSeq.alpha < 1) ctx.globalAlpha = finishSeq.alpha; // fading into the hut doorway
     if (pipeSeq.alpha < 1) ctx.globalAlpha = pipeSeq.alpha;     // fading through the exit pipe
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
-    // Swimming tilts him nose-up on the rise of a stroke and nose-down as
-    // he sinks, which is most of what sells "in water" at a glance.
-    if (isUnderwater() && !player.onGround) {
-      ctx.rotate(player.facing * Math.max(-0.32, Math.min(0.3, player.vy / 900)));
-    }
     // Driven by the current size TIER (big/small), not the live hitbox
     // height, so squatting — which also shrinks player.h — reads as a
     // squash (see squatSquash below) rather than as shrinking a whole
@@ -2724,13 +2719,42 @@
       ctx.filter = `hue-rotate(${Math.floor(elapsedInLevel * 600) % 360}deg) saturate(1.6)`;
     }
 
+    const swimming = isUnderwater() && !player.onGround;
+    // How recently he stroked, 1 → 0 over just under half a second. Drives
+    // the whole surge: he pulls flatter and kicks harder right after a
+    // stroke, then settles back into a glide as it decays.
+    const strokePulse = swimming
+      ? Math.max(0, 1 - (elapsedInLevel - (player.strokeAt ?? -999)) / 0.45)
+      : 0;
+
+    if (swimming) {
+      // Stay near-upright and just lean, rather than swinging fully prone.
+      // The sprite is a standing figure with fixed arms, so rotating it flat
+      // reads as tumbling rather than swimming — and it's also what the
+      // original does: its swimmer is upright, bobbing, with the motion
+      // carried by the kick. Lean forward while sinking, straighten (even
+      // rock back a touch) through the pull of a stroke. Pivot about the
+      // figure's middle so he rotates in place instead of swinging his head
+      // around on a long arm; rotating inside the already-mirrored scale
+      // makes this follow `facing` for free.
+      const pivotY = (-(habibImg.naturalHeight || 500) + BOOT_H) / 2;
+      const lean = 0.3 + Math.max(-300, Math.min(400, player.vy)) / 2000;
+      const angle = lean - strokePulse * 0.42; // rocks back through the pull
+      ctx.translate(0, pivotY);
+      ctx.rotate(angle);
+      ctx.translate(0, -pivotY);
+    }
+
     let legA, legB;
-    if (isUnderwater() && !player.onGround) {
-      // A flutter kick on its own fast cycle, deliberately out of step with
-      // the arm stroke below so the whole animation reads as busy.
-      const kick = Math.sin(player.swimKick * 13);
-      legA = { dx: -8 + kick * 10, dy: -12 - kick * 7 };
-      legB = { dx: 10 - kick * 10, dy: -6 + kick * 7 };
+    if (swimming) {
+      // Flutter kick — the legs scissor front-to-back in opposite phase,
+      // which from this side-on view is what actually sells the swim. Kick
+      // rate surges right after a stroke, then settles into a glide.
+      const k = player.swimKick * (10 + strokePulse * 8);
+      const kickA = Math.sin(k);
+      const kickB = -kickA;
+      legA = { dx: kickA * 36, dy: 6 + Math.abs(kickA) * 5 };
+      legB = { dx: kickB * 36, dy: 6 + Math.abs(kickB) * 5 };
     } else if (!player.onGround) {
       legA = { dx: -14, dy: -16 };
       legB = { dx: 16, dy: -8 };
