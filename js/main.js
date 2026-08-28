@@ -1542,6 +1542,88 @@ if (devTabs.length) {
       demoProject.status === "finished" ? "Finished" : demoProject.status === "assigned" ? "In progress" : "Submitted";
     const statusDate = demoProject.finishedAt || demoProject.assignedAt || demoProject.createdAt;
 
+    // Where the project has got to, as three plain steps. Clients otherwise
+    // have to infer progress from whether a dev's name has appeared.
+    const stageIndex = demoProject.status === "finished" ? 2 : demoProject.status === "assigned" ? 1 : 0;
+    const stages = ["Submitted", "In progress", "Finished"];
+    const trackerHtml = `
+      <ol class="client-stage-track">
+        ${stages
+          .map(
+            (label, i) => `
+          <li class="client-stage ${i < stageIndex ? "done" : i === stageIndex ? "current" : ""}">
+            <span class="client-stage-dot"></span>
+            <span class="client-stage-label">${label}</span>
+          </li>`
+          )
+          .join("")}
+      </ol>`;
+
+    // Health is read-only here on purpose: running a check needs a dev's
+    // PageSpeed API key and write access to the project, so a client sees
+    // the most recent result rather than being able to trigger one. Skipped
+    // entirely while a check is mid-flight or errored — a client shouldn't
+    // be shown our API plumbing failing.
+    const health = demoProject.health;
+    const showHealth = health && !health.loading && !health.error && health.performance != null;
+    const healthHtml = showHealth
+      ? `
+      <h2 class="dashboard-section-title" style="margin-top: 40px;">Your Website Health</h2>
+      <div class="health-panel">
+        <div class="health-header">
+          <span>Latest check${demoProject.domain ? ` — ${escapeHtml(demoProject.domain)}` : ""}</span>
+          <span class="health-meta">Checked ${formatDate(health.checkedAt)} · via Google PageSpeed Insights</span>
+        </div>
+        <div class="health-grid">
+          <div class="stat-tile health-tile"><span class="stat-tile-label">Performance</span><span class="stat-tile-value ${scoreClass(health.performance)}">${health.performance ?? "—"}</span></div>
+          <div class="stat-tile health-tile"><span class="stat-tile-label">SEO</span><span class="stat-tile-value ${scoreClass(health.seo)}">${health.seo ?? "—"}</span></div>
+          <div class="stat-tile health-tile"><span class="stat-tile-label">Accessibility</span><span class="stat-tile-value ${scoreClass(health.accessibility)}">${health.accessibility ?? "—"}</span></div>
+          <div class="stat-tile health-tile"><span class="stat-tile-label">Best Practices</span><span class="stat-tile-value ${scoreClass(health.bestPractices)}">${health.bestPractices ?? "—"}</span></div>
+        </div>
+        ${health.lcp ? `<p class="health-vitals">LCP ${escapeHtml(health.lcp)} · CLS ${escapeHtml(health.cls)} · FCP ${escapeHtml(health.fcp)}</p>` : ""}
+        <p class="portal-note" style="margin: 10px 0 0;">Scored out of 100. We watch these as part of your plan and act on anything that slips.</p>
+      </div>`
+      : "";
+
+    // Only offered once the work is actually done. An existing review is
+    // shown back with the option to change it.
+    const review = demoProject.review;
+    const reviewHtml =
+      demoProject.status !== "finished"
+        ? ""
+        : `
+      <h2 class="dashboard-section-title" style="margin-top: 40px;">${review ? "Your Review" : "How did we do?"}</h2>
+      <div class="project-card">
+        ${
+          review
+            ? `<div class="project-review">
+                 <span class="project-review-stars">${"★".repeat(review.rating)}${"☆".repeat(5 - review.rating)}</span>
+                 ${review.text ? `<p>"${escapeHtml(review.text)}"</p>` : ""}
+               </div>
+               <button type="button" class="clear-cart-link" id="clientReviewEditBtn">Change my review</button>`
+            : `<p class="portal-note" style="margin-top:0;">Your project's wrapped up — we'd love to know how it went.</p>`
+        }
+        <form id="clientReviewForm" class="portal-login-form" ${review ? "hidden" : ""} style="margin-top: 14px;">
+          <div class="form-group">
+            <span class="form-label">Rating</span>
+            <div class="client-star-row" id="clientStarRow">
+              ${[1, 2, 3, 4, 5]
+                .map(
+                  (n) =>
+                    `<button type="button" class="client-star" data-rating="${n}" aria-label="${n} star${n > 1 ? "s" : ""}">★</button>`
+                )
+                .join("")}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="clientReviewText">Anything you'd like to add? (optional)</label>
+            <textarea id="clientReviewText" rows="3" placeholder="What was it like working with us?">${review && review.text ? escapeHtml(review.text) : ""}</textarea>
+          </div>
+          <p class="portal-login-error" id="clientReviewError" hidden></p>
+          <button type="submit" class="btn btn-primary" id="clientReviewSubmit">${review ? "Update Review" : "Submit Review"}</button>
+        </form>
+      </div>`;
+
     clientViewContainer.innerHTML = `
       ${
         isRealClient
@@ -1559,10 +1641,21 @@ if (devTabs.length) {
           <span class="project-date">${statusLabel} ${formatDate(statusDate)}</span>
         </div>
         <div class="project-tiers">${tierTagsHtml(demoProject)}</div>
+        ${trackerHtml}
+        ${
+          demoProject.domain
+            ? `<p class="project-assigned-to">Your site: <a href="https://${escapeHtml(demoProject.domain)}" target="_blank" rel="noopener"><strong>${escapeHtml(demoProject.domain)}</strong></a></p>`
+            : ""
+        }
         ${
           demoProject.assignedDev
             ? `<p class="project-assigned-to">Your developer: <strong>${escapeHtml(demoProject.assignedDev)}</strong></p>`
             : `<p class="dev-empty">A developer hasn't been assigned yet.</p>`
+        }
+        ${
+          demoProject.details
+            ? `<details class="client-brief"><summary>What you asked us for</summary><p>${escapeHtml(demoProject.details)}</p></details>`
+            : ""
         }
         <div class="project-notes">
           ${
@@ -1570,10 +1663,12 @@ if (devTabs.length) {
               ? demoProject.progressNotes
                   .map((n) => `<div class="project-note"><span class="project-note-date">${formatDate(n.date)}</span><p>${escapeHtml(n.note)}</p></div>`)
                   .join("")
-              : `<p class="dev-empty">No updates yet.</p>`
+              : `<p class="dev-empty">No updates yet — your developer will post progress here as work happens.</p>`
           }
         </div>
       </div>
+      ${healthHtml}
+      ${reviewHtml}
 
       <h2 class="dashboard-section-title" style="margin-top: 40px;">Message Your Developer</h2>
       <div class="chat-thread">
@@ -1602,6 +1697,51 @@ if (devTabs.length) {
         <button type="button" class="clear-cart-link" data-portal-logout>Log out</button>
       </div>
     `;
+
+    // --- Review: star picker, then submit through the guarded RPC ---
+    let chosenRating = review ? review.rating : 0;
+    const starRow = document.getElementById("clientStarRow");
+    const paintStars = () => {
+      starRow?.querySelectorAll(".client-star").forEach((s) => {
+        s.classList.toggle("on", Number(s.dataset.rating) <= chosenRating);
+      });
+    };
+    paintStars();
+    starRow?.querySelectorAll(".client-star").forEach((s) => {
+      s.addEventListener("click", () => {
+        chosenRating = Number(s.dataset.rating);
+        paintStars();
+      });
+    });
+
+    document.getElementById("clientReviewEditBtn")?.addEventListener("click", () => {
+      const form = document.getElementById("clientReviewForm");
+      if (form) form.hidden = false;
+    });
+
+    document.getElementById("clientReviewForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById("clientReviewError");
+      const btn = document.getElementById("clientReviewSubmit");
+      if (errEl) errEl.hidden = true;
+      if (!chosenRating) {
+        if (errEl) { errEl.textContent = "Pick a star rating first."; errEl.hidden = false; }
+        return;
+      }
+      if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
+      const { error } = await veloraSupabase.rpc("submit_project_review", {
+        project_id: demoProject.id,
+        rating: chosenRating,
+        review_text: document.getElementById("clientReviewText").value.trim(),
+      });
+      if (error) {
+        if (errEl) { errEl.textContent = "We couldn't save that just now — please try again."; errEl.hidden = false; }
+        if (btn) { btn.disabled = false; btn.textContent = "Submit Review"; }
+        return;
+      }
+      await loadProjects();
+      renderClientPreview();
+    });
 
     document.getElementById("clientChatSendForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1682,6 +1822,13 @@ if (devTabs.length) {
       if (viewSwitchRow) viewSwitchRow.hidden = true;
       if (devViewContainer) devViewContainer.hidden = true;
       if (clientViewContainer) clientViewContainer.hidden = false;
+      // The page's default heading copy still describes this as an unfinished
+      // placeholder, which is a Dev-side note — a real client shouldn't be
+      // told the thing they're looking at isn't connected yet.
+      const eyebrow = document.querySelector(".page-hero .eyebrow");
+      const heroSub = document.querySelector(".page-hero .hero-sub");
+      if (eyebrow) eyebrow.textContent = "Your Portal";
+      if (heroSub) heroSub.textContent = "Track your project, see how your site's performing, and talk to your developer — all in one place.";
       renderClientPreview();
     }
   }

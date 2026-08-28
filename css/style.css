@@ -1905,6 +1905,109 @@ body.custom-cursor-active button {
   font-size: 0.9rem;
 }
 
+/* ---------- Client portal ---------- */
+/* Three-step progress track on the client's own project card. */
+.client-stage-track {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 18px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.client-stage {
+  flex: 1;
+  position: relative;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+/* The connector runs from each step back to the previous one, so it never
+   trails off the end of the last step. */
+.client-stage:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+}
+.client-stage.done::before,
+.client-stage.current::before { background: var(--purple); }
+.client-stage-dot {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+}
+.client-stage.done .client-stage-dot { background: var(--purple); border-color: var(--purple); }
+.client-stage.current .client-stage-dot {
+  background: var(--purple);
+  border-color: var(--purple);
+  box-shadow: 0 0 0 4px rgba(109, 78, 232, 0.25);
+}
+.client-stage.done .client-stage-label,
+.client-stage.current .client-stage-label { color: var(--text); font-weight: 600; }
+
+/* Collapsed copy of the brief they submitted at checkout. */
+.client-brief {
+  margin: 14px 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--bg);
+}
+.client-brief summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.client-brief summary:hover { color: var(--text); }
+.client-brief p {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
+/* Star picker for leaving a review. */
+.client-star-row { display: flex; gap: 4px; }
+.client-star {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+  padding: 0 2px;
+  color: rgba(255, 255, 255, 0.22);
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+.client-star:hover { transform: scale(1.12); }
+.client-star.on { color: #fab219; }
+
+#clientReviewText {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  resize: vertical;
+}
+#clientReviewText:focus {
+  outline: none;
+  border-color: rgba(109, 78, 232, 0.6);
+}
+
 .dev-warning-banner {
   padding: 14px 18px;
   border: 1px solid var(--border);
