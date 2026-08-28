@@ -2653,3 +2653,366 @@ body.custom-cursor-active button {
   background: linear-gradient(135deg, rgba(109, 78, 232, 0.55), rgba(46, 159, 230, 0.45));
   box-shadow: 0 0 26px rgba(109, 78, 232, 0.5);
 }
+:root { --dc-rain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='440' viewBox='0 0 220 440'%3E%3Cg font-family='ui-monospace,SFMono-Regular,Menlo,monospace' font-size='13' font-weight='600'%3E%3Ctext x='12' y='3' fill='%236f8dff' opacity='0.41'%3E%23%3C/text%3E%3Ctext x='12' y='25' fill='%236f8dff' opacity='0.78'%3E0%3C/text%3E%3Ctext x='12' y='47' fill='%23a9d8ff' opacity='0.82'%3E1%3C/text%3E%3Ctext x='12' y='69' fill='%236f8dff' opacity='0.67'%3E*%3C/text%3E%3Ctext x='12' y='91' fill='%236f8dff' opacity='0.67'%3E%23%3C/text%3E%3Ctext x='12' y='113' fill='%236f8dff' opacity='0.79'%3E;%3C/text%3E%3Ctext x='12' y='135' fill='%236f8dff' opacity='0.95'%3E1%3C/text%3E%3Ctext x='12' y='157' fill='%236f8dff' opacity='0.85'%3E/%3C/text%3E%3Ctext x='12' y='179' fill='%23a9d8ff' opacity='0.99'%3E1%3C/text%3E%3Ctext x='12' y='201' fill='%23a9d8ff' opacity='0.42'%3E1%3C/text%3E%3Ctext x='12' y='223' fill='%236f8dff' opacity='0.86'%3E=%3C/text%3E%3Ctext x='12' y='245' fill='%23a9d8ff' opacity='0.9'%3E;%3C/text%3E%3Ctext x='12' y='267' fill='%236f8dff' opacity='0.86'%3E;%3C/text%3E%3Ctext x='12' y='289' fill='%23a9d8ff' opacity='0.78'%3E0%3C/text%3E%3Ctext x='12' y='311' fill='%236f8dff' opacity='0.52'%3E$%3C/text%3E%3Ctext x='12' y='333' fill='%236f8dff' opacity='0.59'%3E{%3C/text%3E%3Ctext x='12' y='355' fill='%236f8dff' opacity='0.68'%3E0%3C/text%3E%3Ctext x='12' y='377' fill='%23a9d8ff' opacity='0.56'%3E0%3C/text%3E%3Ctext x='12' y='399' fill='%236f8dff' opacity='0.64'%3E;%3C/text%3E%3Ctext x='12' y='421' fill='%23a9d8ff' opacity='0.44'%3E&gt;%3C/text%3E%3Ctext x='52' y='13' fill='%23a9d8ff' opacity='0.65'%3E}%3C/text%3E%3Ctext x='52' y='35' fill='%236f8dff' opacity='0.81'%3E0%3C/text%3E%3Ctext x='52' y='57' fill='%236f8dff' opacity='0.77'%3E}%3C/text%3E%3Ctext x='52' y='79' fill='%236f8dff' opacity='0.93'%3E%23%3C/text%3E%3Ctext x='52' y='101' fill='%236f8dff' opacity='0.43'%3E*%3C/text%3E%3Ctext x='52' y='123' fill='%236f8dff' opacity='0.58'%3E*%3C/text%3E%3Ctext x='52' y='145' fill='%236f8dff' opacity='0.65'%3E0%3C/text%3E%3Ctext x='52' y='167' fill='%23a9d8ff' opacity='0.74'%3E/%3C/text%3E%3Ctext x='52' y='189' fill='%236f8dff' opacity='0.55'%3E1%3C/text%3E%3Ctext x='52' y='211' fill='%236f8dff' opacity='0.51'%3E%23%3C/text%3E%3Ctext x='52' y='233' fill='%23a9d8ff' opacity='0.67'%3E{%3C/text%3E%3Ctext x='52' y='255' fill='%236f8dff' opacity='0.56'%3E/%3C/text%3E%3Ctext x='52' y='277' fill='%236f8dff' opacity='0.5'%3E;%3C/text%3E%3Ctext x='52' y='299' fill='%23a9d8ff' opacity='0.35'%3E0%3C/text%3E%3Ctext x='52' y='321' fill='%236f8dff' opacity='0.71'%3E&gt;%3C/text%3E%3Ctext x='52' y='343' fill='%23a9d8ff' opacity='0.69'%3E{%3C/text%3E%3Ctext x='52' y='365' fill='%23a9d8ff' opacity='0.78'%3E1%3C/text%3E%3Ctext x='52' y='387' fill='%236f8dff' opacity='0.74'%3E0%3C/text%3E%3Ctext x='52' y='409' fill='%23a9d8ff' opacity='0.89'%3E1%3C/text%3E%3Ctext x='52' y='431' fill='%236f8dff' opacity='0.37'%3E0%3C/text%3E%3Ctext x='92' y='2' fill='%236f8dff' opacity='0.52'%3E}%3C/text%3E%3Ctext x='92' y='24' fill='%23a9d8ff' opacity='0.51'%3E;%3C/text%3E%3Ctext x='92' y='46' fill='%236f8dff' opacity='0.86'%3E/%3C/text%3E%3Ctext x='92' y='68' fill='%236f8dff' opacity='0.33'%3E1%3C/text%3E%3Ctext x='92' y='90' fill='%236f8dff' opacity='0.54'%3E0%3C/text%3E%3Ctext x='92' y='112' fill='%236f8dff' opacity='0.28'%3E%23%3C/text%3E%3Ctext x='92' y='134' fill='%23a9d8ff' opacity='0.86'%3E0%3C/text%3E%3Ctext x='92' y='156' fill='%236f8dff' opacity='0.72'%3E*%3C/text%3E%3Ctext x='92' y='178' fill='%236f8dff' opacity='0.94'%3E}%3C/text%3E%3Ctext x='92' y='200' fill='%236f8dff' opacity='0.67'%3E1%3C/text%3E%3Ctext x='92' y='222' fill='%23a9d8ff' opacity='0.38'%3E0%3C/text%3E%3Ctext x='92' y='244' fill='%236f8dff' opacity='0.86'%3E&gt;%3C/text%3E%3Ctext x='92' y='266' fill='%23a9d8ff' opacity='0.92'%3E{%3C/text%3E%3Ctext x='92' y='288' fill='%23a9d8ff' opacity='0.38'%3E&lt;%3C/text%3E%3Ctext x='92' y='310' fill='%23a9d8ff' opacity='0.7'%3E1%3C/text%3E%3Ctext x='92' y='332' fill='%23a9d8ff' opacity='0.71'%3E=%3C/text%3E%3Ctext x='92' y='354' fill='%23a9d8ff' opacity='0.92'%3E;%3C/text%3E%3Ctext x='92' y='376' fill='%236f8dff' opacity='0.67'%3E&gt;%3C/text%3E%3Ctext x='92' y='398' fill='%23a9d8ff' opacity='0.63'%3E1%3C/text%3E%3Ctext x='92' y='420' fill='%236f8dff' opacity='0.54'%3E=%3C/text%3E%3Ctext x='132' y='7' fill='%236f8dff' opacity='0.44'%3E1%3C/text%3E%3Ctext x='132' y='29' fill='%236f8dff' opacity='0.95'%3E1%3C/text%3E%3Ctext x='132' y='51' fill='%23a9d8ff' opacity='0.68'%3E0%3C/text%3E%3Ctext x='132' y='73' fill='%23a9d8ff' opacity='0.36'%3E;%3C/text%3E%3Ctext x='132' y='95' fill='%23a9d8ff' opacity='0.73'%3E{%3C/text%3E%3Ctext x='132' y='117' fill='%236f8dff' opacity='0.27'%3E=%3C/text%3E%3Ctext x='132' y='139' fill='%23a9d8ff' opacity='0.47'%3E0%3C/text%3E%3Ctext x='132' y='161' fill='%236f8dff' opacity='0.76'%3E1%3C/text%3E%3Ctext x='132' y='183' fill='%236f8dff' opacity='0.71'%3E1%3C/text%3E%3Ctext x='132' y='205' fill='%23a9d8ff' opacity='0.48'%3E{%3C/text%3E%3Ctext x='132' y='227' fill='%236f8dff' opacity='0.63'%3E1%3C/text%3E%3Ctext x='132' y='249' fill='%236f8dff' opacity='0.98'%3E0%3C/text%3E%3Ctext x='132' y='271' fill='%23a9d8ff' opacity='0.31'%3E0%3C/text%3E%3Ctext x='132' y='293' fill='%236f8dff' opacity='0.28'%3E1%3C/text%3E%3Ctext x='132' y='315' fill='%236f8dff' opacity='0.39'%3E=%3C/text%3E%3Ctext x='132' y='337' fill='%23a9d8ff' opacity='0.48'%3E=%3C/text%3E%3Ctext x='132' y='359' fill='%236f8dff' opacity='0.83'%3E1%3C/text%3E%3Ctext x='132' y='381' fill='%236f8dff' opacity='0.84'%3E0%3C/text%3E%3Ctext x='132' y='403' fill='%236f8dff' opacity='0.77'%3E0%3C/text%3E%3Ctext x='132' y='425' fill='%236f8dff' opacity='0.57'%3E*%3C/text%3E%3Ctext x='172' y='16' fill='%236f8dff' opacity='0.45'%3E}%3C/text%3E%3Ctext x='172' y='38' fill='%236f8dff' opacity='0.73'%3E1%3C/text%3E%3Ctext x='172' y='60' fill='%236f8dff' opacity='0.75'%3E{%3C/text%3E%3Ctext x='172' y='82' fill='%236f8dff' opacity='0.95'%3E0%3C/text%3E%3Ctext x='172' y='104' fill='%236f8dff' opacity='0.44'%3E1%3C/text%3E%3Ctext x='172' y='126' fill='%236f8dff' opacity='0.62'%3E*%3C/text%3E%3Ctext x='172' y='148' fill='%236f8dff' opacity='0.48'%3E&lt;%3C/text%3E%3Ctext x='172' y='170' fill='%236f8dff' opacity='0.65'%3E1%3C/text%3E%3Ctext x='172' y='192' fill='%236f8dff' opacity='0.79'%3E&lt;%3C/text%3E%3Ctext x='172' y='214' fill='%236f8dff' opacity='0.46'%3E/%3C/text%3E%3Ctext x='172' y='236' fill='%236f8dff' opacity='0.74'%3E=%3C/text%3E%3Ctext x='172' y='258' fill='%23a9d8ff' opacity='0.8'%3E*%3C/text%3E%3Ctext x='172' y='280' fill='%236f8dff' opacity='0.99'%3E0%3C/text%3E%3Ctext x='172' y='302' fill='%236f8dff' opacity='0.29'%3E/%3C/text%3E%3Ctext x='172' y='324' fill='%23a9d8ff' opacity='0.71'%3E1%3C/text%3E%3Ctext x='172' y='346' fill='%23a9d8ff' opacity='0.78'%3E&gt;%3C/text%3E%3Ctext x='172' y='368' fill='%236f8dff' opacity='0.93'%3E1%3C/text%3E%3Ctext x='172' y='390' fill='%236f8dff' opacity='0.3'%3E*%3C/text%3E%3Ctext x='172' y='412' fill='%23a9d8ff' opacity='0.43'%3E0%3C/text%3E%3Ctext x='172' y='434' fill='%23a9d8ff' opacity='0.86'%3E0%3C/text%3E%3C/g%3E%3C/svg%3E"); --dc-rain-h: 440px; }
+/* =====================================================================
+   DIGITAL SURFACE
+   ---------------------------------------------------------------------
+   Every panel on the site is treated as a pane of smoked glass sitting in
+   front of a running machine: a translucent body, a hairline lit edge,
+   faint code raining down behind the content, HUD ticks in the corners,
+   and a light bar that sweeps across when you touch it.
+
+   It is built entirely here in CSS on ::before / ::after, so no markup or
+   copy had to change to get it, and it falls back to the previous flat
+   panels anywhere the effects are unsupported.
+
+   Three rules keep it professional rather than gaudy:
+     1. the rain sits at very low opacity and always behind the text,
+     2. nothing moves on its own except the rain, so a page at rest is calm,
+     3. all of it stops for prefers-reduced-motion (bottom of file).
+   ===================================================================== */
+
+:root {
+  --dc-edge: rgba(120, 160, 255, 0.22);
+  --dc-edge-hot: rgba(140, 190, 255, 0.6);
+  --dc-glass-1: rgba(22, 27, 44, 0.72);
+  --dc-glass-2: rgba(12, 15, 26, 0.82);
+  --dc-corner: rgba(130, 175, 255, 0.55);
+}
+
+/* The shared panel look, applied by listing the existing component classes
+   rather than adding a new one to every element in the HTML. */
+.service-row,
+.tier-card,
+.form-card,
+.portal-card,
+.project-card,
+.oyp-card,
+.oyp-split-col,
+.oyp-who,
+.portfolio-card,
+.dashboard-section,
+.health-panel,
+.chat-thread,
+.chat-sidebar,
+.api-key-card,
+.cart-summary,
+.coming-soon-panel,
+.subscription-panel {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(160deg, var(--dc-glass-1) 0%, var(--dc-glass-2) 100%);
+  border: 1px solid var(--dc-edge);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  box-shadow:
+    0 1px 0 rgba(190, 220, 255, 0.09) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.4) inset,
+    0 14px 38px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+/* Corner ticks. Eight thin gradient slivers pinned to the four corners,
+   drawn on ::after so ::before stays free for the rain. */
+.service-row::after,
+.tier-card::after,
+.form-card::after,
+.portal-card::after,
+.project-card::after,
+.oyp-card::after,
+.oyp-split-col::after,
+.oyp-who::after,
+.portfolio-card::after,
+.dashboard-section::after,
+.health-panel::after,
+.chat-thread::after,
+.api-key-card::after,
+.cart-summary::after,
+.coming-soon-panel::after,
+.subscription-panel::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    linear-gradient(var(--dc-corner), var(--dc-corner)) left top / 1px 13px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) left top / 13px 1px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) right top / 1px 13px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) right top / 13px 1px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) left bottom / 1px 13px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) left bottom / 13px 1px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) right bottom / 1px 13px no-repeat,
+    linear-gradient(var(--dc-corner), var(--dc-corner)) right bottom / 13px 1px no-repeat;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+.service-row:hover::after,
+.tier-card:hover::after,
+.portal-card:hover::after,
+.project-card:hover::after,
+.oyp-card:hover::after,
+.portfolio-card:hover::after,
+.health-panel:hover::after { opacity: 1; }
+
+/* The rain. One shared texture scrolling behind the content, masked out at
+   the top and bottom so it never collides with a heading or a button. */
+.service-row::before,
+.tier-card::before,
+.form-card::before,
+.portal-card::before,
+.project-card::before,
+.oyp-card::before,
+.oyp-split-col::before,
+.oyp-who::before,
+.portfolio-card::before,
+.dashboard-section::before,
+.health-panel::before,
+.chat-thread::before,
+.api-key-card::before,
+.cart-summary::before,
+.coming-soon-panel::before,
+.subscription-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--dc-rain);
+  background-repeat: repeat;
+  background-size: 220px var(--dc-rain-h);
+  opacity: 0.42;
+  animation: dcRain 26s linear infinite;
+  /* Two masks intersected: the first fades the rain out at the top and
+     bottom edges, the second punches a soft hole through the middle. The
+     result is code running down the sides of the glass while the area the
+     copy actually occupies stays completely clear — which is what lets the
+     effect be bold enough to read as code without ever fighting the text. */
+  -webkit-mask-image:
+    linear-gradient(180deg, transparent, #000 18%, #000 78%, transparent),
+    radial-gradient(ellipse 62% 58% at 50% 52%, transparent 35%, #000 78%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(180deg, transparent, #000 18%, #000 78%, transparent),
+    radial-gradient(ellipse 62% 58% at 50% 52%, transparent 35%, #000 78%);
+  mask-composite: intersect;
+}
+@keyframes dcRain {
+  from { background-position: 0 0; }
+  to   { background-position: 0 var(--dc-rain-h); }
+}
+
+/* Stagger, so a grid of cards never rains in lockstep. */
+.oyp-card:nth-of-type(3n+1)::before,
+.tier-card:nth-of-type(3n+1)::before,
+.service-row:nth-of-type(3n+1)::before { animation-duration: 31s; animation-delay: -7s; }
+.oyp-card:nth-of-type(3n+2)::before,
+.tier-card:nth-of-type(3n+2)::before,
+.service-row:nth-of-type(3n+2)::before { animation-duration: 22s; animation-delay: -14s; }
+
+/* Content sits above the rain. */
+.service-row > *,
+.tier-card > *,
+.form-card > *,
+.portal-card > *,
+.project-card > *,
+.oyp-card > *,
+.oyp-split-col > *,
+.oyp-who > *,
+.portfolio-card > *,
+.dashboard-section > *,
+.health-panel > *,
+.chat-thread > *,
+.api-key-card > *,
+.cart-summary > *,
+.coming-soon-panel > *,
+.subscription-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Touching a panel lifts the edge and brings the rain up a little. */
+.service-row:hover,
+.tier-card:hover,
+.portal-card:hover,
+.oyp-card:hover,
+.portfolio-card:hover,
+.project-card:hover {
+  border-color: var(--dc-edge-hot);
+  box-shadow:
+    0 1px 0 rgba(200, 230, 255, 0.16) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.45) inset,
+    0 20px 46px rgba(0, 0, 0, 0.5),
+    0 0 34px rgba(109, 78, 232, 0.28);
+}
+.service-row:hover::before,
+.tier-card:hover::before,
+.portal-card:hover::before,
+.oyp-card:hover::before,
+.portfolio-card:hover::before,
+.project-card:hover::before { opacity: 0.62; }
+
+/* Panels that are mostly dense text (forms, dashboards, chat) get a
+   quieter pour than the marketing cards — the same effect at card strength
+   would make a long form tiring to read. */
+.form-card::before,
+.dashboard-section::before,
+.chat-thread::before,
+.api-key-card::before,
+.cart-summary::before,
+.oyp-split-col::before,
+.subscription-panel::before { opacity: 0.22; }
+
+/* --- Inputs: make every field feel like a live terminal line --- */
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select,
+.portal-login-form input,
+.domain-input,
+.chat-input,
+#clientReviewText {
+  background: linear-gradient(180deg, rgba(10, 14, 24, 0.9), rgba(16, 20, 34, 0.9));
+  border: 1px solid var(--dc-edge);
+  border-left: 2px solid rgba(109, 78, 232, 0.5);
+  border-radius: 8px;
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) inset;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+.portal-login-form input::placeholder,
+.domain-input::placeholder,
+.chat-input::placeholder,
+#clientReviewText::placeholder {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.86em;
+  color: rgba(160, 180, 220, 0.45);
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.portal-login-form input:focus,
+.domain-input:focus,
+.chat-input:focus,
+#clientReviewText:focus {
+  outline: none;
+  border-color: var(--dc-edge-hot);
+  border-left-color: var(--blue);
+  background: linear-gradient(180deg, rgba(12, 18, 32, 0.95), rgba(20, 26, 44, 0.95));
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.35) inset,
+    0 0 0 3px rgba(109, 78, 232, 0.16),
+    0 0 22px rgba(46, 159, 230, 0.22);
+}
+
+/* Field labels read as machine labels. */
+.form-group > label,
+.form-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(175, 195, 235, 0.85);
+}
+
+input[type="checkbox"],
+input[type="radio"] { accent-color: var(--purple); }
+
+/* --- Buttons and tabs: glass, with a light sweep on hover --- */
+.btn-primary,
+.quick-link-tab,
+.tier-purchase-btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after,
+.quick-link-tab::after,
+.tier-purchase-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.26) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 0.55s cubic-bezier(.22, 1, .36, 1);
+  pointer-events: none;
+}
+.btn-primary:hover::after,
+.quick-link-tab:hover::after,
+.tier-purchase-btn:hover::after { transform: translateX(120%); }
+
+.quick-link-tab {
+  background: linear-gradient(160deg, rgba(24, 30, 50, 0.75), rgba(12, 16, 28, 0.85));
+  border-color: var(--dc-edge);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.quick-link-tab:hover { border-color: var(--dc-edge-hot); }
+
+.eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.18em;
+}
+
+/* --- Readout tiles --- */
+.stat-tile,
+.perf-tile,
+.health-tile {
+  border-radius: 12px;
+  border: 1px solid var(--dc-edge);
+  background: linear-gradient(160deg, rgba(20, 25, 42, 0.8), rgba(11, 14, 25, 0.88));
+}
+.stat-tile-value,
+.perf-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: -0.01em;
+}
+
+/* --- Service cards, the ones that most needed lifting --- */
+.service-row { border-radius: 18px; }
+.service-row .service-cta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.service-row .service-divider {
+  background: linear-gradient(90deg, transparent, var(--dc-edge-hot), transparent);
+  height: 1px;
+}
+
+.chat-message-meta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.03em;
+}
+
+/* Anything carrying its own artwork keeps it above the rain. */
+.service-row .service-photo,
+.service-row .service-media,
+.portfolio-card-image { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .service-row::before,
+  .tier-card::before,
+  .form-card::before,
+  .portal-card::before,
+  .project-card::before,
+  .oyp-card::before,
+  .oyp-split-col::before,
+  .oyp-who::before,
+  .portfolio-card::before,
+  .dashboard-section::before,
+  .health-panel::before,
+  .chat-thread::before,
+  .api-key-card::before,
+  .cart-summary::before,
+  .coming-soon-panel::before,
+  .subscription-panel::before { animation: none; }
+  .btn-primary::after,
+  .quick-link-tab::after,
+  .tier-purchase-btn::after { transition: none; }
+}
