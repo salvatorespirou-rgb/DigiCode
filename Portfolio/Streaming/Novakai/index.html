@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOVAKAI — Live</title>
+  <meta name="description" content="NOVAKAI — live gameplay, community chat, and gifts. A streaming platform concept by DigiCode." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+
+<!-- Shared gift artwork. Each creature is drawn once here and referenced by
+     <use> wherever it appears, so the shop, the alerts and the chat can all
+     show the same character without repeating the geometry. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gPup" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ddcff"/><stop offset="1" stop-color="#4a86c8"/></linearGradient>
+    <linearGradient id="gBee" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#e0952a"/></linearGradient>
+    <linearGradient id="gMoth" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7df0ff"/><stop offset="1" stop-color="#2f7fd6"/></linearGradient>
+    <linearGradient id="gCat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b98cff"/><stop offset="1" stop-color="#6a37c9"/></linearGradient>
+    <linearGradient id="gWolf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f6bff"/><stop offset="1" stop-color="#241a52"/></linearGradient>
+    <linearGradient id="gPhoenix" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd66e"/><stop offset="0.5" stop-color="#ff7a3c"/><stop offset="1" stop-color="#c72c5a"/></linearGradient>
+    <linearGradient id="gKraken" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ff2c4"/><stop offset="1" stop-color="#1d6f8f"/></linearGradient>
+    <linearGradient id="gTitan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd1f5"/><stop offset="0.45" stop-color="#a06bff"/><stop offset="1" stop-color="#2a1b6b"/></linearGradient>
+
+    <symbol id="giftPup" viewBox="0 0 64 64">
+      <rect x="16" y="24" width="32" height="26" rx="9" fill="url(#gPup)"/>
+      <rect x="12" y="18" width="12" height="14" rx="4" fill="url(#gPup)"/>
+      <rect x="40" y="18" width="12" height="14" rx="4" fill="url(#gPup)"/>
+      <circle cx="26" cy="34" r="3" fill="#10182b"/><circle cx="38" cy="34" r="3" fill="#10182b"/>
+      <rect x="29" y="40" width="6" height="4" rx="2" fill="#10182b"/>
+      <rect x="46" y="42" width="10" height="5" rx="2.5" fill="url(#gPup)"/>
+    </symbol>
+
+    <symbol id="giftBee" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="38" rx="15" ry="13" fill="url(#gBee)"/>
+      <rect x="19" y="32" width="26" height="4" rx="2" fill="#3a2408"/>
+      <rect x="19" y="40" width="26" height="4" rx="2" fill="#3a2408"/>
+      <ellipse cx="19" cy="24" rx="9" ry="6" fill="#dff3ff" opacity=".85"/>
+      <ellipse cx="45" cy="24" rx="9" ry="6" fill="#dff3ff" opacity=".85"/>
+      <circle cx="27" cy="34" r="2.6" fill="#1a1205"/><circle cx="37" cy="34" r="2.6" fill="#1a1205"/>
+    </symbol>
+
+    <symbol id="giftMoth" viewBox="0 0 64 64">
+      <path d="M32 34 L8 16 Q4 30 14 42 Q22 50 32 44 Z" fill="url(#gMoth)" opacity=".95"/>
+      <path d="M32 34 L56 16 Q60 30 50 42 Q42 50 32 44 Z" fill="url(#gMoth)" opacity=".95"/>
+      <rect x="29" y="26" width="6" height="24" rx="3" fill="#123049"/>
+      <circle cx="32" cy="24" r="6" fill="#1a3f5c"/>
+      <circle cx="30" cy="23" r="1.8" fill="#9ff6ff"/><circle cx="34" cy="23" r="1.8" fill="#9ff6ff"/>
+      <path d="M29 19 L24 12 M35 19 L40 12" stroke="#9ff6ff" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="giftCat" viewBox="0 0 64 64">
+      <path d="M16 26 L14 10 L27 20 Z" fill="url(#gCat)"/>
+      <path d="M48 26 L50 10 L37 20 Z" fill="url(#gCat)"/>
+      <rect x="14" y="22" width="36" height="30" rx="13" fill="url(#gCat)"/>
+      <rect x="10" y="30" width="44" height="4" fill="#39f2c2" opacity=".85"/>
+      <rect x="10" y="40" width="44" height="3" fill="#ff5ea8" opacity=".7"/>
+      <circle cx="25" cy="35" r="3.4" fill="#12081f"/><circle cx="39" cy="35" r="3.4" fill="#12081f"/>
+      <path d="M28 43 Q32 46 36 43" stroke="#12081f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="giftWolf" viewBox="0 0 64 64">
+      <path d="M32 8 L52 20 L50 44 L32 56 L14 44 L12 20 Z" fill="url(#gWolf)"/>
+      <path d="M20 22 L28 30 L20 32 Z" fill="#0c0a1f"/>
+      <path d="M44 22 L36 30 L44 32 Z" fill="#0c0a1f"/>
+      <circle cx="25" cy="34" r="3.6" fill="#8ef0ff"/><circle cx="39" cy="34" r="3.6" fill="#8ef0ff"/>
+      <path d="M26 44 L32 49 L38 44" stroke="#8ef0ff" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <path d="M32 6 L34 14 L30 14 Z" fill="#8ef0ff"/>
+    </symbol>
+
+    <symbol id="giftPhoenix" viewBox="0 0 64 64">
+      <path d="M32 6 Q46 18 44 34 Q42 50 32 58 Q22 50 20 34 Q18 18 32 6 Z" fill="url(#gPhoenix)"/>
+      <path d="M20 26 Q6 30 8 44 Q18 40 22 34 Z" fill="url(#gPhoenix)" opacity=".9"/>
+      <path d="M44 26 Q58 30 56 44 Q46 40 42 34 Z" fill="url(#gPhoenix)" opacity=".9"/>
+      <circle cx="28" cy="26" r="2.8" fill="#3a0f1c"/><circle cx="36" cy="26" r="2.8" fill="#3a0f1c"/>
+      <path d="M30 33 L32 37 L34 33 Z" fill="#3a0f1c"/>
+      <path d="M32 2 L34 10 L30 10 Z" fill="#ffe9a8"/>
+    </symbol>
+
+    <symbol id="giftKraken" viewBox="0 0 64 64">
+      <path d="M14 30 Q14 12 32 12 Q50 12 50 30 L50 36 L14 36 Z" fill="url(#gKraken)"/>
+      <path d="M16 36 Q12 50 6 54" stroke="url(#gKraken)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M24 36 Q22 52 18 58" stroke="url(#gKraken)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M40 36 Q42 52 46 58" stroke="url(#gKraken)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M48 36 Q52 50 58 54" stroke="url(#gKraken)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <circle cx="25" cy="27" r="4.2" fill="#052a2a"/><circle cx="39" cy="27" r="4.2" fill="#052a2a"/>
+      <circle cx="26" cy="26" r="1.5" fill="#b7fff0"/><circle cx="40" cy="26" r="1.5" fill="#b7fff0"/>
+    </symbol>
+
+    <symbol id="giftTitan" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="24" fill="url(#gTitan)"/>
+      <ellipse cx="32" cy="32" rx="30" ry="9" fill="none" stroke="#ffd1f5" stroke-width="2.5" opacity=".85" transform="rotate(-22 32 32)"/>
+      <ellipse cx="32" cy="32" rx="26" ry="7" fill="none" stroke="#8ef0ff" stroke-width="2" opacity=".7" transform="rotate(16 32 32)"/>
+      <circle cx="24" cy="28" r="3.6" fill="#1b0f3d"/><circle cx="40" cy="28" r="3.6" fill="#1b0f3d"/>
+      <path d="M25 40 Q32 46 39 40" stroke="#1b0f3d" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="2" fill="#fff"/><circle cx="52" cy="18" r="1.6" fill="#fff"/><circle cx="50" cy="48" r="2" fill="#fff"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="nk-shell">
+
+  <!-- ================= Channel header ================= -->
+  <header class="nk-top">
+    <div class="nk-brand">
+      <div class="nk-avatar">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <defs><linearGradient id="avG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7df0ff"/><stop offset="1" stop-color="#a06bff"/></linearGradient></defs>
+          <circle cx="32" cy="32" r="30" fill="#0d1020"/>
+          <path d="M18 46 L18 18 L28 18 L46 42 L46 18 L46 18" fill="none" stroke="url(#avG)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+          <circle cx="46" cy="20" r="4" fill="#7df0ff"/>
+        </svg>
+        <span class="nk-avatar-live"></span>
+      </div>
+      <div class="nk-brand-text">
+        <h1>NOVAKAI <span class="nk-verified" title="Verified">✔</span></h1>
+        <p>@novakai_live · <span class="nk-followers">184,206</span> followers</p>
+      </div>
+    </div>
+
+    <nav class="nk-nav">
+      <a href="#stream" class="nk-nav-link active">Live</a>
+      <a href="#gifts" class="nk-nav-link">Gifts</a>
+      <a href="#top" class="nk-nav-link">Leaderboard</a>
+      <a href="#schedule" class="nk-nav-link">Schedule</a>
+      <a href="#clips" class="nk-nav-link">Clips</a>
+    </nav>
+
+    <div class="nk-top-actions">
+      <button type="button" class="nk-btn nk-btn-ghost" id="nkFollow">＋ Follow</button>
+      <button type="button" class="nk-btn nk-btn-primary" data-scroll="#gifts">Send a Gift</button>
+    </div>
+  </header>
+
+  <p class="nk-concept-note">
+    Concept build by <strong>DigiCode</strong> — a fictional streamer, built to show what an independent
+    streaming page can do. Chat and gifts below are simulated.
+  </p>
+
+  <!-- ================= Stream + chat ================= -->
+  <section class="nk-live" id="stream">
+    <div class="nk-stage-col">
+      <div class="nk-stage" id="nkStage">
+        <!-- Stand-in for the live video: an animated scene so the page reads
+             as a running stream without shipping a video file. -->
+        <div class="nk-scene" aria-hidden="true">
+          <div class="nk-scene-sky"></div>
+          <div class="nk-scene-grid"></div>
+          <div class="nk-scene-sun"></div>
+          <div class="nk-ridge nk-ridge-a"></div>
+          <div class="nk-ridge nk-ridge-b"></div>
+          <div class="nk-scene-glow"></div>
+        </div>
+
+        <!-- Broadcast overlay, the way a real stream is dressed. -->
+        <div class="nk-hud">
+          <div class="nk-hud-tl">
+            <span class="nk-live-pill"><span class="nk-live-dot"></span>LIVE</span>
+            <span class="nk-hud-chip"><span id="nkViewers">12,481</span> watching</span>
+            <span class="nk-hud-chip" id="nkUptime">3:12:44</span>
+          </div>
+
+          <div class="nk-hud-tr">
+            <div class="nk-cam">
+              <svg viewBox="0 0 64 64" aria-hidden="true">
+                <rect width="64" height="64" rx="8" fill="#141a2e"/>
+                <circle cx="32" cy="25" r="11" fill="#2b3556"/>
+                <path d="M12 58c0-11 9-19 20-19s20 8 20 19z" fill="#2b3556"/>
+                <circle cx="27" cy="24" r="2" fill="#7df0ff"/><circle cx="37" cy="24" r="2" fill="#7df0ff"/>
+              </svg>
+              <span class="nk-cam-tag">NOVAKAI</span>
+            </div>
+          </div>
+
+          <div class="nk-hud-bl">
+            <div class="nk-vitals">
+              <span class="nk-vital-label">HP</span>
+              <div class="nk-vital-track"><div class="nk-vital-fill nk-hp" id="nkHp"></div></div>
+            </div>
+            <div class="nk-vitals">
+              <span class="nk-vital-label">SH</span>
+              <div class="nk-vital-track"><div class="nk-vital-fill nk-sh" id="nkSh"></div></div>
+            </div>
+          </div>
+
+          <div class="nk-hud-br">
+            <div class="nk-minimap"><span></span><span></span><span></span></div>
+          </div>
+
+          <!-- Gift alerts land here, over the video. -->
+          <div class="nk-alert-slot" id="nkAlertSlot" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="nk-below">
+        <div class="nk-title-row">
+          <h2 class="nk-stream-title">RANKED PUSH — top 500 or we don't sleep 🏆</h2>
+          <div class="nk-tags">
+            <span class="nk-tag">FPS</span><span class="nk-tag">Ranked</span>
+            <span class="nk-tag">English</span><span class="nk-tag">Drops On</span>
+          </div>
+        </div>
+
+        <div class="nk-goal-card">
+          <div class="nk-goal-head">
+            <span>🎯 Sub goal — new stream rig</span>
+            <span><strong id="nkGoalNow">$1,840</strong> <span class="nk-dim">of $3,000</span></span>
+          </div>
+          <div class="nk-goal-track"><div class="nk-goal-fill" id="nkGoalFill"></div></div>
+          <p class="nk-goal-note">Every gift goes straight to NOVAKAI — no platform cut.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= Chat ================= -->
+    <aside class="nk-chat">
+      <div class="nk-chat-head">
+        <span>Stream Chat</span>
+        <span class="nk-chat-count"><span id="nkChatters">3,204</span> chatting</span>
+      </div>
+
+      <div class="nk-chat-log" id="nkChatLog"></div>
+
+      <div class="nk-chat-quick" id="nkQuickGifts">
+        <span class="nk-chat-quick-label">Quick gift</span>
+        <button type="button" class="nk-quick" data-gift="pup" title="Pixel Pup"><svg><use href="#giftPup"/></svg></button>
+        <button type="button" class="nk-quick" data-gift="moth" title="Neon Moth"><svg><use href="#giftMoth"/></svg></button>
+        <button type="button" class="nk-quick" data-gift="cat" title="Glitch Cat"><svg><use href="#giftCat"/></svg></button>
+        <button type="button" class="nk-quick" data-gift="phoenix" title="Chrome Phoenix"><svg><use href="#giftPhoenix"/></svg></button>
+      </div>
+
+      <form class="nk-chat-form" id="nkChatForm">
+        <input type="text" id="nkChatInput" placeholder="Send a message…" autocomplete="off" maxlength="180" />
+        <button type="submit" class="nk-btn nk-btn-primary nk-send">Chat</button>
+      </form>
+    </aside>
+  </section>
+
+  <!-- ================= Gift shop ================= -->
+  <section class="nk-section" id="gifts">
+    <div class="nk-section-head">
+      <h2>Gift Shop</h2>
+      <p>Send a character on stream. It animates over the video, drops in chat, and puts you on the leaderboard.</p>
+    </div>
+
+    <div class="nk-gift-grid" id="nkGiftGrid">
+      <button type="button" class="nk-gift" data-gift="pup" data-name="Pixel Pup" data-price="0.50" data-rarity="common">
+        <span class="nk-gift-art"><svg><use href="#giftPup"/></svg></span>
+        <span class="nk-gift-name">Pixel Pup</span>
+        <span class="nk-gift-rarity r-common">Common</span>
+        <span class="nk-gift-price">$0.50</span>
+      </button>
+      <button type="button" class="nk-gift" data-gift="bee" data-name="Bitbee" data-price="1" data-rarity="common">
+        <span class="nk-gift-art"><svg><use href="#giftBee"/></svg></span>
+        <span class="nk-gift-name">Bitbee</span>
+        <span class="nk-gift-rarity r-common">Common</span>
+        <span class="nk-gift-price">$1</span>
+      </button>
+      <button type="button" class="nk-gift" data-gift="moth" data-name="Neon Moth" data-price="3" data-rarity="rare">
+        <span class="nk-gift-art"><svg><use href="#giftMoth"/></svg></span>
+        <span class="nk-gift-name">Neon Moth</span>
+        <span class="nk-gift-rarity r-rare">Rare</span>
+        <span class="nk-gift-price">$3</span>
+      </button>
+      <button type="button" class="nk-gift" data-gift="cat" data-name="Glitch Cat" data-price="7" data-rarity="rare">
+        <span class="nk-gift-art"><svg><use href="#giftCat"/></svg></span>
+        <span class="nk-gift-name">Glitch Cat</span>
+        <span class="nk-gift-rarity r-rare">Rare</span>
+        <span class="nk-gift-price">$7</span>
+      </button>
+      <button type="button" class="nk-gift" data-gift="wolf" data-name="Void Wolf" data-price="15" data-rarity="epic">
+        <span class="nk-gift-art"><svg><use href="#giftWolf"/></svg></span>
+        <span class="nk-gift-name">Void Wolf</span>
+        <span class="nk-gift-rarity r-epic">Epic</span>
+        <span class="nk-gift-price">$15</span>
+      </button>
+      <button type="button" class="nk-gift" data-gift="phoenix" data-name="Chrome Phoenix" data-price="35" data-rarity="epic">
+        <span class="nk-gift-art"><svg><use href="#giftPhoenix"/></svg></span>
+        <span class="nk-gift-name">Chrome Phoenix</span>
+        <span class="nk-gift-rarity r-epic">Epic</span>
+        <span class="nk-gift-price">$35</span>
+      </button>
+      <button type="button" class="nk-gift" data-gift="kraken" data-name="Star Kraken" data-price="75" data-rarity="legendary">
+        <span class="nk-gift-art"><svg><use href="#giftKraken"/></svg></span>
+        <span class="nk-gift-name">Star Kraken</span>
+        <span class="nk-gift-rarity r-legendary">Legendary</span>
+        <span class="nk-gift-price">$75</span>
+      </button>
+      <button type="button" class="nk-gift nk-gift-myth" data-gift="titan" data-name="Galaxy Titan" data-price="150" data-rarity="mythic">
+        <span class="nk-gift-art"><svg><use href="#giftTitan"/></svg></span>
+        <span class="nk-gift-name">Galaxy Titan</span>
+        <span class="nk-gift-rarity r-mythic">Mythic</span>
+        <span class="nk-gift-price">$150</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= Leaderboard ================= -->
+  <section class="nk-section" id="top">
+    <div class="nk-section-head">
+      <h2>Top Supporters</h2>
+      <p>This month. Resets on the 1st — the top three get a shout-out and a custom chat badge.</p>
+    </div>
+    <ol class="nk-board" id="nkBoard">
+      <li class="nk-board-row rank-1"><span class="nk-rank">1</span><span class="nk-board-name">ZEROFRAME</span><span class="nk-board-gift"><svg><use href="#giftTitan"/></svg></span><span class="nk-board-amt">$742</span></li>
+      <li class="nk-board-row rank-2"><span class="nk-rank">2</span><span class="nk-board-name">mochi_wav</span><span class="nk-board-gift"><svg><use href="#giftKraken"/></svg></span><span class="nk-board-amt">$518</span></li>
+      <li class="nk-board-row rank-3"><span class="nk-rank">3</span><span class="nk-board-name">Halcyon_TV</span><span class="nk-board-gift"><svg><use href="#giftPhoenix"/></svg></span><span class="nk-board-amt">$430</span></li>
+      <li class="nk-board-row"><span class="nk-rank">4</span><span class="nk-board-name">bitrot</span><span class="nk-board-gift"><svg><use href="#giftWolf"/></svg></span><span class="nk-board-amt">$295</span></li>
+      <li class="nk-board-row"><span class="nk-rank">5</span><span class="nk-board-name">sundown.exe</span><span class="nk-board-gift"><svg><use href="#giftCat"/></svg></span><span class="nk-board-amt">$188</span></li>
+      <li class="nk-board-row"><span class="nk-rank">6</span><span class="nk-board-name">Kestrel</span><span class="nk-board-gift"><svg><use href="#giftMoth"/></svg></span><span class="nk-board-amt">$121</span></li>
+    </ol>
+  </section>
+
+  <!-- ================= Schedule ================= -->
+  <section class="nk-section" id="schedule">
+    <div class="nk-section-head">
+      <h2>Schedule</h2>
+      <p>All times AEST. Notifications go out 15 minutes before I go live.</p>
+    </div>
+    <div class="nk-sched">
+      <div class="nk-sched-day is-live"><span class="nk-sched-d">FRI</span><span class="nk-sched-t">7:00 PM</span><span class="nk-sched-n">Ranked Push</span><span class="nk-sched-badge">Live now</span></div>
+      <div class="nk-sched-day"><span class="nk-sched-d">SAT</span><span class="nk-sched-t">2:00 PM</span><span class="nk-sched-n">Community Games</span></div>
+      <div class="nk-sched-day"><span class="nk-sched-d">SUN</span><span class="nk-sched-t">7:00 PM</span><span class="nk-sched-n">Watch Party</span></div>
+      <div class="nk-sched-day nk-sched-off"><span class="nk-sched-d">MON</span><span class="nk-sched-t">—</span><span class="nk-sched-n">Rest day</span></div>
+      <div class="nk-sched-day"><span class="nk-sched-d">TUE</span><span class="nk-sched-t">8:00 PM</span><span class="nk-sched-n">Ranked Duos</span></div>
+      <div class="nk-sched-day"><span class="nk-sched-d">WED</span><span class="nk-sched-t">8:00 PM</span><span class="nk-sched-n">Subathon</span></div>
+      <div class="nk-sched-day"><span class="nk-sched-d">THU</span><span class="nk-sched-t">7:30 PM</span><span class="nk-sched-n">Chill &amp; Chat</span></div>
+    </div>
+  </section>
+
+  <!-- ================= Clips ================= -->
+  <section class="nk-section" id="clips">
+    <div class="nk-section-head">
+      <h2>Top Clips</h2>
+      <p>The whole archive lives here, sorted how I want it — not buried down a feed.</p>
+    </div>
+    <div class="nk-clip-grid">
+      <article class="nk-clip"><div class="nk-clip-thumb nk-c1"><span class="nk-play">▶</span><span class="nk-clip-len">0:42</span></div><h4>1v4 clutch to close the series</h4><p>428k views · 2 days ago</p></article>
+      <article class="nk-clip"><div class="nk-clip-thumb nk-c2"><span class="nk-play">▶</span><span class="nk-clip-len">1:07</span></div><h4>Chat picks my loadout, chaos follows</h4><p>212k views · 5 days ago</p></article>
+      <article class="nk-clip"><div class="nk-clip-thumb nk-c3"><span class="nk-play">▶</span><span class="nk-clip-len">0:28</span></div><h4>Galaxy Titan drop — full reaction</h4><p>190k views · 1 week ago</p></article>
+      <article class="nk-clip"><div class="nk-clip-thumb nk-c4"><span class="nk-play">▶</span><span class="nk-clip-len">2:03</span></div><h4>24-hour subathon finale</h4><p>877k views · 3 weeks ago</p></article>
+    </div>
+  </section>
+
+  <!-- ================= Support / merch ================= -->
+  <section class="nk-section nk-support">
+    <div class="nk-support-grid">
+      <div class="nk-support-card">
+        <h3>Membership</h3>
+        <p>Sub-only streams, the Discord role, emotes, and every VOD the day it drops.</p>
+        <span class="nk-support-price">$6.99<span>/mo</span></span>
+        <button type="button" class="nk-btn nk-btn-primary nk-w">Join</button>
+      </div>
+      <div class="nk-support-card">
+        <h3>Merch</h3>
+        <p>The NOVAKAI drop — tees, mousepads, and the sticker pack chat keeps asking for.</p>
+        <span class="nk-support-price">From $29</span>
+        <button type="button" class="nk-btn nk-btn-ghost nk-w">Shop</button>
+      </div>
+      <div class="nk-support-card">
+        <h3>Business</h3>
+        <p>Sponsorships, collabs, and press. Straight to my inbox, no manager in between.</p>
+        <span class="nk-support-price">Get in touch</span>
+        <button type="button" class="nk-btn nk-btn-ghost nk-w">Email</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="nk-foot">
+    <p>NOVAKAI is a fictional streamer. This page is a concept build by
+      <a href="../../../index.html">DigiCode</a> — a demonstration of an independent streaming site with
+      its own player, chat, gifting and archive.</p>
+  </footer>
+</div>
+
+<script src="script.js?v=1"></script>
+</body>
+</html>
