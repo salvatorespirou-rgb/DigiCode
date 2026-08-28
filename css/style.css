@@ -136,11 +136,13 @@ h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; }
   filter: drop-shadow(0 0 14px rgba(109, 78, 232, 0.5));
 }
 .page-hero-logo {
-  height: 170px;
+  /* Fed by the 1024px transparent artwork, not the 256px favicon-sized one,
+     so it stays crisp at this size instead of being upscaled soft. */
+  height: 280px;
   width: auto;
 }
 @media (max-width: 640px) {
-  .page-hero-logo { height: 110px; }
+  .page-hero-logo { height: 180px; }
 }
 
 .cart-icon-link,
