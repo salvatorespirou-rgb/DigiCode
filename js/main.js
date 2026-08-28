@@ -1532,9 +1532,49 @@ if (devTabs.length) {
   // flip back to the Dev pipeline — the switch above is a Dev-only testing tool.
   // The portal's auth gate (portal.html) resolves the session/role asynchronously,
   // so this waits for that to finish rather than assuming it's already set.
+  // Greet whoever actually signed in by their first name. The name can come
+  // from a few places depending on who they are, so try them in order of
+  // how trustworthy they are and fall back gracefully:
+  //   1. their profile name — set automatically for devs at signup
+  //   2. the developer roster, matched on email
+  //   3. the client name on one of their own projects
+  //   4. the email's local part, tidied up
+  // and only if all of that comes up empty, the old generic role word.
+  function firstNameOf(full) {
+    if (!full) return null;
+    const first = String(full).trim().split(/[\s,]+/)[0];
+    if (!first) return null;
+    return first.charAt(0).toUpperCase() + first.slice(1);
+  }
+
+  function resolvePortalFirstName() {
+    const email = (window.veloraPortalEmail || "").toLowerCase();
+
+    const fromProfile = firstNameOf(window.veloraPortalName);
+    if (fromProfile) return fromProfile;
+
+    const dev = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    const fromRoster = firstNameOf(dev && dev.name);
+    if (fromRoster) return fromRoster;
+
+    const project = getProjects().find((p) => (p.clientEmail || "").toLowerCase() === email);
+    const fromProject = firstNameOf(project && project.clientName);
+    if (fromProject) return fromProject;
+
+    // Last resort: "jane.doe@…" → "Jane". Split on the usual separators so
+    // we don't greet someone by their whole address.
+    const local = email.split("@")[0] || "";
+    return firstNameOf(local.split(/[._\-+0-9]+/).filter(Boolean)[0]);
+  }
+
   function applyPortalRole() {
     const portalRole = window.veloraPortalRole;
-    if (portalWelcomeName) portalWelcomeName.textContent = portalRole === "client" ? "Client." : "Dev.";
+    if (portalWelcomeName) {
+      const firstName = resolvePortalFirstName();
+      portalWelcomeName.textContent = firstName
+        ? `${firstName}.`
+        : portalRole === "client" ? "Client." : "Dev.";
+    }
     if (portalRole === "client") {
       if (viewSwitchRow) viewSwitchRow.hidden = true;
       if (devViewContainer) devViewContainer.hidden = true;

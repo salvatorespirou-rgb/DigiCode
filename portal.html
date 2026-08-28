@@ -37,11 +37,15 @@
       }
       const { data: profile } = await veloraSupabase
         .from("profiles")
-        .select("role, email")
+        .select("role, email, name")
         .eq("id", session.user.id)
         .single();
       window.veloraPortalRole = profile ? profile.role : "client";
       window.veloraPortalEmail = session.user.email;
+      // Devs get their name copied onto the profile at signup (see
+      // supabase/003); clients don't, so this can be null and main.js falls
+      // back to the roster / project records to greet them by name.
+      window.veloraPortalName = profile ? profile.name : null;
       document.body.style.visibility = "visible";
       document.dispatchEvent(new CustomEvent("velora-auth-ready"));
     })();
