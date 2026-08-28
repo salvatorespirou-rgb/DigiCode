@@ -1,5 +1,5 @@
 /* ============================================================
-   NOVAKAI concept — simulated stream activity.
+   JEFFOS concept — simulated stream activity.
    Everything here is fake by design: the chat, the gifts and the
    counters exist to show what an independent streaming page feels
    like when it's running. No network calls, no storage.
@@ -36,7 +36,7 @@
   ];
 
   var LINES = [
-    "that rotation was clean", "NOVAKAI ACTUALLY COOKED", "how is he still alive",
+    "that rotation was clean", "JEFFOS ACTUALLY COOKED", "how is he still alive",
     "chat we're so back", "sens settings pls", "third clutch this stream",
     "the aim is unreal today", "no way that landed", "up 40 points already",
     "first time here, this is sick", "the site is so much smoother than twitch ngl",
@@ -99,7 +99,7 @@
     el.innerHTML =
       '<svg aria-hidden="true"><use href="#' + gift.symbol + '"/></svg>' +
       "<div><b style=\"color:" + colorFor(user) + '">' + escapeHtml(user) + "</b> " +
-      "sent <b>" + gift.name + "</b><br><span class=\"nk-msg-body\">$" + gift.price.toFixed(2) + " · 100% to NOVAKAI</span></div>";
+      "sent <b>" + gift.name + "</b><br><span class=\"nk-msg-body\">$" + gift.price.toFixed(2) + " · 100% to JEFFOS</span></div>";
     push(el);
   }
 
@@ -176,7 +176,7 @@
     followBtn.textContent = following ? "✓ Following" : "＋ Follow";
     followBtn.classList.toggle("is-following", following);
     if (following) {
-      addMessage("NOVAKAI_BOT", "mod", "Welcome in — thanks for the follow!");
+      addMessage("JEFFOS_BOT", "mod", "Welcome in — thanks for the follow!");
     }
   });
 

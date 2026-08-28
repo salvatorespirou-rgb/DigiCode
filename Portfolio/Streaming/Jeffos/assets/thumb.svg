@@ -66,7 +66,7 @@
     <circle cx="612" cy="275" r="13" fill="#a06bff"/>
     <ellipse cx="612" cy="275" rx="17" ry="5" fill="none" stroke="#ffd1f5" stroke-width="1.6" transform="rotate(-22 612 275)"/>
     <text x="634" y="272" font-family="'Chakra Petch',system-ui,sans-serif" font-size="12" font-weight="700" fill="#eaf0ff">Galaxy Titan</text>
-    <text x="634" y="287" font-family="Inter,system-ui,sans-serif" font-size="10" fill="#8e9ac4">$150 · 100% to NOVAKAI</text>
+    <text x="634" y="287" font-family="Inter,system-ui,sans-serif" font-size="10" fill="#8e9ac4">$150 · 100% to JEFFOS</text>
     <rect x="590" y="312" width="120" height="28" rx="9" fill="#04070f" stroke="#7df0ff" stroke-opacity="0.25"/>
     <text x="602" y="331" font-family="Inter,system-ui,sans-serif" font-size="11" fill="#5f6c94">Send a message…</text>
     <rect x="718" y="312" width="42" height="28" rx="9" fill="url(#ink)"/>
@@ -80,7 +80,7 @@
     <text x="250" y="230" font-family="Inter,system-ui,sans-serif" font-size="13" fill="#8e9ac4">$35.00 · 100% to the streamer</text>
 
     <!-- name plate -->
-    <text x="30" y="452" font-family="'Chakra Petch',system-ui,sans-serif" font-size="46" font-weight="700" fill="#ffffff" letter-spacing="5">NOVAKAI</text>
+    <text x="30" y="452" font-family="'Chakra Petch',system-ui,sans-serif" font-size="46" font-weight="700" fill="#ffffff" letter-spacing="5">JEFFOS</text>
     <rect x="32" y="466" width="150" height="4" rx="2" fill="url(#ink)"/>
   </g>
 </svg>
