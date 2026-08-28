@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Own Your Platform — DigiCode</title>
+  <meta name="description" content="Stop renting your audience. A DigiCode site lets you stream, take tips, sell memberships and run your own app — and keep what you earn." />
+  <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=6" />
+</head>
+<body>
+
+  <img src="assets/images/digicode-logo-transparent.png" alt="" class="page-watermark" aria-hidden="true" />
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#work">Management</a></li>
+          <li><a href="own-your-platform.html">Own Your Platform</a></li>
+          <li><a href="digicode-gaming.html">DigiCode Gaming</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="header-icons">
+      <a href="signin.html" class="profile-icon-link" aria-label="Sign in">
+        <svg class="profile-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </a>
+      <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="cart-badge" hidden>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero. The drifting orbs and grid behind this are drawn in CSS
+         (see .oyp-* rules) rather than being stock photography — nothing to
+         licence, nothing extra to download, and it can't date. -->
+    <section class="page-hero oyp-hero">
+      <div class="oyp-bg" aria-hidden="true">
+        <span class="oyp-orb oyp-orb-1"></span>
+        <span class="oyp-orb oyp-orb-2"></span>
+        <span class="oyp-orb oyp-orb-3"></span>
+        <span class="oyp-grid"></span>
+      </div>
+      <div class="container">
+        <a href="index.html" class="page-hero-logo-link" aria-label="DigiCode home">
+          <img src="assets/images/digicode-logo-transparent.png" alt="DigiCode" class="page-hero-logo" />
+        </a>
+        <p class="eyebrow">Own Your Platform</p>
+        <h1>Stop renting your <span class="gradient-text">audience.</span></h1>
+        <p class="hero-sub">
+          Right now your channel lives on someone else's land. They set the rules, they own the
+          relationship with your viewers, and they take a slice of everything you make. One website
+          changes all three.
+        </p>
+        <div class="quick-links-row">
+          <a href="services/social.html" class="quick-link-tab">Start My Platform</a>
+          <a href="#possibilities" class="quick-link-tab">See What's Possible</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- The argument, in plain terms. -->
+    <section class="request-form-section">
+      <div class="container">
+        <div class="oyp-split">
+          <div class="oyp-split-col oyp-rented">
+            <span class="oyp-split-tag">On a big platform</span>
+            <ul class="oyp-list">
+              <li>They keep a cut of subs, tips and ad money — often 30&ndash;50% on the major ones.</li>
+              <li>The algorithm decides who sees you. Post at the wrong hour and it's gone.</li>
+              <li>Your followers are <em>their</em> users. You can't email them.</li>
+              <li>A rule changes, a strike lands, and years of work can vanish overnight.</li>
+              <li>You look like every other channel on the site.</li>
+              <li>Want a new feature? Wait and hope they build it.</li>
+            </ul>
+          </div>
+          <div class="oyp-split-col oyp-owned">
+            <span class="oyp-split-tag">On your own site</span>
+            <ul class="oyp-list">
+              <li>Tips and memberships come straight to you — you keep what you earn, minus card fees.</li>
+              <li>No algorithm. Your people land on your page, every time.</li>
+              <li>Your audience list is yours. Email them whenever you like.</li>
+              <li>Nobody can switch it off. It's your domain and your data.</li>
+              <li>It looks like <em>you</em> — not a template with your logo dropped in.</li>
+              <li>Want a new feature? Message us. It gets built.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="portal-note oyp-footnote">
+          Card processing always costs something &mdash; that's the payment provider, not us, and it's
+          a small fraction of a platform's cut. The point is simple: the middle layer disappears.
+        </p>
+      </div>
+    </section>
+
+    <!-- The floating possibility cards. -->
+    <section id="possibilities" class="request-form-section oyp-cards-section">
+      <div class="oyp-bg oyp-bg-soft" aria-hidden="true">
+        <span class="oyp-orb oyp-orb-4"></span>
+        <span class="oyp-orb oyp-orb-5"></span>
+      </div>
+      <div class="container">
+        <h2 class="section-title" style="text-align:center;">What your site could actually do</h2>
+        <p class="section-sub" style="text-align:center; max-width:640px; margin:0 auto 40px;">
+          None of this is a "premium tier" you unlock later. It's just what we build. Pick the pieces
+          you want now and add the rest whenever you're ready.
+        </p>
+
+        <div class="oyp-card-grid">
+          <article class="oyp-card">
+            <span class="oyp-card-icon">📡</span>
+            <h3>Stream from your own page</h3>
+            <p>Go live on your site instead of only on someone else's. Embed the stream you already run, or host it yourself — either way your viewers arrive at <em>your</em> address, not a channel buried in a feed.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">🎁</span>
+            <h3>Gifting &amp; tips that reach you</h3>
+            <p>Let people send a tip, buy you a coffee, or gift a membership to someone else — with the money landing in your account rather than being held, split and paid out on someone else's schedule.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">⭐</span>
+            <h3>Memberships &amp; subscriber perks</h3>
+            <p>Your own tiers, your own prices, your own perks. Members-only posts, early access, private chat, subscriber-only streams — and you decide what each level gets, not a platform's rulebook.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">📱</span>
+            <h3>Your own app</h3>
+            <p>The same site, installable on a phone with your icon on the home screen — and a real iOS/Android build when you're ready for it. Push a notification when you go live instead of hoping the algorithm tells people.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">💬</span>
+            <h3>A community that's yours</h3>
+            <p>Live chat during streams, a forum, comments, a members' wall. Your community stops being an account you rent and becomes something you actually own and can move.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">🛍️</span>
+            <h3>Merch &amp; digital sales</h3>
+            <p>Sell shirts, presets, packs, guides, tickets — whatever your thing is. No marketplace fee on top, no waiting for approval, and the checkout matches the rest of your site.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">🎬</span>
+            <h3>Your back catalogue, organised</h3>
+            <p>Every VOD, clip and highlight in one place, sorted how you want — not dumped in a reverse-chronological list. Old work keeps earning instead of disappearing down a feed.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">🔗</span>
+            <h3>One home for every platform</h3>
+            <p>Keep posting wherever you like — this becomes the hub they all point at. One link in every bio, and it's a real site with your name on it rather than a list of buttons on a service you don't control.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">📊</span>
+            <h3>Numbers you can actually see</h3>
+            <p>Who's visiting, what they read, what converts — the real picture, not a dashboard built to keep you posting. It's your data, and we'll walk you through what it's telling you.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">✉️</span>
+            <h3>A mailing list nobody can take</h3>
+            <p>The single most valuable thing on this page. Followers live on a platform; an email list lives with you. If every platform vanished tomorrow, you'd still be able to reach your people.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">🗓️</span>
+            <h3>Bookings, events &amp; tickets</h3>
+            <p>Coaching slots, meet-ups, watch parties, paid one-to-ones. Take the booking and the payment on your own site instead of juggling three separate tools.</p>
+          </article>
+
+          <article class="oyp-card">
+            <span class="oyp-card-icon">♾️</span>
+            <h3>Change anything, anytime</h3>
+            <p>New colour, new section, whole new page, a feature you thought of in the shower — message us and it happens. No plan upgrade, no ticket queue, no "that's not supported."</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grounding it: this works whoever you are. -->
+    <section class="request-form-section" style="padding-top:0;">
+      <div class="container">
+        <h2 class="section-title" style="text-align:center;">Whatever you're doing it for</h2>
+        <div class="oyp-who-grid">
+          <div class="oyp-who">
+            <h3>🎮 Gaming &amp; streaming</h3>
+            <p>Streams, schedules, clips, a Discord link, subscriber perks and gifting — all in one place with your branding, so a new viewer sees a proper setup instead of a default profile.</p>
+          </div>
+          <div class="oyp-who">
+            <h3>💼 Business &amp; brand</h3>
+            <p>A social presence is where people find you; a website is where they decide to trust you. Bring the audience across and give them somewhere real to land, book and buy.</p>
+          </div>
+          <div class="oyp-who">
+            <h3>🌱 Personal &amp; creative</h3>
+            <p>A portfolio, a blog, a place for your work that isn't cropped to fit someone's grid. Your corner of the internet, exactly how you want it, for less than most people think.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Close. -->
+    <section class="request-form-section" style="padding-top:0;">
+      <div class="container">
+        <div class="portal-card oyp-cta">
+          <h2 class="section-title" style="margin-bottom:12px;">It can start as one page</h2>
+          <p class="section-sub" style="margin-bottom:24px;">
+            You don't need all of the above on day one. Plenty of this starts as a single page with your
+            name, your links and a way to take a tip — and grows from there as you do. Tell us what
+            you're running and we'll tell you honestly what's worth building first.
+          </p>
+          <a href="services/social.html" class="btn btn-primary btn-large">Start My Platform</a>
+          <p class="portal-note" style="margin-top:18px;">
+            Not sure yet? <a href="index.html#contact">Just ask us</a> — no pressure, no sales pitch.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> DigiCode. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="js/main.js?v=5"></script>
+</body>
+</html>

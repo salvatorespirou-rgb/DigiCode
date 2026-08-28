@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css?v=5" />
+  <link rel="stylesheet" href="../css/style.css?v=6" />
 </head>
 <body>
 
@@ -23,6 +23,7 @@
           <li><a href="../index.html">Home</a></li>
           <li><a href="../index.html#services">Services</a></li>
           <li><a href="../index.html#work">Management</a></li>
+          <li><a href="../own-your-platform.html">Own Your Platform</a></li>
           <li><a href="../digicode-gaming.html">DigiCode Gaming</a></li>
           <li><a href="../index.html#about">About</a></li>
           <li><a href="../index.html#contact">Contact</a></li>
@@ -80,6 +81,77 @@
               <div class="form-group">
                 <label for="mobile">Mobile Number</label>
                 <input type="tel" id="mobile" name="mobile" data-label="Mobile" placeholder="Optional" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Where You Are Now</h2>
+            <p class="form-note" style="margin-top:-6px;">
+              This tells us what you've already built up, so we can suggest what's actually worth
+              doing rather than guessing. <a href="../own-your-platform.html">See what's possible →</a>
+            </p>
+
+            <div class="form-group">
+              <span class="form-label">Which platforms are you on? (tick any)</span>
+              <div class="checkbox-grid">
+                <label class="radio-option"><input type="checkbox" name="platformYouTube" data-label="Platform: YouTube" /> YouTube</label>
+                <label class="radio-option"><input type="checkbox" name="platformTwitch" data-label="Platform: Twitch" /> Twitch</label>
+                <label class="radio-option"><input type="checkbox" name="platformKick" data-label="Platform: Kick" /> Kick</label>
+                <label class="radio-option"><input type="checkbox" name="platformTikTok" data-label="Platform: TikTok" /> TikTok</label>
+                <label class="radio-option"><input type="checkbox" name="platformInstagram" data-label="Platform: Instagram" /> Instagram</label>
+                <label class="radio-option"><input type="checkbox" name="platformFacebook" data-label="Platform: Facebook" /> Facebook</label>
+                <label class="radio-option"><input type="checkbox" name="platformX" data-label="Platform: X / Twitter" /> X (Twitter)</label>
+                <label class="radio-option"><input type="checkbox" name="platformDiscord" data-label="Platform: Discord" /> Discord</label>
+                <label class="radio-option"><input type="checkbox" name="platformPatreon" data-label="Platform: Patreon" /> Patreon</label>
+                <label class="radio-option"><input type="checkbox" name="platformNone" data-label="Platform: Not on any yet" /> Not on any yet</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="platformOther">Anywhere else, and your handle/links</label>
+              <input type="text" id="platformOther" name="platformOther" data-label="Other platforms / handles" placeholder="e.g. @myhandle, twitch.tv/myname" />
+            </div>
+
+            <div class="form-group">
+              <span class="form-label">What are you using it for?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="platformUse" value="business" data-label="Using platform for: Business" /> Business</label>
+                <label class="radio-option"><input type="radio" name="platformUse" value="gaming" data-label="Using platform for: Gaming / streaming" /> Gaming / streaming</label>
+                <label class="radio-option"><input type="radio" name="platformUse" value="personal" data-label="Using platform for: Personal / creative" /> Personal / creative</label>
+                <label class="radio-option"><input type="radio" name="platformUse" value="mix" data-label="Using platform for: A mix" /> A bit of everything</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="audienceSize">Roughly how big is your following?</label>
+              <input type="text" id="audienceSize" name="audienceSize" data-label="Audience size" placeholder="e.g. 2k on TikTok, 400 on Twitch — or just starting out" />
+            </div>
+
+            <div class="form-group">
+              <span class="form-label">Do you currently earn anything from it?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="earnsNow" value="yes" data-label="Earning from platform: Yes" /> Yes</label>
+                <label class="radio-option"><input type="radio" name="earnsNow" value="little" data-label="Earning from platform: A little" /> A little</label>
+                <label class="radio-option"><input type="radio" name="earnsNow" value="no" data-label="Earning from platform: Not yet" /> Not yet</label>
+                <label class="radio-option"><input type="radio" name="earnsNow" value="wantTo" data-label="Earning from platform: Want to start" /> Want to start</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <span class="form-label">What would you want your site to do? (tick any)</span>
+              <div class="checkbox-grid">
+                <label class="radio-option"><input type="checkbox" name="wantStreaming" data-label="Wants: Streaming on own site" /> Stream from my own site</label>
+                <label class="radio-option"><input type="checkbox" name="wantTips" data-label="Wants: Tips & gifting" /> Tips &amp; gifting</label>
+                <label class="radio-option"><input type="checkbox" name="wantMemberships" data-label="Wants: Memberships / subscriptions" /> Memberships</label>
+                <label class="radio-option"><input type="checkbox" name="wantApp" data-label="Wants: Own app" /> My own app</label>
+                <label class="radio-option"><input type="checkbox" name="wantMerch" data-label="Wants: Merch / digital sales" /> Merch or digital sales</label>
+                <label class="radio-option"><input type="checkbox" name="wantCommunity" data-label="Wants: Community / chat" /> Community &amp; chat</label>
+                <label class="radio-option"><input type="checkbox" name="wantMailing" data-label="Wants: Mailing list" /> A mailing list</label>
+                <label class="radio-option"><input type="checkbox" name="wantVod" data-label="Wants: VOD / clip library" /> VOD &amp; clip library</label>
+                <label class="radio-option"><input type="checkbox" name="wantBookings" data-label="Wants: Bookings / events" /> Bookings or events</label>
+                <label class="radio-option"><input type="checkbox" name="wantHub" data-label="Wants: Hub for all platforms" /> A hub for all my links</label>
+                <label class="radio-option"><input type="checkbox" name="wantUnsure" data-label="Wants: Not sure, advise me" /> Not sure — advise me</label>
               </div>
             </div>
           </div>
@@ -279,6 +351,6 @@
     </div>
   </footer>
 
-  <script src="../js/main.js?v=4"></script>
+  <script src="../js/main.js?v=5"></script>
 </body>
 </html>
