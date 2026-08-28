@@ -29,6 +29,22 @@
   const JUMP_CUT_MULTIPLIER = 0.45;
   const MAX_FALL_SPEED = 920;
   const EMBER_LAUNCH_SPEED = 780;
+
+  // Swim physics, converted from the original 8-bit water levels' constants
+  // to this game's 40px tiles / per-second units. Three properties carry
+  // the whole feel: the stroke SETS vertical speed rather than adding to it
+  // (so a stroke always fully arrests a sink, no matter how fast you were
+  // dropping), sinking is roughly a tenth of land gravity, and there's no
+  // horizontal drag at all while off the seabed.
+  const SWIM_STROKE = -225;        // impulse, assigned not added
+  const SWIM_SINK_ACCEL = 352;
+  const SWIM_RISE_DECEL_HELD = 457; // holding the button after a stroke cuts the rise shorter
+  const SWIM_MAX_SINK = 600;
+  const SWIM_MAX_SPEED = 225;      // swimming
+  const SWIM_WALK_SPEED = 150;     // walking along the seabed
+  const SWIM_ACCEL = 334;
+  const SWIM_TURN_ACCEL = 668;     // turning around bites harder, same as the original
+  const SWIM_CEILING_Y = 44;       // keeps Habib from swimming up out of the sea
   const COYOTE_TIME = 0.09;
   const JUMP_BUFFER = 0.1;
   const MAX_JUMPS = 2;
@@ -69,6 +85,10 @@
   let LEVEL_COLS, PITS, PLATFORMS, BLOCKS, COINS, URNS, ENEMIES, PIPES, STAIRS;
   let FLAG_COL, MONSTER_COL, ARENA_START_COL;
   let STAGE_THEME, HAS_LAVA, EMBERS, MOVERS;
+  // Stage 4's underwater half. WATER_END_COL is where the sea stops and the
+  // dry coda (staircase → flag → hut) begins; EXIT_PIPE is the sideways
+  // pipe set into the wall between them, which is the only way across.
+  let HAS_WATER, WATER_END_COL, CORALS, FISH, EXIT_PIPE;
 
   // Builds a run of 1-tile-high ascending steps — {col, height} in tiles
   // above the ground — the classic Mario staircase leading up to a flag.
@@ -287,7 +307,93 @@
     };
   }
 
-  const STAGES = [stage1, stage2, stage3];
+  // Stage 4 — the drowned reef. Two halves: a long underwater stretch
+  // (swim physics, coral, fish, coin runs) walled off at the end by a
+  // sideways pipe, and a short dry coda past it that rejoins the usual
+  // staircase → flagpole → hut finish. Fish are lethal on contact and
+  // can't be stomped, so the whole stage is about threading gaps rather
+  // than clearing enemies.
+  function stage4() {
+    return {
+      name: "Stage 4",
+      theme: "ocean",
+      hasWater: true,
+      waterEndCol: 101,
+      exitPipe: { col: 98 },
+      levelCols: 132,
+      pits: [[30, 33], [58, 61]],
+      platforms: [
+        { col: 9, row: 6, len: 3 },
+        { col: 17, row: 4, len: 4 },
+        { col: 24, row: 7, len: 3 },
+        { col: 35, row: 5, len: 4 },
+        { col: 47, row: 3, len: 3 },
+        { col: 55, row: 6, len: 4 },
+        { col: 66, row: 4, len: 5 },
+        { col: 74, row: 6, len: 3 },
+        { col: 82, row: 3, len: 4 },
+        { col: 89, row: 6, len: 4 },
+      ],
+      // Coral stalks growing off the seabed — solid, so they double as
+      // bollards that break the open water into lanes.
+      corals: [
+        { col: 6, height: 3 }, { col: 13, height: 2 }, { col: 21, height: 4 },
+        { col: 27, height: 3 }, { col: 38, height: 2 }, { col: 44, height: 4 },
+        { col: 52, height: 3 }, { col: 64, height: 2 }, { col: 70, height: 4 },
+        { col: 78, height: 3 }, { col: 86, height: 2 }, { col: 93, height: 3 },
+      ],
+      blocks: [
+        { col: 11, row: 3, type: "coin" },
+        { col: 12, row: 3, type: "coin" },
+        { col: 19, row: 1, type: "star" },
+        { col: 29, row: 4, type: "coin" },
+        { col: 40, row: 3, type: "coin" },
+        { col: 41, row: 3, type: "coin" },
+        { col: 50, row: 5, type: "coin" },
+        { col: 62, row: 2, type: "coin" },
+        { col: 63, row: 2, type: "star" },
+        { col: 76, row: 3, type: "coin" },
+        { col: 84, row: 6, type: "coin" },
+        { col: 91, row: 2, type: "coin" },
+      ],
+      // Coin runs trace the swim path; the ones sitting inside the two
+      // seabed gaps are the risk/reward picks.
+      coins: [
+        { col: 3, row: 8 }, { col: 4, row: 7 }, { col: 5, row: 6 },
+        { col: 15, row: 7 }, { col: 16, row: 6 },
+        { col: 22, row: 3 }, { col: 23, row: 2 },
+        { col: 31, row: 8 }, { col: 32, row: 8 }, { col: 33, row: 8 },
+        { col: 42, row: 6 }, { col: 43, row: 5 },
+        { col: 53, row: 4 }, { col: 54, row: 3 },
+        { col: 59, row: 8 }, { col: 60, row: 8 },
+        { col: 68, row: 2 }, { col: 69, row: 2 },
+        { col: 79, row: 5 }, { col: 80, row: 4 },
+        { col: 87, row: 7 }, { col: 88, row: 6 },
+        { col: 95, row: 4 }, { col: 96, row: 5 },
+        { col: 105, row: 8 }, { col: 106, row: 8 },
+        { col: 110, row: 7 }, { col: 111, row: 7 },
+      ],
+      urns: [],
+      enemies: [],
+      pipes: [],
+      fish: [
+        { col: 14, row: 5, variant: "cheep", speed: 40, min: 10, max: 20, bob: 34 },
+        { col: 26, row: 3, variant: "cheep", speed: 55, min: 22, max: 32, bob: 28 },
+        { col: 34, row: 6, variant: "puffer", speed: 30, min: 30, max: 40, bob: 40 },
+        { col: 46, row: 4, variant: "cheep", speed: 60, min: 42, max: 54, bob: 30 },
+        { col: 57, row: 2, variant: "cheep", speed: 45, min: 52, max: 62, bob: 36 },
+        { col: 65, row: 7, variant: "puffer", speed: 28, min: 61, max: 71, bob: 34 },
+        { col: 72, row: 3, variant: "cheep", speed: 65, min: 68, max: 80, bob: 26 },
+        { col: 81, row: 6, variant: "cheep", speed: 50, min: 77, max: 87, bob: 32 },
+        { col: 90, row: 4, variant: "puffer", speed: 32, min: 86, max: 95, bob: 38 },
+      ],
+      flagCol: 124,
+      stairs: stairsUp(114, 7),
+      monsterCol: null,
+    };
+  }
+
+  const STAGES = [stage1, stage2, stage3, stage4];
   let currentStageIndex = 0;
 
   function loadStage(idx) {
@@ -308,6 +414,11 @@
     HAS_LAVA = !!s.hasLava;
     EMBERS = s.embers || [];
     MOVERS = s.movers || [];
+    HAS_WATER = !!s.hasWater;
+    WATER_END_COL = s.waterEndCol ?? 0;
+    CORALS = s.corals || [];
+    FISH = s.fish || [];
+    EXIT_PIPE = s.exitPipe || null;
     const worldEl = document.getElementById("rhWorld");
     if (worldEl) worldEl.textContent = String(idx + 1);
   }
@@ -354,6 +465,27 @@
     for (const s of STAIRS) {
       for (let h = 0; h < s.height; h++) tiles[GROUND_ROW - 1 - h][s.col] = "brick";
     }
+    // Coral stalks — solid, like the ones that break up the open water in
+    // the games this borrows its grammar from.
+    for (const c of CORALS) {
+      for (let h = 0; h < c.height; h++) tiles[GROUND_ROW - 1 - h][c.col] = "coral";
+    }
+    // The wall that closes off the sea, with a two-tile-tall pipe mouth
+    // punched through it at standing height. Walking into that mouth is
+    // the only way out of the underwater half (see the exit-pipe check in
+    // update()); the third column is the pipe's solid back wall.
+    if (EXIT_PIPE) {
+      const { col } = EXIT_PIPE;
+      for (let r = 0; r < GROUND_ROW; r++) {
+        tiles[r][col] = "brick";
+        tiles[r][col + 1] = "brick";
+        tiles[r][col + 2] = "brick";
+      }
+      tiles[GROUND_ROW - 2][col] = null;
+      tiles[GROUND_ROW - 1][col] = null;
+      tiles[GROUND_ROW - 2][col + 1] = null;
+      tiles[GROUND_ROW - 1][col + 1] = null;
+    }
     // The flagpole's tip sits just above the staircase's peak so jumping
     // off the top step reaches high on the pole, the way it does in the
     // games this is patterned after — its shaft (drawn in drawTile) then
@@ -369,7 +501,7 @@
     return tiles[row][col];
   }
   function isSolid(t) {
-    return t === "ground" || t === "brick" || t === "urn" || t === "pipe" || (t && t.kind === "box");
+    return t === "ground" || t === "brick" || t === "urn" || t === "pipe" || t === "coral" || (t && t.kind === "box");
   }
 
   // ---------------------------------------------------------------------
@@ -602,6 +734,7 @@
   // walk off into the hut. `phase` is null whenever a stage is being
   // played normally.
   let finishSeq;
+  let fish, bubbles, pipeSeq;
   let coinCount, lives, state, invincibleTimer, starTimer, respawnX, respawnY;
 
   function resetRun() {
@@ -660,10 +793,31 @@
       x: m.col * TILE, y: m.row * TILE, w: m.len * TILE, h: 14,
       range: m.range * TILE, speed: m.speed, phase: m.phase || 0, dx: 0, dy: 0,
     }));
+    // Fish drift along their lane and bob as they go. They never chase and
+    // never get stomped — touching one is simply fatal, so they read as
+    // hazards to thread past rather than enemies to fight.
+    fish = FISH.map((f) => ({
+      x: f.col * TILE,
+      baseY: f.row * TILE,
+      y: f.row * TILE,
+      w: f.variant === "puffer" ? 40 : 30,
+      h: f.variant === "puffer" ? 34 : 22,
+      vx: (f.dir ?? -1) * (f.speed ?? 45),
+      minX: (f.min ?? f.col - 5) * TILE,
+      maxX: (f.max ?? f.col + 5) * TILE,
+      bobPhase: Math.random() * Math.PI * 2,
+      bobRange: f.bob ?? 30,
+      variant: f.variant || "cheep",
+      finPhase: Math.random() * Math.PI * 2,
+    }));
+    bubbles = [];
     particles = [];
     camX = 0;
     flagRaised = false;
     finishSeq = { phase: null, t: 0, slideT: 0, alpha: 1 };
+    pipeSeq = { phase: null, t: 0, alpha: 1 };
+    player.swimKick = 0;
+    player.strokeAt = -999;
     invincibleTimer = 0;
     starTimer = 0;
     elapsedInLevel = 0;
@@ -1005,8 +1159,77 @@
     return { x, y, w: HUT_W, h: HUT_H, doorX: x + HUT_W / 2 };
   }
 
+  // True while Habib is in the flooded half of a water stage. The sea ends
+  // at a hard wall (WATER_END_COL), so this flips exactly once per run,
+  // when the exit pipe drops him out the far side.
+  function isUnderwater() {
+    return HAS_WATER && player.x + player.w / 2 < WATER_END_COL * TILE;
+  }
+
+  // Bubbles trail from Habib's mouth on the side he's facing, at two
+  // distinct rise speeds so the stream looks organic rather than uniform.
+  function spawnBubbles(n) {
+    for (let i = 0; i < n; i++) {
+      bubbles.push({
+        x: player.x + (player.facing > 0 ? player.w - 4 : 4) + (Math.random() - 0.5) * 6,
+        y: player.y + player.h * 0.28,
+        r: 1.8 + Math.random() * 2.4,
+        vy: -(Math.random() < 0.5 ? 149 : 47) * (0.8 + Math.random() * 0.4),
+        drift: (Math.random() - 0.5) * 18,
+        life: 0,
+        maxLife: 1.2 + Math.random() * 1.1,
+      });
+    }
+  }
+
   const SLIDE_SPEED = 240;
   const FINISH_WALK_SPEED = 95;
+
+  // Walking into the sideways pipe set into the sea wall carries Habib
+  // through to the dry coda on the other side — the same "water section →
+  // pipe → short land run → flag" shape the genre's water levels use.
+  function startPipeTransition() {
+    state = "cutscene";
+    pipeSeq.phase = "enter";
+    pipeSeq.t = 0;
+    player.vx = 0;
+    player.vy = 0;
+    player.facing = 1;
+    playFlag();
+  }
+
+  function updatePipeTransition(dt) {
+    pipeSeq.t += dt;
+    if (pipeSeq.phase === "enter") {
+      // Slide into the mouth and fade out.
+      player.x += 55 * dt;
+      player.runPhase += 55 * dt * 0.05;
+      pipeSeq.alpha = Math.max(0, 1 - pipeSeq.t / 0.6);
+      if (pipeSeq.t >= 0.8) {
+        // Pop out on dry land past the wall, back on normal footing.
+        player.x = (EXIT_PIPE.col + 5) * TILE;
+        player.y = GROUND_ROW * TILE - player.h;
+        player.vx = 0;
+        player.vy = 0;
+        player.onGround = true;
+        respawnX = player.x;
+        respawnY = player.y;
+        camX = Math.max(0, Math.min(player.x - WIDTH * 0.4, LEVEL_COLS * TILE - WIDTH));
+        pipeSeq.phase = "exit";
+        pipeSeq.t = 0;
+      }
+    } else if (pipeSeq.phase === "exit") {
+      pipeSeq.alpha = Math.min(1, pipeSeq.t / 0.45);
+      if (pipeSeq.t >= 0.5) {
+        pipeSeq.phase = "done";
+        pipeSeq.alpha = 1;
+        state = "playing";
+        startMusic();
+      }
+    }
+    const targetCamX = Math.max(0, Math.min(player.x - WIDTH * 0.4, LEVEL_COLS * TILE - WIDTH));
+    camX += (targetCamX - camX) * Math.min(1, dt * 6);
+  }
 
   function startFinishSequence() {
     state = "cutscene";
@@ -1070,6 +1293,10 @@
       updateFinishSequence(dt);
       return;
     }
+    if (pipeSeq.phase && pipeSeq.phase !== "done") {
+      updatePipeTransition(dt);
+      return;
+    }
     if (state !== "playing") return;
 
     if (invincibleTimer > 0) invincibleTimer = Math.max(0, invincibleTimer - dt);
@@ -1098,7 +1325,8 @@
     // while grounded, matching genre convention. Standing height is
     // whatever the CURRENT size tier's normal height is, so this stays
     // correct whether Habib is big or small when he ducks.
-    const wantsSquat = keys.down && player.onGround;
+    const underwater = isUnderwater();
+    const wantsSquat = keys.down && player.onGround && !underwater;
     if (wantsSquat !== player.squatting) {
       const tierH = player.big ? PLAYER_H_BIG : PLAYER_H;
       const newH = wantsSquat ? tierH * 0.62 : tierH;
@@ -1107,48 +1335,93 @@
       player.squatting = wantsSquat;
     }
 
-    // --- Player horizontal movement (accelerate/decelerate, not snap-to-speed) ---
-    const runMult = starTimer > 0 ? 1.4 : 1;
-    if (player.squatting) {
-      // Can't run while ducking — bleed off speed to a stop instead.
-      player.vx = player.vx > 0 ? Math.max(0, player.vx - MOVE_DECEL * dt) : Math.min(0, player.vx + MOVE_DECEL * dt);
-    } else if (keys.left && !keys.right) {
-      player.vx = Math.max(player.vx - MOVE_ACCEL * dt, -MAX_RUN_SPEED * runMult);
-      player.facing = -1;
-    } else if (keys.right && !keys.left) {
-      player.vx = Math.min(player.vx + MOVE_ACCEL * dt, MAX_RUN_SPEED * runMult);
-      player.facing = 1;
-    } else if (player.vx > 0) {
-      player.vx = Math.max(0, player.vx - MOVE_DECEL * dt);
-    } else if (player.vx < 0) {
-      player.vx = Math.min(0, player.vx + MOVE_DECEL * dt);
-    }
+    if (underwater) {
+      // --- Swimming ---
+      const maxH = player.onGround ? SWIM_WALK_SPEED : SWIM_MAX_SPEED;
+      if (keys.left && !keys.right) {
+        player.vx = Math.max(player.vx - (player.vx > 0 ? SWIM_TURN_ACCEL : SWIM_ACCEL) * dt, -maxH);
+        player.facing = -1;
+      } else if (keys.right && !keys.left) {
+        player.vx = Math.min(player.vx + (player.vx < 0 ? SWIM_TURN_ACCEL : SWIM_ACCEL) * dt, maxH);
+        player.facing = 1;
+      } else if (player.onGround) {
+        // Friction applies on the seabed only — drifting through open water
+        // with no input keeps your speed, which is what makes swimming
+        // feel glide-y rather than mushy.
+        player.vx = player.vx > 0 ? Math.max(0, player.vx - MOVE_DECEL * dt) : Math.min(0, player.vx + MOVE_DECEL * dt);
+      } else {
+        player.vx = Math.max(-maxH, Math.min(maxH, player.vx));
+      }
 
-    // --- Jump: coyote time + input buffer make edge-of-platform jumps feel fair.
-    // Habib also gets one extra mid-air jump (double jump) to clear taller
-    // obstacles — jumpsUsed resets the moment he touches ground again.
-    player.coyote = player.onGround ? COYOTE_TIME : Math.max(0, player.coyote - dt);
-    if (player.onGround) player.jumpsUsed = 0;
-    const now = performance.now() / 1000;
-    const jumpBuffered = keys.jumpPressedAt > 0 && now - keys.jumpPressedAt < JUMP_BUFFER;
-    const groundJump = jumpBuffered && player.coyote > 0;
-    const airJump = jumpBuffered && !groundJump && player.jumpsUsed < MAX_JUMPS;
-    if (groundJump || airJump) {
-      // The air jump takes the stronger of the player's current upward speed
-      // or its own kick, so it always adds real height instead of clipping
-      // an already-fast rise from an instant double-tap.
-      player.vy = groundJump ? JUMP_VELOCITY : Math.min(player.vy, JUMP_VELOCITY * 0.85);
-      player.coyote = 0;
-      player.jumpsUsed++;
-      keys.jumpPressedAt = -1;
-      playJump();
-      player.squash = 1.25;
-    }
+      const nowS = performance.now() / 1000;
+      const stroked = keys.jumpPressedAt > 0 && nowS - keys.jumpPressedAt < JUMP_BUFFER;
+      if (stroked) {
+        player.vy = SWIM_STROKE; // assigned, not added — always fully arrests a sink
+        keys.jumpPressedAt = -1;
+        player.jumpsUsed = 0;
+        player.strokeAt = elapsedInLevel;
+        playStomp();
+        spawnBubbles(2);
+      }
+      // Releasing the button after a stroke actually floats you a little
+      // higher, exactly as in the original — the "up" force is the stronger
+      // of the two, so letting go decelerates you more gently.
+      const risingHeld = player.vy < 0 && keys.jump;
+      player.vy = Math.min(player.vy + (risingHeld ? SWIM_RISE_DECEL_HELD : SWIM_SINK_ACCEL) * dt, SWIM_MAX_SINK);
 
-    player.vy = Math.min(player.vy + GRAVITY * dt, MAX_FALL_SPEED);
-    moveAndCollide(player, player.vx * dt, 0);
-    moveAndCollide(player, 0, player.vy * dt);
-    player.squash += (1 - player.squash) * Math.min(1, dt * 10);
+      moveAndCollide(player, player.vx * dt, 0);
+      moveAndCollide(player, 0, player.vy * dt);
+      // Don't let him break the surface.
+      if (player.y < SWIM_CEILING_Y) {
+        player.y = SWIM_CEILING_Y;
+        if (player.vy < 0) player.vy = 40;
+      }
+      player.swimKick += dt;
+      player.squash += (1 - player.squash) * Math.min(1, dt * 10);
+    } else {
+      // --- Player horizontal movement (accelerate/decelerate, not snap-to-speed) ---
+      const runMult = starTimer > 0 ? 1.4 : 1;
+      if (player.squatting) {
+        // Can't run while ducking — bleed off speed to a stop instead.
+        player.vx = player.vx > 0 ? Math.max(0, player.vx - MOVE_DECEL * dt) : Math.min(0, player.vx + MOVE_DECEL * dt);
+      } else if (keys.left && !keys.right) {
+        player.vx = Math.max(player.vx - MOVE_ACCEL * dt, -MAX_RUN_SPEED * runMult);
+        player.facing = -1;
+      } else if (keys.right && !keys.left) {
+        player.vx = Math.min(player.vx + MOVE_ACCEL * dt, MAX_RUN_SPEED * runMult);
+        player.facing = 1;
+      } else if (player.vx > 0) {
+        player.vx = Math.max(0, player.vx - MOVE_DECEL * dt);
+      } else if (player.vx < 0) {
+        player.vx = Math.min(0, player.vx + MOVE_DECEL * dt);
+      }
+
+      // --- Jump: coyote time + input buffer make edge-of-platform jumps feel fair.
+      // Habib also gets one extra mid-air jump (double jump) to clear taller
+      // obstacles — jumpsUsed resets the moment he touches ground again.
+      player.coyote = player.onGround ? COYOTE_TIME : Math.max(0, player.coyote - dt);
+      if (player.onGround) player.jumpsUsed = 0;
+      const now = performance.now() / 1000;
+      const jumpBuffered = keys.jumpPressedAt > 0 && now - keys.jumpPressedAt < JUMP_BUFFER;
+      const groundJump = jumpBuffered && player.coyote > 0;
+      const airJump = jumpBuffered && !groundJump && player.jumpsUsed < MAX_JUMPS;
+      if (groundJump || airJump) {
+        // The air jump takes the stronger of the player's current upward speed
+        // or its own kick, so it always adds real height instead of clipping
+        // an already-fast rise from an instant double-tap.
+        player.vy = groundJump ? JUMP_VELOCITY : Math.min(player.vy, JUMP_VELOCITY * 0.85);
+        player.coyote = 0;
+        player.jumpsUsed++;
+        keys.jumpPressedAt = -1;
+        playJump();
+        player.squash = 1.25;
+      }
+
+      player.vy = Math.min(player.vy + GRAVITY * dt, MAX_FALL_SPEED);
+      moveAndCollide(player, player.vx * dt, 0);
+      moveAndCollide(player, 0, player.vy * dt);
+      player.squash += (1 - player.squash) * Math.min(1, dt * 10);
+    }
 
     // --- Land on top of a moving platform — one-way, only catches a foot
     // that's falling onto (or resting right at) the platform's surface, so
@@ -1184,6 +1457,58 @@
         for (let c = leftCol; c <= rightCol; c++) {
           if (tileAt(r, c) === "lava") { loseLife(true); return; }
         }
+      }
+    }
+
+    // --- Fish: drift along their lane, bob as they go, turn at the ends.
+    // They never chase and can't be stomped — contact is simply fatal, so
+    // they're obstacles to time your way past rather than enemies.
+    for (const f of fish) {
+      f.x += f.vx * dt;
+      if (f.x < f.minX) { f.x = f.minX; f.vx = Math.abs(f.vx); }
+      else if (f.x > f.maxX) { f.x = f.maxX; f.vx = -Math.abs(f.vx); }
+      f.bobPhase += dt * 1.1;
+      f.finPhase += dt * 9;
+      f.y = f.baseY + Math.sin(f.bobPhase) * f.bobRange;
+      if (starTimer > 0 || invincibleTimer > 0) continue;
+      if (player.x + 5 < f.x + f.w && player.x + player.w - 5 > f.x &&
+          player.y + 5 < f.y + f.h && player.y + player.h - 5 > f.y) {
+        loseLife(true);
+        return;
+      }
+    }
+
+    // --- Bubbles: a steady trickle from Habib plus the odd one drifting up
+    // from the seabed, purely to sell that this is underwater.
+    if (isUnderwater()) {
+      if (Math.random() < dt * 2.2) spawnBubbles(1);
+      if (Math.random() < dt * 3.5) {
+        bubbles.push({
+          x: camX + Math.random() * WIDTH,
+          y: GROUND_ROW * TILE - 4,
+          r: 1.5 + Math.random() * 2,
+          vy: -(30 + Math.random() * 60),
+          drift: (Math.random() - 0.5) * 14,
+          life: 0,
+          maxLife: 2.5 + Math.random(),
+        });
+      }
+    }
+    for (const b of bubbles) {
+      b.life += dt;
+      b.y += b.vy * dt;
+      b.x += Math.sin(b.life * 3) * b.drift * dt;
+    }
+    bubbles = bubbles.filter((b) => b.life < b.maxLife && b.y > 0);
+
+    // --- Exit pipe: walking into the mouth carries him through to dry land.
+    if (EXIT_PIPE && !pipeSeq.phase) {
+      const mouthX = EXIT_PIPE.col * TILE;
+      const mouthY = (GROUND_ROW - 2) * TILE;
+      if (player.x + player.w > mouthX + 6 && player.x < mouthX + TILE * 2 &&
+          player.y + player.h > mouthY && player.y < GROUND_ROW * TILE) {
+        startPipeTransition();
+        return;
       }
     }
 
@@ -1356,6 +1681,25 @@
   // ---------------------------------------------------------------------
   function drawBackground() {
     if (STAGE_THEME === "castle") { drawCastleBackground(); return; }
+    // Stage 4 paints the shore sky first, then the sea clipped to the
+    // flooded half — so the boundary is one clean vertical line at the sea
+    // wall, matching where the tile palettes and the water tint also
+    // switch, instead of the whole backdrop popping over at once.
+    if (STAGE_THEME === "ocean") {
+      drawDesertBackground();
+      const edge = WATER_END_COL * TILE - camX;
+      if (edge > 0) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, Math.min(WIDTH, edge), HEIGHT); ctx.clip();
+        drawOceanBackground();
+        ctx.restore();
+      }
+      return;
+    }
+    drawDesertBackground();
+  }
+
+  function drawDesertBackground() {
     const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
     g.addColorStop(0, "#2b2158");
     g.addColorStop(0.55, "#7a4a6b");
@@ -1479,21 +1823,258 @@
     }
   }
 
+  // True when the tile/prop at this SCREEN x sits in the flooded half of
+  // the level — lets one palette branch serve both halves of Stage 4.
+  function oceanAt(screenX) {
+    return STAGE_THEME === "ocean" && screenX + camX < WATER_END_COL * TILE;
+  }
+
+  // Stage 4's sea — a deep sunlit water column with god rays slanting down,
+  // distant coral silhouettes on parallax, and a hazy seabed glow.
+  function drawOceanBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    g.addColorStop(0, "#3fb2d8");
+    g.addColorStop(0.35, "#1f6fae");
+    g.addColorStop(0.75, "#123f7d");
+    g.addColorStop(1, "#0b2350");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    // Surface shimmer along the very top.
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = `rgba(190, 240, 255, ${0.16 - i * 0.045})`;
+      ctx.beginPath();
+      const yBase = 6 + i * 7;
+      ctx.moveTo(0, yBase);
+      for (let x = 0; x <= WIDTH; x += 20) {
+        ctx.lineTo(x, yBase + Math.sin(x * 0.035 + elapsedInLevel * 1.6 + i) * 4);
+      }
+      ctx.lineTo(WIDTH, 0); ctx.lineTo(0, 0); ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Slanted god rays, drifting slowly.
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 6; i++) {
+      const rx = ((i * 190 - camX * 0.12) % (WIDTH + 320)) - 160;
+      const sway = Math.sin(elapsedInLevel * 0.4 + i) * 18;
+      const ray = ctx.createLinearGradient(rx + sway, 0, rx + sway + 90, HEIGHT);
+      ray.addColorStop(0, "rgba(180, 235, 255, 0.16)");
+      ray.addColorStop(1, "rgba(180, 235, 255, 0)");
+      ctx.fillStyle = ray;
+      ctx.beginPath();
+      ctx.moveTo(rx + sway, 0);
+      ctx.lineTo(rx + sway + 54, 0);
+      ctx.lineTo(rx + sway + 128, HEIGHT);
+      ctx.lineTo(rx + sway + 34, HEIGHT);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Distant coral silhouettes, parallax-scrolled. Rooted at the seabed
+    // line (not the canvas bottom) so they read as depth behind the
+    // playfield instead of being hidden under the floor tiles.
+    const seabedY = GROUND_ROW * TILE;
+    const far = camX * 0.35;
+    for (let i = -1; i < 10; i++) {
+      const bx = i * 150 - (far % 150);
+      ctx.fillStyle = "rgba(12, 40, 82, 0.5)";
+      for (let s = 0; s < 3; s++) {
+        const sx2 = bx + s * 26;
+        const hgt = 46 + ((i * 7 + s * 13) % 5) * 16;
+        ctx.fillRect(sx2, seabedY - hgt, 9, hgt);
+        ctx.beginPath(); ctx.arc(sx2 + 4.5, seabedY - hgt, 8, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // Hazy glow just above the seabed.
+    const haze = ctx.createLinearGradient(0, seabedY - 140, 0, seabedY);
+    haze.addColorStop(0, "rgba(60, 150, 200, 0)");
+    haze.addColorStop(1, "rgba(70, 170, 215, 0.3)");
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, seabedY - 140, WIDTH, 140);
+  }
+
+  // A soft blue cast plus drifting caustics over the flooded half only, so
+  // the boundary between sea and dry land reads clearly.
+  function drawWaterOverlay() {
+    if (STAGE_THEME !== "ocean") return;
+    const edge = WATER_END_COL * TILE - camX;
+    if (edge <= 0) return;
+    const w = Math.min(WIDTH, edge);
+    ctx.save();
+    ctx.fillStyle = "rgba(40, 130, 200, 0.16)";
+    ctx.fillRect(0, 0, w, HEIGHT);
+    ctx.beginPath(); ctx.rect(0, 0, w, HEIGHT); ctx.clip();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.strokeStyle = "rgba(180, 240, 255, 0.09)";
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 7; i++) {
+      const yy = 40 + i * 70;
+      ctx.beginPath();
+      for (let x = -40; x <= w + 40; x += 22) {
+        const off = Math.sin(x * 0.02 + elapsedInLevel * 1.1 + i * 1.3) * 9;
+        if (x === -40) ctx.moveTo(x, yy + off); else ctx.lineTo(x, yy + off);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Fish — original designs (a slim darter and a round puffer) rather than
+  // reskins of any particular game's water enemies. Tail and fins animate
+  // off finPhase, and the body tilts into the direction of travel.
+  function drawFish() {
+    for (const f of fish) {
+      const x = f.x - camX;
+      if (x + f.w < -30 || x > WIDTH + 30) continue;
+      const cx = x + f.w / 2, cy = f.y + f.h / 2;
+      const dir = f.vx >= 0 ? 1 : -1;
+      const tail = Math.sin(f.finPhase) * 0.5;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(Math.sin(f.bobPhase) * 0.12);
+      ctx.scale(dir, 1);
+
+      if (f.variant === "puffer") {
+        // Spines
+        ctx.fillStyle = "#7a4bb0";
+        for (let i = 0; i < 12; i++) {
+          const a = (i / 12) * Math.PI * 2;
+          const sp = 1 + Math.sin(f.finPhase * 0.5 + i) * 0.15;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * f.w * 0.34, Math.sin(a) * f.h * 0.36);
+          ctx.lineTo(Math.cos(a) * f.w * 0.5 * sp, Math.sin(a) * f.h * 0.54 * sp);
+          ctx.lineTo(Math.cos(a + 0.22) * f.w * 0.34, Math.sin(a + 0.22) * f.h * 0.36);
+          ctx.closePath(); ctx.fill();
+        }
+        // Tail
+        ctx.fillStyle = "#b07ae0";
+        ctx.beginPath();
+        ctx.moveTo(-f.w * 0.3, 0);
+        ctx.lineTo(-f.w * 0.62, -8 + tail * 6);
+        ctx.lineTo(-f.w * 0.62, 8 + tail * 6);
+        ctx.closePath(); ctx.fill();
+        // Body
+        const bg = ctx.createRadialGradient(-3, -4, 2, 0, 0, f.w * 0.44);
+        bg.addColorStop(0, "#e6b8ff"); bg.addColorStop(0.55, "#b476e8"); bg.addColorStop(1, "#6f3fa8");
+        ctx.fillStyle = bg;
+        ctx.beginPath(); ctx.ellipse(0, 0, f.w * 0.4, f.h * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.beginPath(); ctx.ellipse(-4, -6, f.w * 0.16, f.h * 0.12, -0.4, 0, Math.PI * 2); ctx.fill();
+      } else {
+        // Tail
+        ctx.fillStyle = "#ef7d4e";
+        ctx.beginPath();
+        ctx.moveTo(-f.w * 0.26, 0);
+        ctx.lineTo(-f.w * 0.6, -9 + tail * 7);
+        ctx.lineTo(-f.w * 0.6, 9 + tail * 7);
+        ctx.closePath(); ctx.fill();
+        // Top fin
+        ctx.fillStyle = "#f39a63";
+        ctx.beginPath();
+        ctx.moveTo(-2, -f.h * 0.36);
+        ctx.lineTo(4 + tail * 3, -f.h * 0.66);
+        ctx.lineTo(10, -f.h * 0.3);
+        ctx.closePath(); ctx.fill();
+        // Body
+        const bg = ctx.createLinearGradient(0, -f.h * 0.4, 0, f.h * 0.4);
+        bg.addColorStop(0, "#ffd08a"); bg.addColorStop(0.45, "#f7913f"); bg.addColorStop(1, "#c85f22");
+        ctx.fillStyle = bg;
+        ctx.beginPath(); ctx.ellipse(0, 0, f.w * 0.42, f.h * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+        // Side stripe
+        ctx.fillStyle = "rgba(255, 240, 200, 0.5)";
+        ctx.beginPath(); ctx.ellipse(2, 1, f.w * 0.24, f.h * 0.12, 0, 0, Math.PI * 2); ctx.fill();
+        // Pectoral fin, flapping
+        ctx.fillStyle = "rgba(239, 125, 78, 0.9)";
+        ctx.beginPath();
+        ctx.ellipse(1, f.h * 0.18, 6, 3 + Math.abs(tail) * 2, 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Eye — shared by both variants
+      ctx.fillStyle = "#fff";
+      ctx.beginPath(); ctx.arc(f.w * 0.22, -f.h * 0.1, 4.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#1b1020";
+      ctx.beginPath(); ctx.arc(f.w * 0.24, -f.h * 0.1, 2.1, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawBubbles() {
+    ctx.save();
+    for (const b of bubbles) {
+      const x = b.x - camX;
+      if (x < -20 || x > WIDTH + 20) continue;
+      const fade = 1 - b.life / b.maxLife;
+      ctx.strokeStyle = `rgba(214, 245, 255, ${0.55 * fade})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(x, b.y, b.r, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.22 * fade})`;
+      ctx.beginPath(); ctx.arc(x - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // The sideways pipe set into the sea wall — drawn whole so the rim reads
+  // as one piece, in the same aged bronze as the stage-2 pipes.
+  function drawExitPipe() {
+    if (!EXIT_PIPE) return;
+    const x = EXIT_PIPE.col * TILE - camX;
+    const y = (GROUND_ROW - 2) * TILE;
+    const w = TILE * 2, h = TILE * 2;
+    if (x + w < -20 || x > WIDTH + 20) return;
+
+    // Dark interior
+    const inner = ctx.createLinearGradient(x, y, x + w, y);
+    inner.addColorStop(0, "#08120f");
+    inner.addColorStop(1, "#123028");
+    ctx.fillStyle = inner;
+    ctx.fillRect(x, y, w, h);
+
+    // Shaft banding
+    const body = ctx.createLinearGradient(0, y, 0, y + h);
+    body.addColorStop(0, "#5cab94"); body.addColorStop(0.5, "#3a7d6b"); body.addColorStop(1, "#1f3d36");
+    ctx.fillStyle = body;
+    ctx.fillRect(x + 14, y, w - 14, 9);
+    ctx.fillRect(x + 14, y + h - 9, w - 14, 9);
+
+    // Flared rim at the mouth
+    const collar = ctx.createLinearGradient(0, y - 6, 0, y + h + 6);
+    collar.addColorStop(0, "#c48a3f"); collar.addColorStop(0.5, "#6b471f"); collar.addColorStop(1, "#c48a3f");
+    ctx.fillStyle = collar;
+    ctx.fillRect(x, y - 6, 14, h + 12);
+    ctx.strokeStyle = "rgba(35, 22, 8, 0.6)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, y - 5.5, 13, h + 11);
+    ctx.fillStyle = "#2e1c0a";
+    for (let ry = y + 2; ry < y + h; ry += 12) {
+      ctx.beginPath(); ctx.arc(x + 7, ry, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
   // Shared brick coursing — used by both the standalone "brick" tile
   // (platforms/stairs) and the plain-brick box variant, so the two
   // always read as the same material.
   function drawBrickTexture(x, y) {
     const castle = STAGE_THEME === "castle";
+    const ocean = oceanAt(x);
     const g = ctx.createLinearGradient(x, y, x, y + TILE);
     if (castle) { g.addColorStop(0, "#4c4660"); g.addColorStop(1, "#2a2536"); }
+    else if (ocean) { g.addColorStop(0, "#5fd3c0"); g.addColorStop(1, "#1f8f86"); }
     else { g.addColorStop(0, "#c96f38"); g.addColorStop(1, "#96491f"); }
     ctx.fillStyle = g;
     ctx.fillRect(x, y, TILE, TILE);
-    ctx.fillStyle = castle ? "rgba(215, 200, 235, 0.16)" : "rgba(255,255,255,0.14)";
+    ctx.fillStyle = castle ? "rgba(215, 200, 235, 0.16)" : ocean ? "rgba(220, 255, 250, 0.3)" : "rgba(255,255,255,0.14)";
     ctx.fillRect(x, y, TILE, 2);
     ctx.fillStyle = "rgba(0,0,0,0.18)";
     ctx.fillRect(x, y + TILE - 3, TILE, 3);
-    ctx.strokeStyle = castle ? "rgba(10, 6, 16, 0.6)" : "rgba(55, 22, 8, 0.55)";
+    ctx.strokeStyle = castle ? "rgba(10, 6, 16, 0.6)" : ocean ? "rgba(10, 60, 62, 0.5)" : "rgba(55, 22, 8, 0.55)";
     ctx.lineWidth = 1;
     // Staggered coursing (offset joints row to row) instead of two flat
     // stacked halves, so it reads as real brickwork up close.
@@ -1506,15 +2087,24 @@
   function drawTile(type, x, y) {
     if (type === "ground") {
       const castle = STAGE_THEME === "castle";
+      const ocean = oceanAt(x);
       const g = ctx.createLinearGradient(x, y, x, y + TILE);
       if (castle) { g.addColorStop(0, "#5c5670"); g.addColorStop(0.18, "#413c52"); g.addColorStop(1, "#221e2c"); }
+      else if (ocean) { g.addColorStop(0, "#6d7fb5"); g.addColorStop(0.18, "#54649a"); g.addColorStop(1, "#36426f"); }
       else { g.addColorStop(0, "#dda05e"); g.addColorStop(0.18, "#c98a4b"); g.addColorStop(1, "#a4713a"); }
       ctx.fillStyle = g;
       ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = castle ? "rgba(210, 195, 235, 0.18)" : "rgba(255, 224, 176, 0.3)";
+      ctx.fillStyle = castle ? "rgba(210, 195, 235, 0.18)" : ocean ? "rgba(190, 220, 255, 0.28)" : "rgba(255, 224, 176, 0.3)";
       ctx.fillRect(x, y, TILE, 3);
-      ctx.strokeStyle = castle ? "rgba(8, 6, 14, 0.5)" : "rgba(80, 45, 20, 0.35)";
+      ctx.strokeStyle = castle ? "rgba(8, 6, 14, 0.5)" : ocean ? "rgba(20, 30, 62, 0.45)" : "rgba(80, 45, 20, 0.35)";
       ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+      // Seabed rock reads as rounded cobbles rather than flat sand.
+      if (ocean) {
+        const s2 = (x * 13 + y * 7) % 97;
+        ctx.fillStyle = "rgba(120, 145, 200, 0.35)";
+        ctx.beginPath(); ctx.arc(x + 11 + (s2 % 9), y + 13, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x + 28 - (s2 % 7), y + 27, 6, 0, Math.PI * 2); ctx.fill();
+      }
       // Deterministic pebble/crack speckle (seeded off position, not
       // Math.random()) so the ground has texture without flickering
       // between frames.
@@ -1532,6 +2122,35 @@
       }
     } else if (type === "brick") {
       drawBrickTexture(x, y);
+    } else if (type === "coral") {
+      // A branching coral stalk — solid, and swaying very slightly so the
+      // seabed doesn't read as a static backdrop.
+      const seed = (x * 17 + y * 11) % 100;
+      const sway = Math.sin(elapsedInLevel * 0.9 + seed) * 2.2;
+      const cx = x + TILE / 2 + sway;
+      const g = ctx.createLinearGradient(x, y, x + TILE, y + TILE);
+      g.addColorStop(0, "#ff8fc4"); g.addColorStop(0.5, "#e0559b"); g.addColorStop(1, "#a52f74");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.roundRect(cx - 7, y, 14, TILE, 6);
+      ctx.fill();
+      // Side branches, alternating by row so a stack looks grown, not tiled.
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = g;
+      ctx.lineCap = "round";
+      const flip = seed % 2 === 0 ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(cx, y + 13);
+      ctx.quadraticCurveTo(cx + 15 * flip, y + 9, cx + 17 * flip, y - 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx, y + 28);
+      ctx.quadraticCurveTo(cx - 14 * flip, y + 24, cx - 16 * flip, y + 13);
+      ctx.stroke();
+      // Highlight down one edge
+      ctx.strokeStyle = "rgba(255, 210, 235, 0.55)";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx - 4, y + 3); ctx.lineTo(cx - 4, y + TILE - 3); ctx.stroke();
     } else if (type === "lava") {
       // Layered molten glow with slow-shifting bright veins, seeded by
       // position so neighboring tiles don't pulse in perfect unison.
@@ -2086,7 +2705,13 @@
     const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 2 : 0;
     ctx.save();
     if (finishSeq.alpha < 1) ctx.globalAlpha = finishSeq.alpha; // fading into the hut doorway
+    if (pipeSeq.alpha < 1) ctx.globalAlpha = pipeSeq.alpha;     // fading through the exit pipe
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
+    // Swimming tilts him nose-up on the rise of a stroke and nose-down as
+    // he sinks, which is most of what sells "in water" at a glance.
+    if (isUnderwater() && !player.onGround) {
+      ctx.rotate(player.facing * Math.max(-0.32, Math.min(0.3, player.vy / 900)));
+    }
     // Driven by the current size TIER (big/small), not the live hitbox
     // height, so squatting — which also shrinks player.h — reads as a
     // squash (see squatSquash below) rather than as shrinking a whole
@@ -2100,7 +2725,13 @@
     }
 
     let legA, legB;
-    if (!player.onGround) {
+    if (isUnderwater() && !player.onGround) {
+      // A flutter kick on its own fast cycle, deliberately out of step with
+      // the arm stroke below so the whole animation reads as busy.
+      const kick = Math.sin(player.swimKick * 13);
+      legA = { dx: -8 + kick * 10, dy: -12 - kick * 7 };
+      legB = { dx: 10 - kick * 10, dy: -6 + kick * 7 };
+    } else if (!player.onGround) {
       legA = { dx: -14, dy: -16 };
       legB = { dx: 16, dy: -8 };
     } else if (Math.abs(player.vx) < 5) {
@@ -2217,15 +2848,19 @@
     ctx.save();
     drawWorld();
     drawHut();
+    drawExitPipe();
     drawMovers();
     drawPipes();
     drawEmbers();
     drawCoins();
     drawMushrooms();
     drawEnemies();
+    drawFish();
     drawMonsterAndPrincess();
     drawPlayer();
     drawParticles();
+    drawBubbles();
+    drawWaterOverlay();
     ctx.restore();
   }
 
