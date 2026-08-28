@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=7" />
+  <link rel="stylesheet" href="css/style.css?v=10" />
 </head>
 <body>
 
@@ -111,7 +111,10 @@
     </section>
 
     <section id="work" class="work">
-      <video class="work-bg-video" id="workBgVideo" muted loop playsinline preload="none" data-src="assets/video/DigiCodedigi.mp4"></video>
+      <!-- Reusing the hero clip until a second one exists: the file this used
+           to point at was deleted in the rebrand, so it 404'd on every load
+           and left this section flat. Same file means it's already cached. -->
+      <video class="work-bg-video" id="workBgVideo" muted loop playsinline preload="none" data-src="assets/video/digicode.mp4"></video>
       <div class="work-overlay"></div>
       <div class="container">
         <h2 class="section-title">Website Management</h2>
@@ -155,8 +158,10 @@
       <div class="container about-grid">
         <div>
           <h2 class="section-title">About DigiCode</h2>
-          <p>DigiCode is a web design studio focused on giving small businesses a website that actually looks like it belongs to a real, established brand — without the agency price tag.</p>
-          <p>Every project starts with understanding what the business actually needs, then designing and building a site that's fast, clear, and easy to update.</p>
+          <p>DigiCode is a web studio built on one idea: what you pay for should actually be yours. Every site is written by hand, line by line — no page builders, no bloated templates, and no platform holding the keys to your own front door.</p>
+          <p>We don't stop at brochure sites. We build business sites and online stores, creator platforms with streaming, memberships and tipping built in, SEO and hosting, and full games we can ship as real apps on iOS and Android. If it runs in a browser or on a phone, it's on the table — and it costs a fraction of what an agency would quote you for far less.</p>
+          <p>You deal directly with the person building your site. Your portal shows exactly where the project's up to, how your site is actually performing, and a message thread straight to your developer. Think of something you want changed a year from now? Message us. It gets built — no upgrade, no ticket queue, no "that's not supported."</p>
+          <p>Too many good businesses and creators are renting space on someone else's platform, paying a cut of everything they earn and living at the mercy of an algorithm. We'd rather hand you the keys.</p>
         </div>
       </div>
     </section>
@@ -176,6 +181,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=5"></script>
+  <script src="js/main.js?v=6"></script>
 </body>
 </html>

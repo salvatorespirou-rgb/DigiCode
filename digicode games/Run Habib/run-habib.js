@@ -676,11 +676,16 @@
   function playPowerUp() { const t = getAudioCtx()?.currentTime; if (t != null) [392, 494, 587, 784, 987].forEach((f, i) => tone(f, t + i * 0.05, 0.12, 0.13, "square")); }
   function playBrickBreak() { const t = getAudioCtx()?.currentTime; if (t != null) sweep(180, 40, t, 0.16, 0.2, "sawtooth"); }
   // Placeholder hook — drop a real recorded line in as assets/run-habib-voice.mp3
-  // and this plays it; until then it just plays the synthesized star jingle.
+  // and this plays it; until then the synthesized star jingle carries it.
+  // The first failure is remembered so we stop asking: without this it fired
+  // a 404 into the console on every single star pickup.
+  let voiceLineMissing = false;
   function playStarVoiceLine() {
+    if (voiceLineMissing) return;
     const audio = new Audio("assets/run-habib-voice.mp3");
     audio.volume = isMuted ? 0 : 0.9;
-    audio.play().catch(() => {});
+    audio.addEventListener("error", () => { voiceLineMissing = true; }, { once: true });
+    audio.play().catch(() => { voiceLineMissing = true; });
   }
 
   // A short, cheerful, original four-bar loop — plain arpeggios over a

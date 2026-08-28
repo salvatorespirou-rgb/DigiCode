@@ -121,10 +121,14 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
     });
   }
 
-  // The homepage's quick-link tabs and service rows get an extra flourish:
-  // a steady trickle of code raining down from each one, continuously, not
-  // just on hover — a callback to the same "real code" idea that's
-  // otherwise a fairly plain row of pills/cards.
+  // The homepage's quick-link tabs and service rows drip a little code from
+  // their bottom edge. This is deliberately sparse and short-lived: the
+  // panels themselves now carry proper code rain in CSS, masked so it never
+  // crosses the copy, and that does the heavy lifting. These particles are
+  // drawn on a position:fixed canvas, so they have no such mask — anything
+  // long-lived here drifts down over whatever text happens to be at that
+  // point on screen. Kept as the odd spark falling off an edge, not a
+  // curtain over the page.
   function attachCodeRain(el, intervalMs) {
     const spawnDrip = () => {
       if (particles.length >= MAX_PARTICLES) return;
@@ -133,12 +137,13 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
       particles.push({
         x: rect.left + Math.random() * rect.width,
         y: rect.bottom - 2,
-        vy: 26 + Math.random() * 26,
+        vy: 24 + Math.random() * 22,
         char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
         life: 0,
-        maxLife: 0.6 + Math.random() * 0.4,
-        size: 10 + Math.random() * 5,
+        // Short life keeps each glyph close to the edge it fell from.
+        maxLife: 0.4 + Math.random() * 0.28,
+        size: 10 + Math.random() * 4,
         ambient: true,
       });
     };
@@ -147,7 +152,7 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
   }
 
   document.querySelectorAll(".quick-link-tab, .service-row").forEach((el) => {
-    attachCodeRain(el, 500 + Math.random() * 400);
+    attachCodeRain(el, 1500 + Math.random() * 1100);
   });
 
   let lastT = null;
@@ -161,9 +166,12 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
       p.life += dt;
       p.y += p.vy * dt;
       const fade = 1 - p.life / p.maxLife;
+      // Ambient drips sit back further than the cursor trail — they're
+      // scenery, and they're the ones that can end up over body copy.
+      const alpha = fade * (p.ambient ? 0.45 : 0.85);
       ctx.font = `700 ${p.size}px "Space Grotesk", monospace`;
-      ctx.fillStyle = `rgba(${p.color}, ${fade * 0.85})`;
-      ctx.shadowColor = `rgba(${p.color}, ${fade * 0.9})`;
+      ctx.fillStyle = `rgba(${p.color}, ${alpha})`;
+      ctx.shadowColor = `rgba(${p.color}, ${alpha})`;
       ctx.shadowBlur = 6;
       ctx.fillText(p.char, p.x, p.y);
     }
