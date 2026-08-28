@@ -598,6 +598,10 @@
   // Entities
   // ---------------------------------------------------------------------
   let player, enemies, coins, cobras, plants, mushrooms, embers, movers, particles, camX, flagRaised, monster, elapsedInLevel;
+  // Drives the end-of-stage flourish: grab the pole, ride it down, then
+  // walk off into the hut. `phase` is null whenever a stage is being
+  // played normally.
+  let finishSeq;
   let coinCount, lives, state, invincibleTimer, starTimer, respawnX, respawnY;
 
   function resetRun() {
@@ -659,6 +663,7 @@
     particles = [];
     camX = 0;
     flagRaised = false;
+    finishSeq = { phase: null, t: 0, slideT: 0, alpha: 1 };
     invincibleTimer = 0;
     starTimer = 0;
     elapsedInLevel = 0;
@@ -760,7 +765,7 @@
   // the fanfare, then either the next stage loads or, if this was the
   // last stage built so far, a "more coming soon" screen shows instead
   // of the Arab Monster fight that's still waiting for the rest of the 12.
-  function clearStage() {
+  function clearStage(delayMs = 1400) {
     state = "cutscene";
     stopMusic();
     setTimeout(() => {
@@ -782,7 +787,7 @@
           "▶ Next Stage"
         );
       }
-    }, 1400);
+    }, delayMs);
   }
   startBtn.addEventListener("click", startOrRestart);
 
@@ -987,8 +992,84 @@
     }
   }
 
+  // The victory hut Habib disappears into at the end of a stage — a small
+  // domed mud-brick house, sitting a few tiles past the flagpole. Its
+  // geometry lives here (not in the stage data) so every stage gets one
+  // in the same spot relative to its own flag, and both the renderer and
+  // the walk-in animation read the exact same numbers.
+  const HUT_W = TILE * 3;
+  const HUT_H = 104;
+  function hutRect() {
+    const x = (FLAG_COL + 3) * TILE;
+    const y = GROUND_ROW * TILE - HUT_H;
+    return { x, y, w: HUT_W, h: HUT_H, doorX: x + HUT_W / 2 };
+  }
+
+  const SLIDE_SPEED = 240;
+  const FINISH_WALK_SPEED = 95;
+
+  function startFinishSequence() {
+    state = "cutscene";
+    finishSeq.phase = "slide";
+    finishSeq.t = 0;
+    // Snap onto the pole and let go of any leftover momentum, so the ride
+    // down reads as a deliberate grab rather than a mid-jump drift.
+    player.x = FLAG_COL * TILE + TILE / 2 - player.w / 2;
+    player.vx = 0;
+    player.vy = 0;
+    player.onGround = false;
+    player.squatting = false;
+    player.facing = 1;
+  }
+
+  function updateFinishSequence(dt) {
+    const groundY = GROUND_ROW * TILE;
+    const hut = hutRect();
+
+    if (finishSeq.phase === "slide") {
+      player.y = Math.min(player.y + SLIDE_SPEED * dt, groundY - player.h);
+      // The banner rides down the pole alongside him.
+      const tipY = Math.max(1, GROUND_ROW - (STAIRS.length ? Math.max(...STAIRS.map((s) => s.height)) : 0) - 1) * TILE;
+      const travel = Math.max(1, groundY - player.h - tipY);
+      finishSeq.slideT = Math.min(1, (player.y - tipY) / travel);
+      if (player.y >= groundY - player.h) {
+        player.y = groundY - player.h;
+        player.onGround = true;
+        finishSeq.phase = "walk";
+      }
+    } else if (finishSeq.phase === "walk") {
+      // vx is set (not just x) so drawPlayer picks the running leg pose
+      // rather than the idle one.
+      player.vx = FINISH_WALK_SPEED;
+      player.x += FINISH_WALK_SPEED * dt;
+      player.runPhase += FINISH_WALK_SPEED * dt * 0.05;
+      player.onGround = true;
+      if (player.x + player.w / 2 >= hut.doorX) finishSeq.phase = "enter";
+    } else if (finishSeq.phase === "enter") {
+      // Keep shuffling forward while fading, so he reads as stepping
+      // through the doorway rather than blinking out on the threshold.
+      finishSeq.t += dt;
+      player.x += FINISH_WALK_SPEED * 0.5 * dt;
+      player.runPhase += FINISH_WALK_SPEED * dt * 0.03;
+      finishSeq.alpha = Math.max(0, 1 - finishSeq.t / 0.55);
+      if (finishSeq.t >= 0.75) {
+        finishSeq.phase = "done";
+        clearStage(700);
+      }
+    }
+
+    const targetCamX = Math.max(0, Math.min(player.x - WIDTH * 0.4, LEVEL_COLS * TILE - WIDTH));
+    camX += (targetCamX - camX) * Math.min(1, dt * 6);
+  }
+
   function update(dt) {
     elapsedInLevel += dt;
+    // Runs during the "cutscene" state, so it has to come before the
+    // playing-only gate below.
+    if (finishSeq.phase && finishSeq.phase !== "done") {
+      updateFinishSequence(dt);
+      return;
+    }
     if (state !== "playing") return;
 
     if (invincibleTimer > 0) invincibleTimer = Math.max(0, invincibleTimer - dt);
@@ -1226,12 +1307,13 @@
     // this is just a checkpoint fanfare — the real finish is beating the
     // monster, and returning here would end "playing" before the
     // boss-arena check below ever got to run. Every other stage's flag
-    // IS the finish, so it clears the stage outright.
+    // IS the finish, so it kicks off the end-of-stage flourish (see
+    // updateFinishSequence) which clears the stage once it's done.
     if (!flagRaised && player.x + player.w > FLAG_COL * TILE) {
       flagRaised = true;
       playFlag();
       if (!MONSTER_COL) {
-        clearStage();
+        startFinishSequence();
         return;
       }
     }
@@ -1484,11 +1566,14 @@
       // right regardless of how tall that stage's staircase is.
       ctx.fillStyle = "#d8c48a";
       ctx.fillRect(x + TILE / 2 - 3, y, 6, GROUND_ROW * TILE - y);
+      // The banner rides down the pole with Habib during the finish
+      // flourish (slideT runs 0→1 there, and is 0 the rest of the time).
+      const bannerDrop = finishSeq.slideT * Math.max(0, GROUND_ROW * TILE - y - 34);
       ctx.fillStyle = "#e0473a";
       ctx.beginPath();
-      ctx.moveTo(x + TILE / 2 + 3, y + 6);
-      ctx.lineTo(x + TILE / 2 + 34, y + 16);
-      ctx.lineTo(x + TILE / 2 + 3, y + 26);
+      ctx.moveTo(x + TILE / 2 + 3, y + 6 + bannerDrop);
+      ctx.lineTo(x + TILE / 2 + 34, y + 16 + bannerDrop);
+      ctx.lineTo(x + TILE / 2 + 3, y + 26 + bannerDrop);
       ctx.closePath();
       ctx.fill();
     } else if (type === "pipe") {
@@ -1586,6 +1671,81 @@
       ctx.fillStyle = "#0f1e19";
       ctx.beginPath();
       ctx.ellipse(x + w / 2, y + 3, w / 2 - 5, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Habib's home at the end of the stage — a domed mud-brick desert hut
+  // with an arched doorway, matching the old-kingdom look of the rest of
+  // the world rather than borrowing any particular game's end-of-level
+  // building.
+  function drawHut() {
+    const h = hutRect();
+    const x = h.x - camX;
+    if (x + h.w < -40 || x > WIDTH + 40) return;
+    const groundY = GROUND_ROW * TILE;
+
+    // Body
+    const body = ctx.createLinearGradient(x, h.y, x, groundY);
+    body.addColorStop(0, "#d7a866");
+    body.addColorStop(1, "#9c6f3c");
+    ctx.fillStyle = body;
+    ctx.fillRect(x, h.y + 26, h.w, h.h - 26);
+    ctx.strokeStyle = "rgba(70, 42, 16, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, h.y + 26.5, h.w - 1, h.h - 27);
+
+    // Mud-brick coursing
+    ctx.strokeStyle = "rgba(90, 55, 22, 0.28)";
+    for (let by = h.y + 40; by < groundY - 4; by += 14) {
+      ctx.beginPath(); ctx.moveTo(x + 3, by); ctx.lineTo(x + h.w - 3, by); ctx.stroke();
+    }
+
+    // Domed roof
+    const dome = ctx.createLinearGradient(x, h.y - 6, x, h.y + 30);
+    dome.addColorStop(0, "#e8c489");
+    dome.addColorStop(1, "#b98a4e");
+    ctx.fillStyle = dome;
+    ctx.beginPath();
+    ctx.ellipse(x + h.w / 2, h.y + 28, h.w / 2 + 4, 34, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(70, 42, 16, 0.45)";
+    ctx.stroke();
+
+    // Little finial on top
+    ctx.fillStyle = "#e0b866";
+    ctx.beginPath(); ctx.arc(x + h.w / 2, h.y - 8, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#8a5a2e";
+    ctx.fillRect(x + h.w / 2 - 1.5, h.y - 8, 3, 12);
+
+    // Arched doorway — the dark opening Habib walks into
+    const doorW = 34, doorH = 54;
+    const dx = x + h.w / 2 - doorW / 2;
+    const dy = groundY - doorH;
+    const doorGrad = ctx.createLinearGradient(dx, dy, dx, groundY);
+    doorGrad.addColorStop(0, "#2a1608");
+    doorGrad.addColorStop(1, "#120a04");
+    ctx.fillStyle = doorGrad;
+    ctx.beginPath();
+    ctx.moveTo(dx, groundY);
+    ctx.lineTo(dx, dy + doorW / 2);
+    ctx.arc(dx + doorW / 2, dy + doorW / 2, doorW / 2, Math.PI, 0);
+    ctx.lineTo(dx + doorW, groundY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(90, 58, 24, 0.8)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // A small arched window either side, warm-lit from within
+    ctx.fillStyle = "rgba(255, 198, 108, 0.85)";
+    for (const wx of [x + 18, x + h.w - 26]) {
+      ctx.beginPath();
+      ctx.moveTo(wx, h.y + 74);
+      ctx.lineTo(wx, h.y + 60);
+      ctx.arc(wx + 4, h.y + 60, 4, Math.PI, 0);
+      ctx.lineTo(wx + 8, h.y + 74);
+      ctx.closePath();
       ctx.fill();
     }
   }
@@ -1925,6 +2085,7 @@
     const sx = player.x - camX;
     const bob = player.onGround ? Math.abs(Math.sin(player.runPhase)) * 2 : 0;
     ctx.save();
+    if (finishSeq.alpha < 1) ctx.globalAlpha = finishSeq.alpha; // fading into the hut doorway
     ctx.translate(sx + player.w / 2, player.y + player.h - bob);
     // Driven by the current size TIER (big/small), not the live hitbox
     // height, so squatting — which also shrinks player.h — reads as a
@@ -2055,6 +2216,7 @@
     drawBackground();
     ctx.save();
     drawWorld();
+    drawHut();
     drawMovers();
     drawPipes();
     drawEmbers();
