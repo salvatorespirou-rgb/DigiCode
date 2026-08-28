@@ -23,6 +23,18 @@
         window.location.href = "signin.html";
         return;
       }
+      // Having a session isn't enough on its own — the games sign players in
+      // against the same Supabase project, so a Flappy Dragon account would
+      // otherwise walk straight in here as a "client". Re-check that this
+      // email is actually on the dev roster or attached to a purchase.
+      const { data: hasAccess, error: accessError } = await veloraSupabase
+        .rpc("email_has_portal_access", { check_email: session.user.email });
+      if (!accessError && !hasAccess) {
+        await veloraSupabase.auth.signOut();
+        sessionStorage.setItem("digicodePortalDenied", "1");
+        window.location.href = "signin.html";
+        return;
+      }
       const { data: profile } = await veloraSupabase
         .from("profiles")
         .select("role, email")

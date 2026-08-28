@@ -8,6 +8,8 @@
   --blue: #2e9fe6;
   --silver: #b9c2cc;
   --gradient: linear-gradient(135deg, var(--purple), var(--blue));
+  /* Cosmic ramp for developer names — blue easing up into purple. */
+  --cosmic-name: linear-gradient(100deg, #5fd0ff 0%, #4f8ef7 45%, #9a6bff 100%);
   --border: rgba(255, 255, 255, 0.08);
   --radius: 14px;
   --font-heading: "Space Grotesk", sans-serif;
@@ -1950,7 +1952,14 @@ body.custom-cursor-active button {
   flex-direction: column;
   gap: 2px;
 }
-.dev-team-name { font-family: var(--font-heading); font-weight: 700; }
+.dev-team-name {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  background: var(--cosmic-name);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .dev-team-meta { font-size: 0.8rem; color: var(--text-muted); }
 .dev-team-perms { font-size: 0.78rem; color: var(--text-muted); }
 
@@ -2027,6 +2036,30 @@ body.custom-cursor-active button {
 .chat-list-name {
   font-weight: 700;
   font-size: 0.9rem;
+  /* .chat-list-item is a <button>, and buttons don't inherit `color` — so
+     without this the name fell back to the browser's default black on the
+     dark card. Painted in the cosmic ramp rather than plain white. */
+  background: var(--cosmic-name);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Where a rank pill sits alongside the name, the name gets its own wrapper
+   so the gradient runs across just the name — spanning the pill too would
+   leave a short name stuck at the blue end of the ramp. */
+.cosmic-name {
+  background: var(--cosmic-name);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* The pill is nested inside the name span, so opt it back out of the
+   clipped gradient and let it keep its own solid fill. */
+.chat-list-name .rank-badge,
+.dev-team-name .rank-badge {
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #fff;
 }
 
 .chat-list-preview {

@@ -683,6 +683,16 @@ if (cartItemsEl) {
 // Portal login — real Supabase email one-time-code auth.
 const portalLoginForm = document.getElementById("portalLoginForm");
 if (portalLoginForm) {
+  // Bounced back here by the portal's own access re-check (see portal.html).
+  if (sessionStorage.getItem("digicodePortalDenied")) {
+    sessionStorage.removeItem("digicodePortalDenied");
+    const deniedEl = document.getElementById("loginError");
+    if (deniedEl) {
+      deniedEl.textContent = "That email address does not have access to the portal.";
+      deniedEl.hidden = false;
+    }
+  }
+
   portalLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("loginEmail").value.trim();
@@ -691,14 +701,37 @@ if (portalLoginForm) {
     if (errorEl) errorEl.hidden = true;
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Sending…"; }
 
+    const failWith = (message) => {
+      if (errorEl) { errorEl.textContent = message; errorEl.hidden = false; }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Send Code"; }
+    };
+
+    // Only the developer roster and people who've actually bought something
+    // get a code — see email_has_portal_access in supabase/014. This has to
+    // be an RPC because `developers`/`projects` are both behind RLS that
+    // requires an existing session, which a visitor here doesn't have yet.
+    const { data: hasAccess, error: accessError } = await veloraSupabase
+      .rpc("email_has_portal_access", { check_email: email });
+
+    if (accessError) {
+      failWith("We couldn't check that email just now — please try again.");
+      return;
+    }
+    if (!hasAccess) {
+      failWith("That email address does not have access to the portal.");
+      return;
+    }
+
+    // shouldCreateUser stays true on purpose: a developer who's just been
+    // added to the roster has no auth user yet, and this first sign-in is
+    // exactly what creates it (and promotes them — see supabase/003).
     const { error } = await veloraSupabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true },
     });
 
     if (error) {
-      if (errorEl) errorEl.hidden = false;
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Send Code"; }
+      failWith("Something went wrong sending your code — try again.");
       return;
     }
 
@@ -1185,7 +1218,7 @@ if (devTabs.length) {
                   (d) => `
           <div class="dev-team-row">
             <div class="dev-team-info">
-              <span class="dev-team-name">${escapeHtml(d.name)} <span class="rank-badge">${escapeHtml(d.rank)}</span></span>
+              <span class="dev-team-name"><span class="cosmic-name">${escapeHtml(d.name)}</span> <span class="rank-badge">${escapeHtml(d.rank)}</span></span>
               <span class="dev-team-meta">${escapeHtml(d.username)} · ${escapeHtml(d.email)}</span>
               <span class="dev-team-perms">${d.permissions.length ? escapeHtml(d.permissions.join(", ")) : "No permissions granted"}</span>
             </div>
@@ -1284,7 +1317,7 @@ if (devTabs.length) {
               const chatId = "dev:" + d.id;
               return `
               <button type="button" class="chat-list-item ${activeChatId === chatId ? "active" : ""}" data-chat-id="${chatId}">
-                <span class="chat-list-name">${escapeHtml(d.name)} <span class="rank-badge">${escapeHtml(d.rank)}</span></span>
+                <span class="chat-list-name"><span class="cosmic-name">${escapeHtml(d.name)}</span> <span class="rank-badge">${escapeHtml(d.rank)}</span></span>
                 <span class="chat-list-preview">${lastMessagePreview(chatId)}</span>
               </button>`;
             })
