@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1" />
+  <link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
 
@@ -99,6 +99,38 @@
       <path d="M25 40 Q32 46 39 40" stroke="#1b0f3d" stroke-width="3" fill="none" stroke-linecap="round"/>
       <circle cx="14" cy="14" r="2" fill="#fff"/><circle cx="52" cy="18" r="1.6" fill="#fff"/><circle cx="50" cy="48" r="2" fill="#fff"/>
     </symbol>
+
+    <!-- Cosmic tier. These two also trigger a full cinematic on the stage. -->
+    <linearGradient id="gLionMane" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#ffbe4d"/><stop offset="0.55" stop-color="#d97a1c"/><stop offset="1" stop-color="#8a3d0c"/></linearGradient>
+    <radialGradient id="gLionFace" cx="0.4" cy="0.35"><stop offset="0" stop-color="#ffeec2"/><stop offset="1" stop-color="#e0a95d"/></radialGradient>
+    <radialGradient id="gMoonRed" cx="0.38" cy="0.34"><stop offset="0" stop-color="#ff8a6b"/><stop offset="0.45" stop-color="#d8203a"/><stop offset="1" stop-color="#4a0512"/></radialGradient>
+
+    <symbol id="giftLion" viewBox="0 0 64 64">
+      <path d="M32.0 1.0 L36.8 11.0 L45.5 4.1 L45.4 15.2 L56.2 12.7 L51.4 22.7 L62.2 25.1 L53.5 32.0 L62.2 38.9 L51.4 41.3 L56.2 51.3 L45.4 48.8 L45.5 59.9 L36.8 53.0 L32.0 63.0 L27.2 53.0 L18.5 59.9 L18.6 48.8 L7.8 51.3 L12.6 41.3 L1.8 38.9 L10.5 32.0 L1.8 25.1 L12.6 22.7 L7.8 12.7 L18.6 15.2 L18.5 4.1 L27.2 11.0 Z" fill="url(#gLionMane)"/>
+      <circle cx="32" cy="32" r="20" fill="#b5651d" opacity=".55"/>
+      <circle cx="20" cy="18" r="5" fill="#e0a95d"/><circle cx="44" cy="18" r="5" fill="#e0a95d"/>
+      <ellipse cx="32" cy="33" rx="17" ry="16" fill="url(#gLionFace)"/>
+      <path d="M22 26 Q26 23 30 26" stroke="#8a5a1e" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M34 26 Q38 23 42 26" stroke="#8a5a1e" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="26" cy="31" rx="3" ry="3.4" fill="#2a1405"/><ellipse cx="38" cy="31" rx="3" ry="3.4" fill="#2a1405"/>
+      <circle cx="27" cy="30" r="1" fill="#fff" opacity=".9"/><circle cx="39" cy="30" r="1" fill="#fff" opacity=".9"/>
+      <path d="M28 38 L36 38 L32 42 Z" fill="#5c2a12"/>
+      <path d="M32 42 L32 45 M32 45 Q27 47 24 43 M32 45 Q37 47 40 43" stroke="#5c2a12" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="giftMoon" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="29" fill="#ff2d4d" opacity=".16"/>
+      <circle cx="32" cy="32" r="23" fill="url(#gMoonRed)"/>
+      <g fill="#7d1024" opacity=".55">
+        <circle cx="24" cy="25" r="5"/><circle cx="39" cy="22" r="3.2"/>
+        <circle cx="41" cy="38" r="6"/><circle cx="25" cy="41" r="3.6"/>
+        <circle cx="31" cy="31" r="2.4"/>
+      </g>
+      <circle cx="32" cy="32" r="23" fill="none" stroke="#ff9d8a" stroke-width="1.4" opacity=".7"/>
+      <ellipse cx="32" cy="32" rx="30" ry="9" fill="none" stroke="#ff2d4d" stroke-width="2" opacity=".8" transform="rotate(-20 32 32)"/>
+      <circle cx="10" cy="12" r="1.6" fill="#ffd7cf"/><circle cx="55" cy="15" r="1.2" fill="#ffd7cf"/>
+      <circle cx="52" cy="52" r="1.6" fill="#ffd7cf"/><circle cx="12" cy="50" r="1.2" fill="#ffd7cf"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -162,6 +194,9 @@
             <span class="nk-live-pill"><span class="nk-live-dot"></span>LIVE</span>
             <span class="nk-hud-chip"><span id="nkViewers">12,481</span> watching</span>
             <span class="nk-hud-chip" id="nkUptime">3:12:44</span>
+            <button type="button" class="nk-hud-chip nk-sound" id="nkSound" aria-pressed="false" title="Mute cinematic sound">
+              <span class="nk-sound-on">🔊</span><span class="nk-sound-off" hidden>🔇</span>
+            </button>
           </div>
 
           <div class="nk-hud-tr">
@@ -194,6 +229,9 @@
           <!-- Gift alerts land here, over the video. -->
           <div class="nk-alert-slot" id="nkAlertSlot" aria-live="polite"></div>
         </div>
+
+        <!-- Cosmic-tier cinematics take over the whole stage. -->
+        <div class="nk-cine" id="nkCine" aria-hidden="true"></div>
       </div>
 
       <div class="nk-below">
@@ -297,6 +335,30 @@
         <span class="nk-gift-price">$150</span>
       </button>
     </div>
+
+    <div class="nk-cosmic-head">
+      <h3>Cosmic Tier</h3>
+      <p>The two big ones. Each takes over the whole stream for a few seconds with its own cinematic — sound and all. Chat stops typing when one of these lands.</p>
+    </div>
+
+    <div class="nk-cosmic-grid">
+      <button type="button" class="nk-gift nk-cosmic" data-gift="lion" data-name="Royal Lion" data-price="250" data-rarity="cosmic">
+        <span class="nk-gift-art nk-gift-art-lg"><svg><use href="#giftLion"/></svg></span>
+        <span class="nk-gift-name">Royal Lion</span>
+        <span class="nk-gift-rarity r-cosmic">Cosmic</span>
+        <span class="nk-cosmic-desc">Dawn breaks over the rock, the king walks out, and the roar shakes the stream.</span>
+        <span class="nk-gift-price">$250</span>
+        <span class="nk-cosmic-len">7s cinematic · sound</span>
+      </button>
+      <button type="button" class="nk-gift nk-cosmic" data-gift="moon" data-name="Blood Moon" data-price="500" data-rarity="cosmic">
+        <span class="nk-gift-art nk-gift-art-lg"><svg><use href="#giftMoon"/></svg></span>
+        <span class="nk-gift-name">Blood Moon</span>
+        <span class="nk-gift-rarity r-cosmic">Cosmic</span>
+        <span class="nk-cosmic-desc">A red moon rises out of the galaxy and the whole screen drops to a dubstep beat.</span>
+        <span class="nk-gift-price">$500</span>
+        <span class="nk-cosmic-len">6s cinematic · sound</span>
+      </button>
+    </div>
   </section>
 
   <!-- ================= Leaderboard ================= -->
@@ -377,6 +439,253 @@
   </footer>
 </div>
 
-<script src="script.js?v=1"></script>
+<!-- ================= Cosmic cinematics =================
+     Cloned into the stage when a cosmic gift is sent. The repetitive
+     art (mane tufts, god rays, starfields, nebula, embers) is filled in
+     by script.js from the data-* hooks so the markup stays readable. -->
+
+<template id="cineLion">
+  <div class="cine cine-lion">
+    <svg class="cine-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="lkSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#180626"/><stop offset="0.30" stop-color="#5c1730"/>
+          <stop offset="0.55" stop-color="#c2461f"/><stop offset="0.76" stop-color="#f59331"/>
+          <stop offset="1" stop-color="#ffdc8f"/>
+        </linearGradient>
+        <radialGradient id="lkSun" cx="0.5" cy="0.5">
+          <stop offset="0" stop-color="#fffbe8"/><stop offset="0.5" stop-color="#ffd166"/>
+          <stop offset="1" stop-color="#ff8b2c" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="lkManeOut" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stop-color="#a84d10"/><stop offset="1" stop-color="#5a2405"/>
+        </linearGradient>
+        <linearGradient id="lkManeMid" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stop-color="#e08a24"/><stop offset="1" stop-color="#93450d"/>
+        </linearGradient>
+        <linearGradient id="lkManeIn" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stop-color="#ffd47a"/><stop offset="1" stop-color="#c8791d"/>
+        </linearGradient>
+        <radialGradient id="lkFace" cx="0.42" cy="0.32">
+          <stop offset="0" stop-color="#fff2d2"/><stop offset="0.62" stop-color="#f0c17e"/>
+          <stop offset="1" stop-color="#c98e45"/>
+        </radialGradient>
+        <radialGradient id="lkEye" cx="0.4" cy="0.35">
+          <stop offset="0" stop-color="#fff3b0"/><stop offset="0.55" stop-color="#ffb428"/>
+          <stop offset="1" stop-color="#b45c05"/>
+        </radialGradient>
+        <linearGradient id="lkCrown" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff3bd"/><stop offset="0.5" stop-color="#f5c542"/>
+          <stop offset="1" stop-color="#a5720c"/>
+        </linearGradient>
+        <linearGradient id="lkRock" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stop-color="#3a1420"/><stop offset="1" stop-color="#0d0409"/>
+        </linearGradient>
+        <filter id="lkSoft" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="26"/>
+        </filter>
+        <filter id="lkBloom" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="9" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <rect class="lk-sky" width="1600" height="900" fill="url(#lkSky)"/>
+      <g class="lk-rays" data-rays='{"cx":800,"cy":760,"count":20,"len":1200,"w":26,"fill":"#ffdf9c"}'></g>
+      <circle class="lk-sun" cx="800" cy="700" r="300" fill="url(#lkSun)"/>
+
+      <g class="lk-clouds" filter="url(#lkSoft)" fill="#ffb37a" opacity=".5">
+        <ellipse cx="260" cy="300" rx="230" ry="42"/><ellipse cx="1240" cy="240" rx="270" ry="38"/>
+        <ellipse cx="820" cy="180" rx="200" ry="30"/><ellipse cx="1420" cy="400" rx="240" ry="34"/>
+        <ellipse cx="180" cy="470" rx="210" ry="30"/>
+      </g>
+
+      <g class="lk-birds" stroke="#2b0f16" stroke-width="4" fill="none" stroke-linecap="round">
+        <path d="M300 240 q14 -12 28 0 q14 -12 28 0"/><path d="M400 200 q11 -10 22 0 q11 -10 22 0"/>
+        <path d="M1180 300 q12 -11 24 0 q12 -11 24 0"/><path d="M1290 250 q10 -9 20 0 q10 -9 20 0"/>
+      </g>
+
+      <g class="lk-rock">
+        <path fill="url(#lkRock)" d="M-40 900 L-40 730 L90 690 L210 712 L330 668 L470 700 L610 724 L760 706 L900 672 L1030 648 L1150 620 L1196 660 L1120 690 L980 716 L840 744 L700 778 L540 808 L360 844 L180 900 Z"/>
+        <path fill="none" stroke="#ffb347" stroke-width="5" opacity=".6" d="M-40 730 L90 690 L210 712 L330 668 L470 700 L610 724 L760 706 L900 672 L1030 648 L1150 620 L1196 660"/>
+        <path fill="#08030a" d="M-40 900 L-40 828 L200 862 L470 836 L760 866 L1040 838 L1330 872 L1640 840 L1640 900 Z"/>
+
+        <g transform="translate(986 578) scale(0.92)"><g class="lk-walker" fill="#150609">
+          <ellipse cx="60" cy="46" rx="43" ry="22"/>
+          <rect x="20" y="52" width="10" height="32" rx="4"/><rect x="36" y="56" width="8" height="28" rx="4"/>
+          <rect x="80" y="52" width="11" height="32" rx="4"/><rect x="66" y="56" width="8" height="28" rx="4"/>
+          <path d="M100 40 Q128 32 122 62 Q119 76 106 72" stroke="#150609" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <circle cx="106" cy="72" r="8"/>
+          <circle cx="20" cy="32" r="22"/><circle cx="11" cy="14" r="6"/><circle cx="31" cy="12" r="6"/>
+          <ellipse cx="3" cy="38" rx="11" ry="7"/>
+        </g></g>
+      </g>
+
+      <!-- The king himself -->
+      <g class="lk-lion"><g class="lk-lion-roar">
+        <g class="lk-mane-out" data-tufts='{"cx":800,"cy":430,"count":34,"r":296,"len":132,"w":40,"fill":"url(#lkManeOut)"}'></g>
+        <g class="lk-mane-mid" data-tufts='{"cx":800,"cy":430,"count":28,"r":252,"len":112,"w":42,"fill":"url(#lkManeMid)"}'></g>
+        <g class="lk-mane-in"  data-tufts='{"cx":800,"cy":430,"count":22,"r":212,"len":92,"w":44,"fill":"url(#lkManeIn)"}'></g>
+        <circle cx="800" cy="430" r="206" fill="#c8791d"/>
+
+        <g class="lk-ears">
+          <ellipse cx="648" cy="300" rx="46" ry="52" fill="#b5651d" transform="rotate(-22 648 300)"/>
+          <ellipse cx="648" cy="304" rx="24" ry="28" fill="#8a4a12" transform="rotate(-22 648 304)"/>
+          <ellipse cx="952" cy="300" rx="46" ry="52" fill="#b5651d" transform="rotate(22 952 300)"/>
+          <ellipse cx="952" cy="304" rx="24" ry="28" fill="#8a4a12" transform="rotate(22 952 304)"/>
+        </g>
+
+        <ellipse cx="800" cy="432" rx="176" ry="166" fill="url(#lkFace)"/>
+
+        <!-- brow ridges -->
+        <path d="M672 372 Q712 336 762 356" stroke="#a86b23" stroke-width="15" fill="none" stroke-linecap="round" opacity=".75"/>
+        <path d="M928 372 Q888 336 838 356" stroke="#a86b23" stroke-width="15" fill="none" stroke-linecap="round" opacity=".75"/>
+
+        <g class="lk-eyes" filter="url(#lkBloom)">
+          <path d="M678 402 Q724 366 772 400 Q724 438 678 402 Z" fill="url(#lkEye)"/>
+          <path d="M922 402 Q876 366 828 400 Q876 438 922 402 Z" fill="url(#lkEye)"/>
+          <ellipse cx="726" cy="401" rx="13" ry="22" fill="#20090b"/>
+          <ellipse cx="874" cy="401" rx="13" ry="22" fill="#20090b"/>
+          <circle cx="732" cy="392" r="6" fill="#fff" opacity=".95"/>
+          <circle cx="880" cy="392" r="6" fill="#fff" opacity=".95"/>
+          <path d="M678 402 Q724 366 772 400" stroke="#5a2a06" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M922 402 Q876 366 828 400" stroke="#5a2a06" stroke-width="6" fill="none" stroke-linecap="round"/>
+        </g>
+
+        <!-- Muzzle in three layers: the fixed upper muzzle, the chin that
+             drops away, and the mouth cavity that opens on top of both. -->
+        <g class="lk-upper">
+          <ellipse cx="750" cy="478" rx="80" ry="52" fill="#fbe3b6"/>
+          <ellipse cx="850" cy="478" rx="80" ry="52" fill="#fbe3b6"/>
+          <path d="M766 432 Q800 414 834 432 Q818 464 800 464 Q782 464 766 432 Z" fill="#4a1a12"/>
+          <path d="M800 464 L800 486" stroke="#8a5a1e" stroke-width="7" stroke-linecap="round"/>
+          <g fill="#a8752e" opacity=".8">
+            <circle cx="702" cy="452" r="5"/><circle cx="694" cy="472" r="5"/><circle cx="700" cy="492" r="5"/>
+            <circle cx="898" cy="452" r="5"/><circle cx="906" cy="472" r="5"/><circle cx="900" cy="492" r="5"/>
+          </g>
+          <g stroke="#fff1cf" stroke-width="3" opacity=".5" stroke-linecap="round">
+            <path d="M688 450 L570 420"/><path d="M682 472 L560 472"/><path d="M688 494 L572 524"/>
+            <path d="M912 450 L1030 420"/><path d="M918 472 L1040 472"/><path d="M912 494 L1028 524"/>
+          </g>
+        </g>
+
+        <g class="lk-jaw">
+          <ellipse cx="800" cy="512" rx="96" ry="48" fill="#f6d9a6"/>
+          <path d="M800 486 Q758 512 730 488" stroke="#8a5a1e" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <path d="M800 486 Q842 512 870 488" stroke="#8a5a1e" stroke-width="7" fill="none" stroke-linecap="round"/>
+        </g>
+
+        <g class="lk-maw">
+          <path d="M702 486 Q800 462 898 486 Q918 588 800 652 Q682 588 702 486 Z" fill="#48101c"/>
+          <path d="M718 492 Q800 472 882 492 L874 514 Q800 496 726 514 Z" fill="#fff6e0"/>
+          <path d="M736 508 L754 572 L772 508 Z" fill="#fff6e0"/>
+          <path d="M864 508 L846 572 L828 508 Z" fill="#fff6e0"/>
+          <path d="M748 596 Q800 564 852 596 Q830 644 800 652 Q770 644 748 596 Z" fill="#c2354f"/>
+          <path d="M762 612 Q800 600 838 612" stroke="#9c2440" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M702 486 Q800 462 898 486" stroke="#2c0810" stroke-width="6" fill="none" stroke-linecap="round"/>
+        </g>
+      </g></g>
+
+      <g class="lk-shock" fill="none" stroke="#ffe7ae" stroke-width="9">
+        <circle class="lk-ring lk-ring-1" cx="800" cy="500" r="120"/>
+        <circle class="lk-ring lk-ring-2" cx="800" cy="500" r="120"/>
+        <circle class="lk-ring lk-ring-3" cx="800" cy="500" r="120"/>
+      </g>
+
+      <g class="lk-dust" data-embers='{"count":46,"x":800,"y":520,"spread":760,"fill":"#ffce7a","delay":3.5}'></g>
+
+      <g class="lk-crown" filter="url(#lkBloom)">
+        <path fill="url(#lkCrown)" d="M660 250 L940 250 L940 196 L896 226 L868 138 L834 204 L800 118 L766 204 L732 138 L704 226 L660 196 Z"/>
+        <rect x="652" y="248" width="296" height="38" rx="12" fill="url(#lkCrown)"/>
+        <circle cx="720" cy="267" r="11" fill="#e0325a"/><circle cx="800" cy="267" r="13" fill="#39d6ff"/>
+        <circle cx="880" cy="267" r="11" fill="#5ff2a0"/>
+        <circle cx="800" cy="118" r="14" fill="#fff6d6"/>
+      </g>
+    </svg>
+
+    <div class="cine-caption">
+      <span class="cine-kicker">Cosmic Gift</span>
+      <h3 class="cine-title cine-title-lion">ROYAL LION</h3>
+      <p class="cine-sub"><b data-user>Someone</b> · $250.00 · 100% to JEFFOS</p>
+    </div>
+  </div>
+</template>
+
+<template id="cineMoon">
+  <div class="cine cine-moon">
+    <svg class="cine-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="bmVoid" cx="0.5" cy="0.42">
+          <stop offset="0" stop-color="#3a0210"/><stop offset="0.55" stop-color="#150109"/>
+          <stop offset="1" stop-color="#040007"/>
+        </radialGradient>
+        <radialGradient id="bmCorona" cx="0.5" cy="0.5">
+          <stop offset="0.52" stop-color="#ff2d4d" stop-opacity=".85"/>
+          <stop offset="0.72" stop-color="#c2103a" stop-opacity=".35"/>
+          <stop offset="1" stop-color="#6a0020" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="bmMoon" cx="0.36" cy="0.32">
+          <stop offset="0" stop-color="#ff9c78"/><stop offset="0.34" stop-color="#e82a3f"/>
+          <stop offset="0.74" stop-color="#8c0b23"/><stop offset="1" stop-color="#3d0210"/>
+        </radialGradient>
+        <linearGradient id="bmRidge" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a0512"/><stop offset="1" stop-color="#050008"/>
+        </linearGradient>
+        <filter id="bmSoft" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="70"/>
+        </filter>
+        <filter id="bmGlow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="14" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <rect class="bm-void" width="1600" height="900" fill="url(#bmVoid)"/>
+      <g class="bm-neb" filter="url(#bmSoft)" data-nebula='{"count":7}'></g>
+      <g class="bm-stars" data-stars='{"count":150}'></g>
+
+      <g class="bm-moonwrap">
+        <circle class="bm-corona" cx="800" cy="392" r="430" fill="url(#bmCorona)"/>
+        <circle class="bm-halo" cx="800" cy="392" r="278" fill="none" stroke="#ff5a70" stroke-width="3" opacity=".7"/>
+        <circle class="bm-moon" cx="800" cy="392" r="258" fill="url(#bmMoon)"/>
+
+        <g class="bm-craters">
+          <circle cx="712" cy="318" r="54" fill="#6d0b1e" opacity=".62"/>
+          <circle cx="706" cy="312" r="44" fill="#4d0616" opacity=".5"/>
+          <circle cx="884" cy="290" r="30" fill="#6d0b1e" opacity=".55"/>
+          <circle cx="900" cy="440" r="68" fill="#6d0b1e" opacity=".6"/>
+          <circle cx="906" cy="434" r="54" fill="#4d0616" opacity=".45"/>
+          <circle cx="742" cy="486" r="38" fill="#6d0b1e" opacity=".5"/>
+          <circle cx="806" cy="378" r="22" fill="#5c0819" opacity=".5"/>
+          <circle cx="836" cy="536" r="26" fill="#5c0819" opacity=".45"/>
+          <circle cx="646" cy="424" r="20" fill="#5c0819" opacity=".4"/>
+          <path d="M600 470 Q700 500 780 566" stroke="#4d0616" stroke-width="7" fill="none" opacity=".45"/>
+          <path d="M880 218 Q930 268 962 348" stroke="#4d0616" stroke-width="6" fill="none" opacity=".4"/>
+        </g>
+
+        <circle class="bm-limb" cx="800" cy="392" r="258" fill="none" stroke="#ffb4a2" stroke-width="4" opacity=".55"/>
+        <circle class="bm-term" cx="1010" cy="300" r="300" fill="#050008"/>
+      </g>
+
+      <g class="bm-rings" fill="none" stroke="#ff3355" stroke-width="6"></g>
+      <g class="bm-motes" data-embers='{"count":40,"x":800,"y":760,"spread":900,"fill":"#ff5f77","rise":true,"delay":1}'></g>
+
+      <path class="bm-ridge" fill="url(#bmRidge)" d="M-40 900 L-40 742 L140 668 L280 736 L430 640 L580 730 L740 656 L900 740 L1060 648 L1220 730 L1380 664 L1540 738 L1640 700 L1640 900 Z"/>
+      <g class="bm-bolt" filter="url(#bmGlow)" stroke="#ff8fa0" stroke-width="5" fill="none" opacity="0">
+        <path d="M470 120 L520 300 L470 300 L540 520"/>
+        <path d="M1140 150 L1090 320 L1140 320 L1070 540"/>
+      </g>
+    </svg>
+
+    <div class="cine-scan"></div>
+    <div class="cine-caption">
+      <span class="cine-kicker">Cosmic Gift</span>
+      <h3 class="cine-title cine-title-moon">BLOOD MOON</h3>
+      <p class="cine-sub"><b data-user>Someone</b> · $500.00 · 100% to JEFFOS</p>
+    </div>
+  </div>
+</template>
+
+<script src="script.js?v=2"></script>
 </body>
 </html>

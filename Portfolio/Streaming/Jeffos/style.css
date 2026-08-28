@@ -453,6 +453,7 @@ h1, h2, h3, h4 { font-family: var(--nk-head); line-height: 1.15; letter-spacing:
 @media (max-width: 560px) {
   .nk-hud-bl, .nk-hud-br { display: none; }   /* keep the small screen readable */
   #nkUptime { display: none; }                /* chips would run under the cam */
+  .nk-hud-tl { max-width: calc(100% - 118px); }
   .nk-cam { width: 82px; }
   .nk-alert-slot { top: auto; bottom: 12px; left: 12px; right: 12px; transform: none; }
   .nk-alert { padding: 9px 12px 9px 9px; gap: 9px; }
@@ -465,4 +466,259 @@ h1, h2, h3, h4 { font-family: var(--nk-head); line-height: 1.15; letter-spacing:
 @media (prefers-reduced-motion: reduce) {
   .nk-scene-grid, .nk-scene-glow, .nk-live-dot, .nk-goal-fill,
   .nk-gift-myth::before, .nk-alert svg { animation: none; }
+}
+
+/* ============================================================
+   COSMIC TIER — the two big gifts and their stage cinematics
+   ============================================================ */
+
+.nk-cosmic-head { margin: 34px 0 16px; }
+.nk-cosmic-head h3 {
+  font-size: 1.15rem; letter-spacing: .1em; text-transform: uppercase;
+  background: linear-gradient(100deg, #ffd36e, #ff5ea8 45%, #a06bff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.nk-cosmic-head p { color: var(--nk-dim); font-size: .88rem; margin-top: 7px; max-width: 640px; }
+
+.nk-cosmic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.nk-cosmic { padding: 26px 22px 20px; border-color: rgba(255, 211, 110, .42); }
+.nk-cosmic::before {
+  content: ""; position: absolute; inset: -45%;
+  background: conic-gradient(from 0deg, transparent, rgba(255, 211, 110, .22), transparent 34%, rgba(255, 94, 168, .2), transparent 62%);
+  animation: nkSpin 7s linear infinite;
+}
+.nk-cosmic > * { position: relative; z-index: 1; }
+.nk-cosmic:hover { border-color: rgba(255, 211, 110, .8); box-shadow: 0 20px 46px rgba(0,0,0,.55), 0 0 44px rgba(255, 94, 168, .3); }
+.nk-gift-art-lg { width: 116px; height: 116px; }
+.nk-cosmic-desc { font-size: .84rem; color: var(--nk-dim); text-align: center; max-width: 32ch; line-height: 1.45; }
+.nk-cosmic-len {
+  font-family: var(--nk-head); font-size: .64rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: #ffd36e; opacity: .8;
+}
+.r-cosmic {
+  background: linear-gradient(100deg, #ffd36e, #ff5ea8 55%, #a06bff);
+  color: #180a20;
+}
+
+/* Sound toggle lives in the HUD, which is otherwise click-through */
+.nk-sound { pointer-events: auto; cursor: pointer; padding: 4px 9px; font-size: .82rem; line-height: 1.2; }
+.nk-sound:hover { border-color: var(--nk-edge-hot); }
+
+/* ---------------- Cinematic layer ---------------- */
+.nk-hud { z-index: 6; }
+.nk-cine { position: absolute; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; }
+.cine { position: absolute; inset: 0; animation: cineIn .3s ease both; }
+.cine.is-ending { animation: cineOut .5s ease both; }
+.cine-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+@keyframes cineIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cineOut { to { opacity: 0; } }
+
+.cine-caption {
+  position: absolute; left: 0; right: 0; bottom: 5%;
+  text-align: center; padding: 0 16px;
+  animation: cineCap .7s cubic-bezier(.2, 1, .36, 1) both;
+}
+.cine-kicker {
+  display: inline-block; font-family: var(--nk-head); font-size: .66rem; font-weight: 800;
+  letter-spacing: .28em; text-transform: uppercase; color: #ffe7ae;
+  padding: 3px 12px; border-radius: 999px; border: 1px solid rgba(255, 231, 174, .5);
+  background: rgba(8, 4, 12, .55); backdrop-filter: blur(4px);
+}
+.cine-title {
+  font-family: var(--nk-head); font-weight: 700;
+  font-size: clamp(1.6rem, 5.4vw, 3.4rem); letter-spacing: .16em; margin-top: 8px;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, .8);
+}
+.cine-title-lion { color: #fff3cf; text-shadow: 0 0 34px rgba(255, 175, 60, .9), 0 4px 20px rgba(0,0,0,.8); }
+.cine-title-moon { color: #ffd8d8; text-shadow: 0 0 34px rgba(255, 45, 77, .95), 0 4px 20px rgba(0,0,0,.85); }
+.cine-sub { font-size: clamp(.72rem, 1.6vw, .96rem); color: #f3e7d4; margin-top: 4px; text-shadow: 0 2px 12px rgba(0,0,0,.9); }
+.cine-sub b { color: #fff; }
+@keyframes cineCap { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+.nk-stage.is-shaking { animation: nkShake .7s cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes nkShake {
+  0%, 100% { transform: none; }
+  8%  { transform: translate(-9px, 5px) scale(1.012); }
+  18% { transform: translate(11px, -6px) scale(1.016); }
+  28% { transform: translate(-12px, -4px) scale(1.014); }
+  40% { transform: translate(9px, 7px) scale(1.01); }
+  54% { transform: translate(-7px, -5px) scale(1.008); }
+  70% { transform: translate(5px, 3px) scale(1.005); }
+  86% { transform: translate(-3px, -2px); }
+}
+
+/* shared helpers used by both scenes */
+@keyframes cineFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cineSpin { to { transform: rotate(360deg); } }
+
+/* ================= ROYAL LION (7.4s) ================= */
+.cine-lion { background: #0b0410; }
+.lk-sky { animation: cineFadeIn .5s ease both; }
+.lk-sun {
+  transform-origin: 800px 700px;
+  animation: lkSunRise 2.8s cubic-bezier(.22, 1, .36, 1) .15s both;
+}
+@keyframes lkSunRise {
+  from { transform: translateY(300px) scale(.7); opacity: .25; }
+  to   { transform: none; opacity: 1; }
+}
+.lk-rays { transform-origin: 800px 760px; animation: cineFadeIn 1.4s ease .8s both; }
+.lk-rays-spin { transform-origin: 800px 760px; animation: cineSpin 60s linear infinite; }
+.lk-clouds { animation: cineFadeIn 1s ease .3s both, lkDrift 34s linear infinite alternate; }
+@keyframes lkDrift { from { transform: translateX(-70px); } to { transform: translateX(70px); } }
+.lk-birds { animation: cineFadeIn .8s ease 1.1s both, lkFlee 1.8s ease-in 3.55s both; }
+@keyframes lkFlee { from { transform: none; } to { transform: translate(-260px, -220px) scale(.4); } }
+.lk-rock { animation: lkRockUp 1.3s cubic-bezier(.16, 1, .3, 1) .15s both; }
+@keyframes lkRockUp { from { transform: translateY(360px); } to { transform: none; } }
+.lk-walker { animation: lkWalk 1.25s cubic-bezier(.3, .8, .4, 1) 1.15s both, lkWalkOut .5s ease 2.75s forwards; }
+@keyframes lkWalk { from { transform: translateX(-420px); } to { transform: none; } }
+@keyframes lkWalkOut { to { opacity: 0; } }
+
+.lk-lion { animation: lkHeadIn 1.15s cubic-bezier(.2, 1.05, .35, 1) 2.1s both; transform-origin: 800px 460px; }
+@keyframes lkHeadIn {
+  from { opacity: 0; transform: translateY(90px) scale(.42); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
+.lk-lion-roar { transform-origin: 800px 470px; animation: lkRoar 1.5s cubic-bezier(.3, .9, .3, 1) 3.28s both; }
+@keyframes lkRoar {
+  0%   { transform: none; }
+  16%  { transform: translateY(-26px) scale(.94) rotate(-3deg); }
+  30%  { transform: translateY(14px) scale(1.15) rotate(1.5deg); }
+  46%  { transform: translateY(8px) scale(1.11); }
+  70%  { transform: scale(1.05); }
+  100% { transform: none; }
+}
+.lk-jaw { animation: lkJawOpen 1.5s cubic-bezier(.3, .9, .3, 1) 3.28s both; }
+@keyframes lkJawOpen {
+  0%, 12% { transform: none; }
+  30%     { transform: translateY(116px); }
+  62%     { transform: translateY(106px); }
+  100%    { transform: none; }
+}
+.lk-maw { transform-origin: 800px 482px; animation: lkMaw 1.5s cubic-bezier(.3, .9, .3, 1) 3.28s both; }
+@keyframes lkMaw {
+  0%, 12% { transform: scaleY(0); }
+  30%     { transform: scaleY(1); }
+  62%     { transform: scaleY(.94); }
+  100%    { transform: scaleY(0); }
+}
+.lk-eyes { animation: lkEyeFlare 1.5s ease 3.28s both; }
+@keyframes lkEyeFlare {
+  0%, 12% { filter: url(#lkBloom) brightness(1); }
+  30%     { filter: url(#lkBloom) brightness(2.2) saturate(1.4); }
+  100%    { filter: url(#lkBloom) brightness(1); }
+}
+
+.lk-ring { transform-origin: 800px 500px; opacity: 0; }
+.lk-ring-1 { animation: lkRing 1s ease-out 3.5s both; }
+.lk-ring-2 { animation: lkRing 1s ease-out 3.68s both; }
+.lk-ring-3 { animation: lkRing 1.1s ease-out 3.88s both; }
+@keyframes lkRing {
+  0%   { transform: scale(.22); opacity: 0; stroke-width: 16px; }
+  8%   { opacity: .95; }
+  100% { transform: scale(3.1); opacity: 0; stroke-width: 2px; }
+}
+
+.lk-ember { opacity: 0; animation: lkEmber 2.4s ease-out both; }
+@keyframes lkEmber {
+  0%   { opacity: 0; transform: translate(0, 0) scale(.3); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.1); }
+}
+
+.lk-crown { animation: lkCrownDrop 1s cubic-bezier(.2, 1.5, .4, 1) 4.35s both; }
+@keyframes lkCrownDrop {
+  from { opacity: 0; transform: translateY(-460px) scale(.7) rotate(-14deg); }
+  70%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
+.cine-lion .cine-caption { animation-delay: 4.65s; }
+
+/* ================= BLOOD MOON (6.0s) ================= */
+.cine-moon { background: #030006; --amp: 0; }
+.bm-void { animation: cineFadeIn .35s ease both; }
+.bm-stars { animation: cineFadeIn .9s ease .1s both; }
+.bm-star { animation: bmTwinkle 2.6s ease-in-out infinite; }
+@keyframes bmTwinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+.bm-neb {
+  transform-origin: 800px 400px;
+  animation: cineFadeIn 1.3s ease .2s both, cineSpin 90s linear infinite;
+}
+.bm-moonwrap { animation: bmRise 1.2s cubic-bezier(.16, 1, .3, 1) .08s both; transform-origin: 800px 392px; }
+@keyframes bmRise {
+  from { opacity: .2; transform: translateY(560px) scale(.5); }
+  to   { opacity: 1; transform: none; }
+}
+/* the audio drives these through --amp, set per frame from the analyser */
+.bm-corona {
+  transform-origin: 800px 392px;
+  transform: scale(calc(1 + var(--amp) * 0.2));
+  opacity: calc(0.45 + var(--amp) * 0.55);
+}
+.bm-moon { transform-origin: 800px 392px; transform: scale(calc(1 + var(--amp) * 0.045)); }
+.bm-halo {
+  transform-origin: 800px 392px;
+  transform: scale(calc(1 + var(--amp) * 0.34));
+  opacity: calc(0.25 + var(--amp) * 0.75);
+}
+.bm-limb { opacity: calc(0.4 + var(--amp) * 0.6); }
+.bm-term { animation: bmTerm 1.7s cubic-bezier(.4, 0, .2, 1) .95s both; }
+@keyframes bmTerm {
+  from { transform: translate(-300px, 130px); }
+  to   { transform: translate(560px, -400px); }
+}
+.bm-ridge { animation: bmRidgeUp 1.2s cubic-bezier(.16, 1, .3, 1) .3s both; }
+@keyframes bmRidgeUp { from { transform: translateY(200px); } to { transform: none; } }
+.bm-bolt { animation: bmBolt .6s steps(1, end) 1.12s both; }
+@keyframes bmBolt {
+  0% { opacity: 0; } 12% { opacity: .9; } 24% { opacity: 0; }
+  40% { opacity: .7; } 52% { opacity: 0; } 100% { opacity: 0; }
+}
+.bm-ring { transform-origin: 800px 392px; animation: bmRing .95s ease-out forwards; }
+@keyframes bmRing {
+  from { transform: scale(.75); opacity: .8; stroke-width: 12px; }
+  to   { transform: scale(2.4); opacity: 0; stroke-width: 1px; }
+}
+.bm-mote { opacity: 0; animation: bmMote 3.4s ease-out both; }
+@keyframes bmMote {
+  0%   { opacity: 0; transform: translate(0, 0); }
+  18%  { opacity: .9; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+}
+.cine-scan {
+  position: absolute; inset: 0; mix-blend-mode: screen; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255, 60, 90, .09) 0 2px, transparent 2px 5px);
+  opacity: calc(0.25 + var(--amp) * 0.7);
+}
+.cine-moon.is-hit .cine-scan { animation: bmGlitch .16s steps(2, end); }
+@keyframes bmGlitch {
+  0%   { transform: translateX(-7px); opacity: .9; }
+  50%  { transform: translateX(6px); }
+  100% { transform: none; }
+}
+.cine-moon .cine-caption { animation-delay: 1.6s; }
+
+@media (max-width: 560px) {
+  .nk-cosmic { padding: 20px 16px 16px; }
+  .nk-gift-art-lg { width: 92px; height: 92px; }
+  /* the stage is only ~210px tall here — keep the caption out of the art */
+  .cine-caption {
+    bottom: 0; padding: 26px 10px 7px;
+    background: linear-gradient(transparent, rgba(4, 2, 10, .78) 55%);
+  }
+  .cine-kicker { font-size: .5rem; letter-spacing: .2em; padding: 2px 8px; }
+  .cine-title { font-size: 1.15rem; letter-spacing: .12em; margin-top: 4px; }
+  .cine-sub { font-size: .62rem; margin-top: 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nk-stage.is-shaking { animation: none; }
+  .cine-scan, .lk-rays-spin, .lk-clouds, .bm-neb, .bm-star, .nk-cosmic::before { animation: none; }
+  .lk-lion-roar, .lk-jaw, .lk-maw, .lk-walker, .lk-birds, .lk-ember, .bm-mote, .bm-bolt { animation: none; }
+  .lk-maw { transform: scaleY(1); }
+  .lk-sun, .lk-rock, .lk-lion, .lk-crown, .bm-moonwrap, .bm-ridge, .bm-term {
+    animation-duration: .01ms; animation-delay: 0s;
+  }
+  .cine-caption { animation-duration: .3s; animation-delay: .1s; }
 }
