@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
 
@@ -56,7 +56,7 @@
         </a>
         <p class="eyebrow">Sign In</p>
         <h1>Access your <span class="gradient-text">portal.</span></h1>
-        <p class="hero-sub">Enter your email and we'll send you a one-time code — no password to remember.</p>
+        <p class="hero-sub">Sign in with your email or username and your password. Setting up for the first time, or forgotten it? Grab a one-time code below.</p>
       </div>
     </section>
 
@@ -69,14 +69,39 @@
               <path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
             </svg>
           </div>
+          <!-- Normal, everyday sign-in: password. -->
           <form id="portalLoginForm" class="portal-login-form">
             <div class="form-group">
-              <label for="loginEmail">Email</label>
-              <input type="email" id="loginEmail" autocomplete="email" required />
+              <label for="loginEmail">Email or username</label>
+              <input type="text" id="loginEmail" autocomplete="username" required />
             </div>
-            <p class="portal-login-error" id="loginError" hidden>Something went wrong sending your code — try again.</p>
-            <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Send Code</button>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" autocomplete="current-password" required />
+            </div>
+            <p class="portal-login-error" id="loginError" hidden></p>
+            <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Sign In</button>
           </form>
+          <p class="portal-note">
+            First time here, or forgotten your password?
+            <button type="button" id="showCodeFormBtn" class="clear-cart-link" style="display:inline; padding:0;">Get a one-time code</button>.
+          </p>
+
+          <!-- One-time code: only used to set or reset a password, never as
+               the everyday way in. -->
+          <form id="portalCodeForm" class="portal-login-form" hidden>
+            <div class="form-group">
+              <label for="codeIdentifier">Email or username</label>
+              <input type="text" id="codeIdentifier" autocomplete="username" />
+            </div>
+            <p class="portal-note" style="margin-top:0;">We'll email you a one-time code. Enter it on the next screen and you'll choose your password.</p>
+            <p class="portal-login-error" id="codeError" hidden></p>
+            <button type="submit" class="btn btn-primary" id="codeSubmitBtn">Send Code</button>
+          </form>
+          <p class="portal-note" id="backToPasswordRow" hidden>
+            Remembered it? <button type="button" id="showPasswordFormBtn" class="clear-cart-link" style="display:inline; padding:0;">Sign in with a password</button>.
+          </p>
+
           <p class="portal-note">Just purchased a build or a management plan? Use the same email you checked out with.</p>
         </div>
       </div>
@@ -91,6 +116,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabase-client.js"></script>
-  <script src="js/main.js?v=2"></script>
+  <script src="js/main.js?v=3"></script>
 </body>
 </html>

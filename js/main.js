@@ -680,7 +680,12 @@ if (cartItemsEl) {
   });
 }
 
-// Portal login — real Supabase email one-time-code auth.
+// Portal auth. Signing in day to day is a normal password; the one-time code
+// exists only to set that password the first time, or to reset a forgotten
+// one. Whatever's typed in the identifier box can be an email or a developer's
+// username — resolve_portal_login (supabase/015) turns either into the email
+// the account actually lives under, and returns nothing for anyone without
+// portal access, which is what keeps strangers out.
 const portalLoginForm = document.getElementById("portalLoginForm");
 if (portalLoginForm) {
   // Bounced back here by the portal's own access re-check (see portal.html).
@@ -688,16 +693,86 @@ if (portalLoginForm) {
     sessionStorage.removeItem("digicodePortalDenied");
     const deniedEl = document.getElementById("loginError");
     if (deniedEl) {
-      deniedEl.textContent = "That email address does not have access to the portal.";
+      deniedEl.textContent = "That account does not have access to the portal.";
       deniedEl.hidden = false;
     }
   }
 
+  const codeForm = document.getElementById("portalCodeForm");
+  const backRow = document.getElementById("backToPasswordRow");
+  const showCodeBtn = document.getElementById("showCodeFormBtn");
+  const showPasswordBtn = document.getElementById("showPasswordFormBtn");
+  const passwordNote = showCodeBtn ? showCodeBtn.closest("p") : null;
+
+  function showCodeMode(show) {
+    portalLoginForm.hidden = show;
+    if (passwordNote) passwordNote.hidden = show;
+    if (codeForm) {
+      codeForm.hidden = !show;
+      // Only require the field while its form is the one on screen, or the
+      // hidden form's validation would block the visible one from submitting.
+      const idField = document.getElementById("codeIdentifier");
+      if (idField) idField.required = show;
+    }
+    if (backRow) backRow.hidden = !show;
+  }
+  showCodeMode(false);
+  showCodeBtn?.addEventListener("click", () => {
+    // Carry across whatever they'd already typed, so they don't retype it.
+    const typed = document.getElementById("loginEmail")?.value.trim();
+    const idField = document.getElementById("codeIdentifier");
+    if (typed && idField && !idField.value) idField.value = typed;
+    showCodeMode(true);
+  });
+  showPasswordBtn?.addEventListener("click", () => showCodeMode(false));
+
+  // Turns an email-or-username into the account's email. Returns
+  // { email } on success, or { message } describing what to tell them.
+  async function resolveIdentifier(identifier) {
+    const { data, error } = await veloraSupabase
+      .rpc("resolve_portal_login", { identifier });
+    if (error) return { message: "We couldn't check that just now — please try again." };
+    if (!data) return { message: "That email or username does not have access to the portal." };
+    return { email: data };
+  }
+
   portalLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = document.getElementById("loginEmail").value.trim();
+    const identifier = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
     const errorEl = document.getElementById("loginError");
     const submitBtn = document.getElementById("loginSubmitBtn");
+    if (errorEl) errorEl.hidden = true;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Signing in…"; }
+
+    const failWith = (message) => {
+      if (errorEl) { errorEl.textContent = message; errorEl.hidden = false; }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Sign In"; }
+    };
+
+    const resolved = await resolveIdentifier(identifier);
+    if (!resolved.email) { failWith(resolved.message); return; }
+
+    const { error } = await veloraSupabase.auth.signInWithPassword({
+      email: resolved.email,
+      password,
+    });
+    if (error) {
+      // Covers both a wrong password and an account that hasn't set one yet —
+      // Supabase reports the same "invalid credentials" for both, and we don't
+      // want to confirm which of the two it was anyway.
+      failWith("That password didn't work. If you haven't set one yet, get a one-time code below.");
+      return;
+    }
+
+    window.location.href = "portal.html";
+  });
+
+  codeForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const identifier = document.getElementById("codeIdentifier").value.trim();
+    const errorEl = document.getElementById("codeError");
+    const submitBtn = document.getElementById("codeSubmitBtn");
     if (errorEl) errorEl.hidden = true;
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Sending…"; }
 
@@ -706,36 +781,22 @@ if (portalLoginForm) {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Send Code"; }
     };
 
-    // Only the developer roster and people who've actually bought something
-    // get a code — see email_has_portal_access in supabase/014. This has to
-    // be an RPC because `developers`/`projects` are both behind RLS that
-    // requires an existing session, which a visitor here doesn't have yet.
-    const { data: hasAccess, error: accessError } = await veloraSupabase
-      .rpc("email_has_portal_access", { check_email: email });
-
-    if (accessError) {
-      failWith("We couldn't check that email just now — please try again.");
-      return;
-    }
-    if (!hasAccess) {
-      failWith("That email address does not have access to the portal.");
-      return;
-    }
+    const resolved = await resolveIdentifier(identifier);
+    if (!resolved.email) { failWith(resolved.message); return; }
 
     // shouldCreateUser stays true on purpose: a developer who's just been
-    // added to the roster has no auth user yet, and this first sign-in is
+    // added to the roster has no auth user yet, and this first code is
     // exactly what creates it (and promotes them — see supabase/003).
     const { error } = await veloraSupabase.auth.signInWithOtp({
-      email,
+      email: resolved.email,
       options: { shouldCreateUser: true },
     });
-
     if (error) {
       failWith("Something went wrong sending your code — try again.");
       return;
     }
 
-    sessionStorage.setItem("veloraPendingEmail", email);
+    sessionStorage.setItem("veloraPendingEmail", resolved.email);
     window.location.href = "verify.html";
   });
 }
@@ -745,7 +806,7 @@ if (verifyCodeForm) {
   const pendingEmail = sessionStorage.getItem("veloraPendingEmail");
   const subEl = document.getElementById("verifySub");
   if (pendingEmail && subEl) {
-    subEl.textContent = `We've sent a one-time code to ${pendingEmail}. Enter it below to continue.`;
+    subEl.textContent = `We've sent a one-time code to ${pendingEmail}. Enter it below and you'll choose your password next.`;
   } else if (!pendingEmail) {
     window.location.href = "signin.html";
   }
@@ -771,9 +832,11 @@ if (verifyCodeForm) {
     }
 
     sessionStorage.removeItem("veloraPendingEmail");
-    // Signing in from the game (to sync a profile across devices) sends
-    // the player back there instead of the portal.
-    const redirect = sessionStorage.getItem("veloraAuthRedirect") || "portal.html";
+    // A code is only ever issued to set or reset a password now, so this
+    // always lands on the password screen — the code isn't a way in on its
+    // own. (An explicit redirect still wins, so the games can reuse this
+    // flow later just to sync a profile.)
+    const redirect = sessionStorage.getItem("veloraAuthRedirect") || "create-password.html";
     sessionStorage.removeItem("veloraAuthRedirect");
     window.location.href = redirect;
   });
@@ -781,6 +844,46 @@ if (verifyCodeForm) {
   document.getElementById("resendCodeBtn")?.addEventListener("click", async () => {
     if (!pendingEmail) return;
     await veloraSupabase.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true } });
+  });
+}
+
+// Setting a portal password, reached straight after a one-time code has been
+// verified. That code is what put a real session in place, and the session is
+// what authorises updateUser() here — so there's no token to pass around.
+const createPasswordForm = document.getElementById("createPasswordForm");
+if (createPasswordForm) {
+  const errorEl = document.getElementById("createPasswordError");
+  const submitBtn = document.getElementById("createPasswordBtn");
+
+  const showError = (message) => {
+    if (errorEl) { errorEl.textContent = message; errorEl.hidden = false; }
+  };
+
+  // Landing here without having verified a code means there's nothing to
+  // attach a password to — send them back to the start.
+  (async () => {
+    const { data: { session } } = await veloraSupabase.auth.getSession();
+    if (!session) window.location.href = "signin.html";
+  })();
+
+  createPasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const password = document.getElementById("newPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    if (errorEl) errorEl.hidden = true;
+
+    if (password.length < 8) { showError("Use at least 8 characters."); return; }
+    if (password !== confirm) { showError("Those two passwords don't match."); return; }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Saving…"; }
+    const { error } = await veloraSupabase.auth.updateUser({ password });
+    if (error) {
+      showError(error.message || "We couldn't save that password — please try again.");
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Create Password"; }
+      return;
+    }
+
+    window.location.href = "portal.html";
   });
 }
 
