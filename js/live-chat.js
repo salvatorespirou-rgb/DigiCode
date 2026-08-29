@@ -62,7 +62,7 @@
   var root = document.createElement("div");
   root.className = "dc-chat";
   root.innerHTML =
-    '<button type="button" class="dc-chat-launcher" id="dcChatLauncher" aria-expanded="false" aria-label="Chat with DigiCode">' +
+    '<button type="button" class="dc-chat-launcher" id="dcChatLauncher" aria-expanded="false" aria-label="Chat with a DigiCode developer">' +
       '<svg viewBox="0 0 24 24" class="dc-chat-icon-open" aria-hidden="true">' +
         '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.3 9.3 0 0 1-2.8-.4L4 21l1.4-4.1A8.2 8.2 0 0 1 3.6 11.5 8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z" ' +
               'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>' +
@@ -75,14 +75,14 @@
       "</svg>" +
       '<span class="dc-chat-dot" id="dcChatDot" hidden></span>' +
     "</button>" +
-    '<section class="dc-chat-panel" id="dcChatPanel" hidden aria-label="Chat with DigiCode">' +
+    '<section class="dc-chat-panel" id="dcChatPanel" hidden aria-label="Chat with a DigiCode developer">' +
       '<header class="dc-chat-head">' +
         '<div class="dc-chat-head-mark" aria-hidden="true">' +
           '<img src="assets/images/digicode-logo-transparent.png" alt="" />' +
         "</div>" +
         "<div>" +
-          "<strong>Chat with DigiCode</strong>" +
-          '<span id="dcChatStatus">Usually replies within a few hours</span>' +
+          "<strong>Chat with a DigiCode Developer</strong>" +
+          '<span id="dcChatStatus">We reply within minutes</span>' +
         "</div>" +
         '<button type="button" class="dc-chat-min" id="dcChatMin" aria-label="Minimise chat">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>' +
@@ -273,8 +273,20 @@
 
   function setOpen(open) {
     isOpen = open;
-    panel.hidden = !open;
     root.classList.toggle("is-open", open);
+    if (open) {
+      panel.classList.remove("is-closing");
+      panel.hidden = false;
+    } else {
+      // Let it visibly collapse back into the bubble rather than vanish.
+      panel.classList.add("is-closing");
+      setTimeout(function () {
+        if (!isOpen) {
+          panel.hidden = true;
+          panel.classList.remove("is-closing");
+        }
+      }, 200);
+    }
     launcher.setAttribute("aria-expanded", String(open));
     if (open) {
       markSeen();

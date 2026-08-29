@@ -1371,6 +1371,7 @@ if (devTabs.length) {
             <label class="checkbox-option"><input type="checkbox" value="View Finished" checked /> View Finished Projects</label>
             <label class="checkbox-option"><input type="checkbox" value="Assign Projects" /> Assign Projects to Self</label>
             <label class="checkbox-option"><input type="checkbox" value="Manage Developers" /> Manage Other Developers</label>
+            <label class="checkbox-option"><input type="checkbox" value="Delete Live Chats" /> Delete Live Chat History</label>
           </div>
         </div>
         <button type="submit" class="btn btn-primary">Create Developer</button>
@@ -1577,8 +1578,51 @@ if (devTabs.length) {
     return getVisitorChats().reduce((n, c) => n + visitorUnreadCount(c.id), 0);
   }
 
+  // Mirrors public.can_delete_visitor_chats() in supabase/019. The database is
+  // the real gate — this only decides whether to draw the buttons, so a dev
+  // isn't shown a control that would just bounce off RLS.
+  function canDeleteVisitorChats() {
+    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Delete Live Chats");
+  }
+
+  async function deleteVisitorConversation(id, label) {
+    if (!window.confirm(`Delete the whole conversation with ${label}? This can't be undone.`)) return;
+    const { error } = await veloraSupabase.from("visitor_chats").delete().eq("id", id);
+    if (error) {
+      window.alert("Couldn't delete that conversation — your account may not have permission.");
+      return;
+    }
+    if (activeChatId === "visitor:" + id) activeChatId = null;
+    await loadVisitorChats();
+    renderChatPanel();
+  }
+
+  async function deleteReadVisitorConversations() {
+    const stale = getVisitorChats().filter((c) => visitorUnreadCount(c.id) === 0);
+    if (!stale.length) {
+      window.alert("Nothing to clear — every conversation still has unread messages.");
+      return;
+    }
+    if (!window.confirm(`Delete ${stale.length} read conversation${stale.length === 1 ? "" : "s"}? This can't be undone.`)) return;
+    const { error } = await veloraSupabase
+      .from("visitor_chats")
+      .delete()
+      .in("id", stale.map((c) => c.id));
+    if (error) {
+      window.alert("Couldn't clear those — your account may not have permission.");
+      return;
+    }
+    activeChatId = null;
+    await loadVisitorChats();
+    renderChatPanel();
+  }
+
   function renderVisitorChat(panel) {
     const convos = getVisitorChats();
+    const canDelete = canDeleteVisitorChats();
     const activeId = activeChatId && activeChatId.startsWith("visitor:")
       ? Number(activeChatId.slice(8))
       : null;
@@ -1590,15 +1634,23 @@ if (devTabs.length) {
             const last = msgs[msgs.length - 1];
             const unread = visitorUnreadCount(c.id);
             const chatId = "visitor:" + c.id;
+            const label = c.visitor_name || "Anonymous visitor";
             return `
-              <button type="button" class="chat-list-item ${activeChatId === chatId ? "active" : ""}" data-chat-id="${chatId}">
-                <span class="chat-list-name">
-                  ${escapeHtml(c.visitor_name || "Anonymous visitor")}
-                  ${unread ? `<span class="chat-visitor-badge">${unread} new</span>` : ""}
-                </span>
-                <span class="chat-list-preview">${last ? escapeHtml(last.body) : "No messages yet"}</span>
-                <span class="chat-visitor-meta">${escapeHtml(c.visitor_email || "No email given")} · ${formatDate(c.last_message_at)}</span>
-              </button>`;
+              <div class="chat-visitor-row">
+                <button type="button" class="chat-list-item ${activeChatId === chatId ? "active" : ""}" data-chat-id="${chatId}">
+                  <span class="chat-list-name">
+                    ${escapeHtml(label)}
+                    ${unread ? `<span class="chat-visitor-badge">${unread} new</span>` : ""}
+                  </span>
+                  <span class="chat-list-preview">${last ? escapeHtml(last.body) : "No messages yet"}</span>
+                  <span class="chat-visitor-meta">${escapeHtml(c.visitor_email || "No email given")} · ${formatDate(c.last_message_at)}</span>
+                </button>
+                ${
+                  canDelete
+                    ? `<button type="button" class="chat-visitor-delete" data-delete-id="${c.id}" data-label="${escapeHtml(label)}" title="Delete this conversation" aria-label="Delete the conversation with ${escapeHtml(label)}">&times;</button>`
+                    : ""
+                }
+              </div>`;
           })
           .join("")
       : `<p class="dev-empty">No one has started a chat yet. The bubble is live on every page of the site.</p>`;
@@ -1646,6 +1698,11 @@ if (devTabs.length) {
             }</button>
           </div>
           <div class="chat-list">${listHtml}</div>
+          ${
+            canDelete && convos.length
+              ? `<button type="button" class="btn btn-ghost btn-small chat-clear-read" id="clearReadChats">Clear read conversations</button>`
+              : ""
+          }
         </div>
         <div class="chat-thread">${threadHtml}</div>
       </div>
@@ -1668,6 +1725,15 @@ if (devTabs.length) {
         if (el) el.scrollTop = el.scrollHeight;
       });
     });
+
+    panel.querySelectorAll(".chat-visitor-delete").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteVisitorConversation(Number(btn.dataset.deleteId), btn.dataset.label);
+      });
+    });
+
+    document.getElementById("clearReadChats")?.addEventListener("click", deleteReadVisitorConversations);
 
     if (activeId) markVisitorSeen(activeId);
 

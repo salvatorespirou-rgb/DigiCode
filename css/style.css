@@ -3377,11 +3377,21 @@ input[type="radio"] { accent-color: var(--purple); }
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.62), 0 0 50px rgba(109, 78, 232, 0.18);
+  transform-origin: bottom right;
   animation: dcChatIn .26s cubic-bezier(.22, 1, .36, 1) both;
 }
 @keyframes dcChatIn {
-  from { opacity: 0; transform: translateY(16px) scale(.96); }
+  from { opacity: 0; transform: translateY(16px) scale(.9); }
   to   { opacity: 1; transform: none; }
+}
+/* `hidden` alone loses to the display:flex above — without this the panel
+   is stuck open on every page load. */
+.dc-chat-panel[hidden] { display: none; }
+/* Collapses back toward the bubble instead of blinking out. */
+.dc-chat-panel.is-closing { animation: dcChatOut .2s ease both; pointer-events: none; }
+@keyframes dcChatOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(14px) scale(.88); }
 }
 
 .dc-chat-head {
@@ -3527,7 +3537,7 @@ input[type="radio"] { accent-color: var(--purple); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dc-chat-panel, .dc-msg { animation: none; }
+  .dc-chat-panel, .dc-chat-panel.is-closing, .dc-msg { animation: none; }
   .dc-chat-dot { animation: none; }
   .dc-chat-launcher:hover { transform: none; }
 }
@@ -3574,3 +3584,48 @@ input[type="radio"] { accent-color: var(--purple); }
   animation: dcChatPing 1.8s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) { .chat-live-pill::before { animation: none; } }
+
+/* ---------------- Homepage team section ---------------- */
+.team-section { position: relative; }
+.team-section .section-sub {
+  max-width: 760px; margin-left: auto; margin-right: auto;
+  text-align: center; margin-bottom: 34px;
+}
+.team-footnote {
+  margin-top: 26px; text-align: center;
+  font-size: 0.9rem; color: rgba(185, 194, 204, 0.66);
+}
+
+/* ---------------- Deleting visitor conversations ---------------- */
+.chat-visitor-row { position: relative; }
+.chat-visitor-row .chat-list-item { width: 100%; padding-right: 38px; }
+.chat-visitor-delete {
+  position: absolute;
+  top: 10px; right: 8px;
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  border-radius: 7px; cursor: pointer;
+  font-size: 1.05rem; line-height: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(185, 194, 204, 0.42);
+  opacity: 0;
+  transition: opacity .16s ease, color .16s ease, background .16s ease, border-color .16s ease;
+}
+.chat-visitor-row:hover .chat-visitor-delete,
+.chat-visitor-delete:focus-visible { opacity: 1; }
+.chat-visitor-delete:hover {
+  background: rgba(255, 59, 92, 0.14);
+  border-color: rgba(255, 59, 92, 0.45);
+  color: #ff8fa0;
+}
+/* Touch has no hover, so never hide it there. */
+@media (hover: none) {
+  .chat-visitor-delete { opacity: 1; }
+}
+
+.chat-clear-read {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 0.76rem;
+}

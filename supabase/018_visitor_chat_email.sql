@@ -79,13 +79,16 @@ begin
   from public.visitor_messages
   where conversation_id = convo.id and sender = 'visitor';
 
-  who := coalesce(nullif(convo.visitor_name, ''), 'A site visitor');
+  who := coalesce(nullif(convo.visitor_name, ''), 'Someone');
 
   subject_line := case
-    when msg_count <= 1 then 'New chat on DigiCode — ' || who
-    else 'Reply on DigiCode chat — ' || who
+    when msg_count <= 1 then who || ' is chatting on DigiCode'
+    else who || ' has replied on DigiCode chat'
   end;
 
+  -- Deliberately a nudge, not a transcript. The message itself stays in the
+  -- portal: it keeps what visitors type out of an inbox that syncs to a phone,
+  -- and it means the reply happens where the thread actually lives.
   perform net.http_post(
     url     := 'https://api.resend.com/emails',
     headers := jsonb_build_object(
@@ -95,24 +98,18 @@ begin
     body    := jsonb_build_object(
                  'from',    NOTIFY_FROM,
                  'to',      jsonb_build_array(NOTIFY_TO),
-                 'reply_to', coalesce(nullif(convo.visitor_email, ''), NOTIFY_TO),
                  'subject', subject_line,
                  'html',
                    '<div style="font-family:system-ui,sans-serif;line-height:1.6;color:#111">'
-                   || '<h2 style="margin:0 0 4px">' || who || ' is chatting on the site</h2>'
-                   || '<p style="margin:0 0 16px;color:#666;font-size:14px">'
-                   || coalesce(nullif(convo.visitor_email, ''), 'No email given')
-                   || ' &middot; started on ' || coalesce(convo.first_page, 'the site')
-                   || '</p>'
-                   || '<blockquote style="margin:0 0 20px;padding:12px 16px;background:#f4f5f7;'
-                   || 'border-left:3px solid #6d4ee8;border-radius:6px;white-space:pre-wrap">'
-                   || replace(replace(replace(new.body, '&', '&amp;'), '<', '&lt;'), '>', '&gt;')
-                   || '</blockquote>'
+                   || '<h2 style="margin:0 0 6px">' || who || ' is chatting on the site</h2>'
+                   || '<p style="margin:0 0 20px;color:#666;font-size:14px">'
+                   || 'Started on ' || coalesce(convo.first_page, 'the site')
+                   || '. Open the portal to read it and reply.</p>'
                    || '<p style="margin:0"><a href="https://salvatorespirou-rgb.github.io/DigiCode/portal.html" '
-                   || 'style="background:#6d4ee8;color:#fff;padding:10px 18px;border-radius:8px;'
-                   || 'text-decoration:none;display:inline-block">Reply in the portal</a></p>'
-                   || '<p style="margin:18px 0 0;color:#999;font-size:12px">'
-                   || 'Further messages in this conversation will not email you again for 5 minutes.</p>'
+                   || 'style="background:#6d4ee8;color:#fff;padding:11px 20px;border-radius:8px;'
+                   || 'text-decoration:none;display:inline-block;font-weight:600">Open the chat</a></p>'
+                   || '<p style="margin:20px 0 0;color:#999;font-size:12px">'
+                   || 'You won''t be emailed again about this conversation for 5 minutes.</p>'
                    || '</div>'
                )
   );
