@@ -91,8 +91,11 @@
       '<div class="dc-chat-log" id="dcChatLog" role="log" aria-live="polite"></div>' +
       '<form class="dc-chat-form" id="dcChatForm">' +
         '<div class="dc-chat-identity" id="dcChatIdentity">' +
-          '<input type="text" id="dcChatName" placeholder="Your name" autocomplete="name" maxlength="80" />' +
-          '<input type="email" id="dcChatEmail" placeholder="Email (so we can reply)" autocomplete="email" maxlength="160" />' +
+          '<span class="dc-chat-optional">Optional &mdash; only if you&rsquo;d like us to follow up by email</span>' +
+          '<div class="dc-chat-optional-row">' +
+            '<input type="text" id="dcChatName" placeholder="Your name" autocomplete="name" maxlength="80" />' +
+            '<input type="email" id="dcChatEmail" placeholder="Email" autocomplete="email" maxlength="160" />' +
+          "</div>" +
         "</div>" +
         '<div class="dc-chat-send-row">' +
           '<textarea id="dcChatInput" placeholder="Type your message…" rows="1" maxlength="2000"></textarea>' +
@@ -100,7 +103,7 @@
             '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 4 4l3 8-3 8z" fill="currentColor"/></svg>' +
           "</button>" +
         "</div>" +
-        '<p class="dc-chat-note" id="dcChatNote">Leave an email and we\'ll reply there too if you\'ve gone.</p>' +
+        '<p class="dc-chat-note" id="dcChatNote">Chat is the fastest way to reach us &mdash; no email needed.</p>' +
       "</form>" +
     "</section>";
   document.body.appendChild(root);
@@ -143,8 +146,9 @@
       logEl.innerHTML =
         '<div class="dc-chat-intro">' +
           "<p><strong>Hi — thanks for stopping by.</strong></p>" +
-          "<p>Ask us anything about a build, a price, or a project you've already got running. " +
-          "A real person answers these, so leave an email and we'll come back to you either way.</p>" +
+          "<p>Ask us anything &mdash; a build, a price, or a project you&rsquo;ve already got running. " +
+          "A real person answers these, usually within minutes.</p>" +
+          "<p>Can&rsquo;t wait around? Leave an email below and we&rsquo;ll follow up there instead.</p>" +
         "</div>";
       return;
     }
@@ -255,7 +259,7 @@
       await poll();
       render();
       schedulePoll();
-      noteEl.textContent = "Leave an email and we'll reply there too if you've gone.";
+      noteEl.textContent = "Sent — we'll answer here shortly.";
       noteEl.classList.remove("is-error");
     } catch (e) {
       messages = messages.filter(function (m) { return m.id > 0; });
@@ -285,7 +289,7 @@
           panel.hidden = true;
           panel.classList.remove("is-closing");
         }
-      }, 200);
+      }, 240);
     }
     launcher.setAttribute("aria-expanded", String(open));
     if (open) {

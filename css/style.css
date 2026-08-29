@@ -3377,21 +3377,26 @@ input[type="radio"] { accent-color: var(--purple); }
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.62), 0 0 50px rgba(109, 78, 232, 0.18);
-  transform-origin: bottom right;
-  animation: dcChatIn .26s cubic-bezier(.22, 1, .36, 1) both;
+  /* Origin sits on the launcher's centre, so the panel grows out of the
+     circle and shrinks back into it rather than sliding around near it.
+     29px = half the 58px bubble; 45px clears the 74px bottom offset. */
+  transform-origin: calc(100% - 29px) calc(100% + 45px);
+  animation: dcChatIn .3s cubic-bezier(.2, 1.08, .32, 1) both;
 }
 @keyframes dcChatIn {
-  from { opacity: 0; transform: translateY(16px) scale(.9); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; transform: scale(.16); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: scale(1); }
 }
 /* `hidden` alone loses to the display:flex above — without this the panel
    is stuck open on every page load. */
 .dc-chat-panel[hidden] { display: none; }
 /* Collapses back toward the bubble instead of blinking out. */
-.dc-chat-panel.is-closing { animation: dcChatOut .2s ease both; pointer-events: none; }
+.dc-chat-panel.is-closing { animation: dcChatOut .24s cubic-bezier(.5, 0, .75, .2) both; pointer-events: none; }
 @keyframes dcChatOut {
-  from { opacity: 1; transform: none; }
-  to   { opacity: 0; transform: translateY(14px) scale(.88); }
+  from { opacity: 1; transform: scale(1); }
+  40%  { opacity: 1; }
+  to   { opacity: 0; transform: scale(.16); }
 }
 
 .dc-chat-head {
@@ -3481,7 +3486,14 @@ input[type="radio"] { accent-color: var(--purple); }
   border-top: 1px solid rgba(125, 200, 255, 0.16);
   background: rgba(6, 9, 17, 0.5);
 }
-.dc-chat-identity { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 9px; }
+.dc-chat-identity { margin-bottom: 10px; }
+.dc-chat-optional {
+  display: block;
+  font-size: 0.68rem; line-height: 1.4;
+  color: rgba(185, 194, 204, 0.55);
+  margin-bottom: 6px;
+}
+.dc-chat-optional-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 /* `hidden` alone loses to the display above, so restate it */
 .dc-chat-identity[hidden] { display: none; }
 .dc-chat-identity input,
@@ -3532,8 +3544,9 @@ input[type="radio"] { accent-color: var(--purple); }
     width: calc(100vw - 28px);
     height: min(540px, calc(100vh - 110px));
     bottom: 66px;
+    transform-origin: calc(100% - 26px) calc(100% + 40px);
   }
-  .dc-chat-identity { grid-template-columns: 1fr; }
+  .dc-chat-optional-row { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
