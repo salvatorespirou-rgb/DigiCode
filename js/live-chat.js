@@ -78,7 +78,7 @@
     '<section class="dc-chat-panel" id="dcChatPanel" hidden aria-label="Chat with a DigiCode developer">' +
       '<header class="dc-chat-head">' +
         '<div class="dc-chat-head-mark" aria-hidden="true">' +
-          '<img src="assets/images/digicode-logo-transparent.png" alt="" />' +
+          '<img src="assets/images/digicode-logo.png" alt="" width="30" height="30" />' +
         "</div>" +
         "<div>" +
           "<strong>Chat with a DigiCode Developer</strong>" +
@@ -125,7 +125,7 @@
   var repoBase = location.hostname.indexOf("github.io") !== -1 ? 1 : 0;
   var up = Math.max(0, dirDepth - repoBase);
   root.querySelector(".dc-chat-head-mark img").src =
-    new Array(up + 1).join("../") + "assets/images/digicode-logo-transparent.png";
+    new Array(up + 1).join("../") + "assets/images/digicode-logo.png";
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {

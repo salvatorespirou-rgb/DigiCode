@@ -5,7 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiCode — Web Design Studio</title>
   <meta name="description" content="DigiCode hand-codes modern, high-performing websites for small businesses and brands — real code, not drag-and-drop, with optimization work available on existing codebases too." />
+  <link rel="canonical" href="https://salvatorespirou-rgb.github.io/DigiCode/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="DigiCode" />
+  <meta property="og:title" content="DigiCode — Web Design Studio" />
+  <meta property="og:description" content="DigiCode hand-codes modern, high-performing websites for small businesses and brands — real code, not drag-and-drop, with optimization work available on existing codebases too." />
+  <meta property="og:url" content="https://salvatorespirou-rgb.github.io/DigiCode/" />
+  <meta property="og:image" content="https://salvatorespirou-rgb.github.io/DigiCode/assets/images/digicode-og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DigiCode — Web Design Studio" />
+  <meta name="twitter:description" content="DigiCode hand-codes modern, high-performing websites for small businesses and brands — real code, not drag-and-drop, with optimization work available on existing codebases too." />
+  <meta name="twitter:image" content="https://salvatorespirou-rgb.github.io/DigiCode/assets/images/digicode-og.png" />
   <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
+  <link rel="preload" as="image"
+        href="assets/images/digicode-logo-768.png"
+        imagesrcset="assets/images/digicode-logo-768.png 768w, assets/images/digicode-logo-transparent.png 1024w"
+        imagesizes="(max-width: 860px) 280px, 480px" fetchpriority="high" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -53,7 +70,14 @@
       <div class="hero-overlay"></div>
       <div class="container hero-content">
         <div class="hero-logo-wrap">
-          <img src="assets/images/digicode-logo-transparent.png" alt="DigiCode" class="hero-logo" id="heroLogo" />
+          <!-- Largest Contentful Paint element. 1x screens take the 768
+               (335KB), 2x take the full 1024 (585KB) — nobody sees a softer
+               logo, most people save 250KB. Preloaded in <head>. -->
+          <img src="assets/images/digicode-logo-768.png"
+               srcset="assets/images/digicode-logo-768.png 768w, assets/images/digicode-logo-transparent.png 1024w"
+               sizes="(max-width: 860px) 280px, 480px"
+               alt="DigiCode" class="hero-logo" id="heroLogo"
+               width="768" height="768" fetchpriority="high" decoding="async" />
         </div>
         <p class="eyebrow">Real Code. Real People. Real Quality.</p>
         <h1>Websites built to carry your brand into a <span class="gradient-text">smarter digital future.</span></h1>
@@ -196,7 +220,36 @@
     </div>
   </footer>
 
+  <!-- Tells search engines what this business actually is and what it sells,
+       rather than leaving them to infer it from the copy. Update the url and
+       areaServed when the custom domain goes live. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "DigiCode",
+    "description": "DigiCode hand-codes fast, modern websites, online stores, creator platforms and apps from scratch — no page builders, no bloated templates.",
+    "url": "https://salvatorespirou-rgb.github.io/DigiCode/",
+    "logo": "https://salvatorespirou-rgb.github.io/DigiCode/assets/images/digicode-logo.png",
+    "image": "https://salvatorespirou-rgb.github.io/DigiCode/assets/images/digicode-og.png",
+    "priceRange": "$$",
+    "areaServed": { "@type": "Country", "name": "Australia" },
+    "knowsAbout": [
+      "Web development", "Technical SEO", "E-commerce", "Mobile app development",
+      "Game development", "Web hosting", "Brand design", "Streaming platforms"
+    ],
+    "makesOffer": [
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Business Websites" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Gaming Websites" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Social &amp; Creator Platforms" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "SEO Management" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Website Hosting" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Update Management" } }
+    ]
+  }
+  </script>
+
   <script src="js/main.js?v=8"></script>
-  <script src="js/live-chat.js?v=3"></script>
+  <script src="js/live-chat.js?v=4"></script>
 </body>
 </html>

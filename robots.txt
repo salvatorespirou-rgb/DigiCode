@@ -1,0 +1,14 @@
+# DigiCode
+# When the custom domain goes live, update the Sitemap line below.
+
+User-agent: *
+Allow: /
+
+# Nothing here is useful to a search engine and some of it is private.
+Disallow: /portal.html
+Disallow: /verify.html
+Disallow: /reset-password.html
+Disallow: /create-password.html
+Disallow: /cart.html
+
+Sitemap: https://salvatorespirou-rgb.github.io/DigiCode/sitemap.xml
