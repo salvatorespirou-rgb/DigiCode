@@ -377,6 +377,61 @@ function getChats() {
   return chatsCache;
 }
 
+// ---------------------------------------------------------------------------
+// Live chat from site visitors. Separate tables from the client/dev `chats`
+// above, because a visitor has no account and is addressed by a token rather
+// than by an email — see supabase/017_visitor_chat.sql.
+// ---------------------------------------------------------------------------
+let visitorChatsCache = [];
+let visitorMsgsCache = {};
+
+async function loadVisitorChats() {
+  const [convos, msgs] = await Promise.all([
+    veloraSupabase.from("visitor_chats").select("*").order("last_message_at", { ascending: false }).limit(100),
+    veloraSupabase.from("visitor_messages").select("*").order("id", { ascending: true }).limit(2000),
+  ]);
+  if (!convos.error) visitorChatsCache = convos.data || [];
+  if (!msgs.error) {
+    const grouped = {};
+    (msgs.data || []).forEach((row) => {
+      if (!grouped[row.conversation_id]) grouped[row.conversation_id] = [];
+      grouped[row.conversation_id].push(row);
+    });
+    visitorMsgsCache = grouped;
+  }
+  return visitorChatsCache;
+}
+
+function getVisitorChats() {
+  return visitorChatsCache;
+}
+
+function getVisitorMessages(id) {
+  return visitorMsgsCache[id] || [];
+}
+
+// Which visitor messages this dev has already looked at. Local to the browser
+// on purpose — it's a read marker, not shared state worth a table.
+const VISITOR_SEEN_KEY = "digicodeVisitorSeen";
+
+function getVisitorSeen() {
+  try { return JSON.parse(localStorage.getItem(VISITOR_SEEN_KEY) || "{}"); } catch (e) { return {}; }
+}
+
+function markVisitorSeen(convoId) {
+  const msgs = getVisitorMessages(convoId);
+  const last = msgs[msgs.length - 1];
+  if (!last) return;
+  const seen = getVisitorSeen();
+  seen[convoId] = last.id;
+  try { localStorage.setItem(VISITOR_SEEN_KEY, JSON.stringify(seen)); } catch (e) { /* private mode */ }
+}
+
+function visitorUnreadCount(convoId) {
+  const seenId = getVisitorSeen()[convoId] || 0;
+  return getVisitorMessages(convoId).filter((m) => m.sender === "visitor" && m.id > seenId).length;
+}
+
 const PSI_KEY_STORAGE = "veloraPageSpeedKey";
 
 function getPsiKey() {
@@ -1398,8 +1453,17 @@ if (devTabs.length) {
     if (activeChatId) {
       const stillExists =
         (activeChatId.startsWith("client:") && projects.some((p) => "client:" + p.id === activeChatId)) ||
-        (activeChatId.startsWith("dev:") && team.some((d) => "dev:" + d.id === activeChatId));
+        (activeChatId.startsWith("dev:") && team.some((d) => "dev:" + d.id === activeChatId)) ||
+        (activeChatId.startsWith("visitor:") &&
+          getVisitorChats().some((c) => "visitor:" + c.id === activeChatId));
       if (!stillExists) activeChatId = null;
+    }
+
+    // Visitor threads come from their own tables and have their own shape, so
+    // they get their own branch rather than being forced into the one above.
+    if (chatListMode === "visitors") {
+      renderVisitorChat(panel);
+      return;
     }
 
     const lastMessagePreview = (chatId) => {
@@ -1466,6 +1530,7 @@ if (devTabs.length) {
           <div class="billing-toggle chat-mode-toggle">
             <button type="button" class="billing-tab chat-mode-btn ${chatListMode === "clients" ? "active" : ""}" data-mode="clients">Clients</button>
             <button type="button" class="billing-tab chat-mode-btn ${chatListMode === "team" ? "active" : ""}" data-mode="team">Talk to a Developer</button>
+            <button type="button" class="billing-tab chat-mode-btn ${chatListMode === "visitors" ? "active" : ""}" data-mode="visitors">Site Visitors${totalVisitorUnread() ? ` (${totalVisitorUnread()})` : ""}</button>
           </div>
           <div class="chat-list">${listItemsHtml}</div>
         </div>
@@ -1506,6 +1571,146 @@ if (devTabs.length) {
       const msgsEl = document.getElementById("chatMessages");
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
     });
+  }
+
+  function totalVisitorUnread() {
+    return getVisitorChats().reduce((n, c) => n + visitorUnreadCount(c.id), 0);
+  }
+
+  function renderVisitorChat(panel) {
+    const convos = getVisitorChats();
+    const activeId = activeChatId && activeChatId.startsWith("visitor:")
+      ? Number(activeChatId.slice(8))
+      : null;
+
+    const listHtml = convos.length
+      ? convos
+          .map((c) => {
+            const msgs = getVisitorMessages(c.id);
+            const last = msgs[msgs.length - 1];
+            const unread = visitorUnreadCount(c.id);
+            const chatId = "visitor:" + c.id;
+            return `
+              <button type="button" class="chat-list-item ${activeChatId === chatId ? "active" : ""}" data-chat-id="${chatId}">
+                <span class="chat-list-name">
+                  ${escapeHtml(c.visitor_name || "Anonymous visitor")}
+                  ${unread ? `<span class="chat-visitor-badge">${unread} new</span>` : ""}
+                </span>
+                <span class="chat-list-preview">${last ? escapeHtml(last.body) : "No messages yet"}</span>
+                <span class="chat-visitor-meta">${escapeHtml(c.visitor_email || "No email given")} · ${formatDate(c.last_message_at)}</span>
+              </button>`;
+          })
+          .join("")
+      : `<p class="dev-empty">No one has started a chat yet. The bubble is live on every page of the site.</p>`;
+
+    const convo = convos.find((c) => c.id === activeId);
+    const msgs = activeId ? getVisitorMessages(activeId) : [];
+
+    const threadHtml = convo
+      ? `
+        <div class="chat-thread-header">
+          ${escapeHtml(convo.visitor_name || "Anonymous visitor")}
+          <span class="chat-live-pill">Live</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          ${
+            msgs.length
+              ? msgs
+                  .map(
+                    (m) => `
+              <div class="chat-message ${m.sender === "dev" ? "mine" : "theirs"}">
+                <div class="chat-message-bubble">${escapeHtml(m.body)}</div>
+                <span class="chat-message-meta">${escapeHtml(
+                  m.sender === "dev" ? m.sender_name || "DigiCode" : convo.visitor_name || "Visitor"
+                )} · ${formatDate(m.created_at)}</span>
+              </div>`
+                  )
+                  .join("")
+              : `<p class="dev-empty">No messages yet.</p>`
+          }
+        </div>
+        <form id="visitorSendForm" class="chat-input-row">
+          <input type="text" id="visitorInput" class="chat-input" placeholder="Reply to this visitor…" autocomplete="off" />
+          <button type="submit" class="btn btn-primary">Send</button>
+        </form>`
+      : `<div class="chat-empty-state">Select a conversation to reply. New messages arrive here live.</div>`;
+
+    panel.innerHTML = `
+      <div class="chat-layout">
+        <div class="chat-sidebar">
+          <div class="billing-toggle chat-mode-toggle">
+            <button type="button" class="billing-tab chat-mode-btn" data-mode="clients">Clients</button>
+            <button type="button" class="billing-tab chat-mode-btn" data-mode="team">Talk to a Developer</button>
+            <button type="button" class="billing-tab chat-mode-btn active" data-mode="visitors">Site Visitors${
+              totalVisitorUnread() ? ` (${totalVisitorUnread()})` : ""
+            }</button>
+          </div>
+          <div class="chat-list">${listHtml}</div>
+        </div>
+        <div class="chat-thread">${threadHtml}</div>
+      </div>
+    `;
+
+    panel.querySelectorAll(".chat-mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        chatListMode = btn.dataset.mode;
+        activeChatId = null;
+        renderChatPanel();
+      });
+    });
+
+    panel.querySelectorAll(".chat-list-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        activeChatId = btn.dataset.chatId;
+        markVisitorSeen(Number(activeChatId.slice(8)));
+        renderChatPanel();
+        const el = document.getElementById("chatMessages");
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
+
+    if (activeId) markVisitorSeen(activeId);
+
+    const msgsEl = document.getElementById("chatMessages");
+    if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    document.getElementById("visitorSendForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("visitorInput");
+      const text = input.value.trim();
+      if (!text || !activeId) return;
+      input.value = "";
+      const { error } = await veloraSupabase.from("visitor_messages").insert({
+        conversation_id: activeId,
+        sender: "dev",
+        sender_name: resolvePortalFirstName() || "DigiCode",
+        body: text,
+      });
+      if (error) {
+        input.value = text;
+        return;
+      }
+      await loadVisitorChats();
+      renderChatPanel();
+    });
+  }
+
+  // Push new visitor messages straight into the panel instead of waiting for
+  // a refresh — this is the "live" half of live chat.
+  function subscribeToVisitorChat() {
+    if (!veloraSupabase.channel) return;
+    veloraSupabase
+      .channel("visitor-chat-live")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "visitor_messages" }, async () => {
+        await loadVisitorChats();
+        if (chatListMode === "visitors") renderChatPanel();
+        else renderChatPanel();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "visitor_chats" }, async () => {
+        await loadVisitorChats();
+        renderChatPanel();
+      })
+      .subscribe();
   }
 
   function renderAllPanels() {
@@ -1842,8 +2047,9 @@ if (devTabs.length) {
   }
 
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats()]);
     renderAllPanels();
     applyPortalRole();
+    subscribeToVisitorChat();
   })();
 }
