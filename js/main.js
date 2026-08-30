@@ -893,7 +893,7 @@ if (cartItemsEl) {
 
     const subject = encodeURIComponent("New DigiCode Order");
     const body = encodeURIComponent(lines.join("\n"));
-    window.location.href = `mailto:hello@veloradigital.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:hello@digi-code.com.au?subject=${subject}&body=${body}`;
   });
 }
 
@@ -2274,7 +2274,7 @@ if (devTabs.length) {
 
     if (!demoProject) {
       clientViewContainer.innerHTML = isRealClient
-        ? `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:hello@veloradigital.com">hello@veloradigital.com</a> and we'll sort it out.</p>
+        ? `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:hello@digi-code.com.au">hello@digi-code.com.au</a> and we'll sort it out.</p>
            <div style="text-align: center; margin-top: 24px;"><button type="button" class="clear-cart-link" data-portal-logout>Log out</button></div>`
         : `<p class="dev-empty">No projects exist yet to preview.</p>`;
       return;

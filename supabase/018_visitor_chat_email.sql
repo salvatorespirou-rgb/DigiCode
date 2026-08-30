@@ -105,7 +105,7 @@ begin
                    || '<p style="margin:0 0 20px;color:#666;font-size:14px">'
                    || 'Started on ' || coalesce(convo.first_page, 'the site')
                    || '. Open the portal to read it and reply.</p>'
-                   || '<p style="margin:0"><a href="https://salvatorespirou-rgb.github.io/DigiCode/portal.html" '
+                   || '<p style="margin:0"><a href="https://www.digi-code.com.au/portal.html" '
                    || 'style="background:#6d4ee8;color:#fff;padding:11px 20px;border-radius:8px;'
                    || 'text-decoration:none;display:inline-block;font-weight:600">Open the chat</a></p>'
                    || '<p style="margin:20px 0 0;color:#999;font-size:12px">'

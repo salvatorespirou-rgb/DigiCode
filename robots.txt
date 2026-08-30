@@ -1,5 +1,5 @@
 # DigiCode
-# When the custom domain goes live, update the Sitemap line below.
+# Sitemap and canonical URLs use www.digi-code.com.au (see CNAME).
 
 User-agent: *
 Allow: /
@@ -11,4 +11,4 @@ Disallow: /reset-password.html
 Disallow: /create-password.html
 Disallow: /cart.html
 
-Sitemap: https://salvatorespirou-rgb.github.io/DigiCode/sitemap.xml
+Sitemap: https://www.digi-code.com.au/sitemap.xml
