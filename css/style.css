@@ -3780,3 +3780,35 @@ input[type="radio"] { accent-color: var(--purple); }
   .discount-row { gap: 10px; padding: 13px 14px; }
   .discount-actions { width: 100%; justify-content: flex-end; }
 }
+
+/* ---------------- Editing a developer's rank and permissions ---------------- */
+.dev-team-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.dev-team-row.is-editing {
+  border-color: rgba(125, 200, 255, 0.45);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.dev-edit-form {
+  margin: -1px 0 12px;
+  padding: 20px 22px;
+  border: 1px solid rgba(125, 200, 255, 0.45);
+  border-top: none;
+  border-radius: 0 0 13px 13px;
+  background: rgba(12, 17, 28, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dev-edit-form h4 {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  color: #8fd4ff;
+}
+.dev-edit-actions { display: flex; align-items: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.edit-dev-saved { color: #6ee7a8; }
+
+@media (max-width: 640px) {
+  .dev-team-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
+  .dev-edit-form { padding: 16px 14px; }
+}

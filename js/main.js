@@ -1473,10 +1473,48 @@ if (devTabs.length) {
     wireDomainAndHealthHandlers(panel);
   }
 
+  // One list, used by both the add form and the edit form, so a permission
+  // added here can never appear in one and not the other.
+  const DEV_PERMISSIONS = [
+    ["View Pending", "View Pending Projects"],
+    ["View Assigned", "View Assigned Projects"],
+    ["View Finished", "View Finished Projects"],
+    ["Assign Projects", "Assign Projects to Self"],
+    ["Manage Developers", "Manage Other Developers"],
+    ["Delete Live Chats", "Delete Live Chat History"],
+    ["Manage Discount Codes", "Manage Discount Codes"],
+  ];
+  const DEV_RANKS = ["Junior Developer", "Developer", "Senior Developer", "Lead Developer"];
+  const DEFAULT_NEW_DEV_PERMISSIONS = ["View Pending", "View Assigned", "View Finished"];
+
+  function permissionCheckboxes(granted) {
+    return DEV_PERMISSIONS.map(
+      ([value, label]) =>
+        `<label class="checkbox-option"><input type="checkbox" value="${value}"${
+          granted.includes(value) ? " checked" : ""
+        } /> ${label}</label>`
+    ).join("");
+  }
+
+  // Mirrors public.can_manage_developers() in supabase/021. The database is the
+  // real gate; this only decides whether to draw the controls.
+  function canManageDevelopers() {
+    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Manage Developers");
+  }
+
+  // Which developer row is open for editing. Held as a string because
+  // mapDeveloperRow casts row ids to strings — comparing against a Number
+  // here silently never matches.
+  let editingDevId = null;
+
   function renderDevelopersPanel() {
     const panel = document.getElementById("developersPanel");
     if (!panel) return;
     const team = getTeam();
+    const canManage = canManageDevelopers();
 
     panel.innerHTML = `
       <div class="add-dev-form api-key-card">
@@ -1492,6 +1530,7 @@ if (devTabs.length) {
         <span id="psiKeySavedNote" class="dev-team-meta" style="margin-left: 10px;" hidden>Saved.</span>
       </div>
 
+      ${canManage ? `
       <div class="dev-warning-banner">Adding someone here grants real access — the moment they sign in at the normal sign-in page with this exact email, they'll get a real Dev account with this rank and these permissions. No password to set or share; they use the same one-time-code sign-in as everyone else.</div>
       <form id="addDevForm" class="add-dev-form">
         <div class="form-grid">
@@ -1519,18 +1558,11 @@ if (devTabs.length) {
         </div>
         <div class="form-group">
           <span class="form-label">Permissions</span>
-          <div class="permission-grid">
-            <label class="checkbox-option"><input type="checkbox" value="View Pending" checked /> View Pending Projects</label>
-            <label class="checkbox-option"><input type="checkbox" value="View Assigned" checked /> View Assigned Projects</label>
-            <label class="checkbox-option"><input type="checkbox" value="View Finished" checked /> View Finished Projects</label>
-            <label class="checkbox-option"><input type="checkbox" value="Assign Projects" /> Assign Projects to Self</label>
-            <label class="checkbox-option"><input type="checkbox" value="Manage Developers" /> Manage Other Developers</label>
-            <label class="checkbox-option"><input type="checkbox" value="Delete Live Chats" /> Delete Live Chat History</label>
-            <label class="checkbox-option"><input type="checkbox" value="Manage Discount Codes" /> Manage Discount Codes</label>
-          </div>
+          <div class="permission-grid">${permissionCheckboxes(DEFAULT_NEW_DEV_PERMISSIONS)}</div>
         </div>
         <button type="submit" class="btn btn-primary">Create Developer</button>
       </form>
+` : `<p class="dev-empty">Only a Lead Developer, or someone with the "Manage Developers" permission, can add or change accounts here.</p>`}
 
       <div class="dev-team-list">
         ${
@@ -1538,14 +1570,48 @@ if (devTabs.length) {
             ? team
                 .map(
                   (d) => `
-          <div class="dev-team-row">
+          <div class="dev-team-row${editingDevId === d.id ? " is-editing" : ""}">
             <div class="dev-team-info">
               <span class="dev-team-name"><span class="cosmic-name">${escapeHtml(d.name)}</span> <span class="rank-badge">${escapeHtml(d.rank)}</span></span>
               <span class="dev-team-meta">${escapeHtml(d.username)} · ${escapeHtml(d.email)}</span>
               <span class="dev-team-perms">${d.permissions.length ? escapeHtml(d.permissions.join(", ")) : "No permissions granted"}</span>
             </div>
-            <button type="button" class="cart-item-remove remove-dev-btn" data-id="${d.id}" aria-label="Remove ${escapeHtml(d.name)}">&times;</button>
-          </div>`
+            ${
+              canManage
+                ? `<div class="dev-team-actions">
+                     <button type="button" class="btn btn-ghost btn-small edit-dev-btn" data-id="${d.id}">${editingDevId === d.id ? "Close" : "Edit"}</button>
+                     <button type="button" class="cart-item-remove remove-dev-btn" data-id="${d.id}" aria-label="Remove ${escapeHtml(d.name)}">&times;</button>
+                   </div>`
+                : ""
+            }
+          </div>
+          ${
+            editingDevId === d.id && canManage
+              ? `
+          <form class="dev-edit-form" data-id="${d.id}">
+            <h4>Editing ${escapeHtml(d.name)}</h4>
+            <div class="form-group">
+              <label for="editRank-${d.id}">Rank</label>
+              <select id="editRank-${d.id}" class="edit-rank">
+                ${DEV_RANKS.map(
+                  (r) => `<option value="${r}"${d.rank === r ? " selected" : ""}>${r}</option>`
+                ).join("")}
+              </select>
+              <span class="form-hint">Lead Developer carries every permission automatically, whatever is ticked below.</span>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Permissions</span>
+              <div class="permission-grid edit-perms">${permissionCheckboxes(d.permissions || [])}</div>
+            </div>
+            <p class="portal-login-error edit-dev-error" hidden></p>
+            <div class="dev-edit-actions">
+              <button type="submit" class="btn btn-primary btn-small">Save Changes</button>
+              <button type="button" class="btn btn-ghost btn-small cancel-edit-btn">Cancel</button>
+              <span class="dev-team-meta edit-dev-saved" hidden>Saved.</span>
+            </div>
+          </form>`
+              : ""
+          }`
                 )
                 .join("")
             : `<p class="dev-empty">No developers added yet.</p>`
@@ -1579,9 +1645,58 @@ if (devTabs.length) {
 
     panel.querySelectorAll(".remove-dev-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        await veloraSupabase.from("developers").delete().eq("id", btn.dataset.id);
+        const dev = getTeam().find((d) => String(d.id) === String(btn.dataset.id));
+        if (!window.confirm(`Remove ${dev ? dev.name : "this developer"} from the roster? They'll lose portal access.`)) return;
+        const { error } = await veloraSupabase.from("developers").delete().eq("id", btn.dataset.id);
+        if (error) {
+          window.alert("Couldn't remove them — your account may not have permission.");
+          return;
+        }
+        if (editingDevId === btn.dataset.id) editingDevId = null;
         await loadTeam();
         renderDevelopersPanel();
+      });
+    });
+
+    panel.querySelectorAll(".edit-dev-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        editingDevId = editingDevId === id ? null : id;
+        renderDevelopersPanel();
+      });
+    });
+
+    panel.querySelectorAll(".cancel-edit-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        editingDevId = null;
+        renderDevelopersPanel();
+      });
+    });
+
+    panel.querySelectorAll(".dev-edit-form").forEach((form) => {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = form.dataset.id;
+        const err = form.querySelector(".edit-dev-error");
+        const rank = form.querySelector(".edit-rank").value;
+        const permissions = Array.from(form.querySelectorAll(".edit-perms input:checked")).map((cb) => cb.value);
+
+        err.hidden = true;
+        const { error } = await veloraSupabase
+          .from("developers")
+          .update({ rank, permissions })
+          .eq("id", id);
+
+        if (error) {
+          err.textContent = "Couldn't save that — your account may not have permission to change the roster.";
+          err.hidden = false;
+          return;
+        }
+
+        await loadTeam();
+        editingDevId = null;
+        renderDevelopersPanel();
+        renderChatPanel(); // rank shows on the dev chat list
       });
     });
   }
