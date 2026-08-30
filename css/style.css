@@ -3812,3 +3812,13 @@ input[type="radio"] { accent-color: var(--purple); }
   .dev-team-actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
   .dev-edit-form { padding: 16px 14px; }
 }
+
+/* Service-area links in the footer — every page points at the location pages
+   so they aren't orphans, which is most of why location pages fail to rank. */
+.footer-areas {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: rgba(185, 194, 204, 0.6);
+}
+.footer-areas a { color: rgba(143, 212, 255, 0.85); text-decoration: none; }
+.footer-areas a:hover { color: #8fd4ff; text-decoration: underline; }

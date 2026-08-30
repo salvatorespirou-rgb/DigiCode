@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=21" />
+  <link rel="stylesheet" href="css/style.css?v=22" />
 </head>
 <body>
 
@@ -217,6 +217,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>&copy; <span id="year"></span> DigiCode. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+      <p class="footer-areas">Serving <a href="web-design-sydney.html">Sydney</a> &mdash; <a href="web-design-parramatta.html">Parramatta</a>, <a href="web-design-western-sydney.html">Mount Druitt &amp; Western Sydney</a>, <a href="web-design-blue-mountains.html">Blue Mountains</a></p>
     </div>
   </footer>
 
@@ -233,7 +234,20 @@
     "logo": "https://www.digi-code.com.au/assets/images/digicode-logo.png",
     "image": "https://www.digi-code.com.au/assets/images/digicode-og.png",
     "priceRange": "$$",
-    "areaServed": { "@type": "Country", "name": "Australia" },
+    "areaServed": [
+      { "@type": "City", "name": "Sydney", "containedInPlace": { "@type": "State", "name": "New South Wales" } },
+      { "@type": "Place", "name": "Sydney CBD" },
+      { "@type": "Place", "name": "Parramatta" },
+      { "@type": "Place", "name": "Westmead" },
+      { "@type": "Place", "name": "Blacktown" },
+      { "@type": "Place", "name": "Mount Druitt" },
+      { "@type": "Place", "name": "St Marys" },
+      { "@type": "Place", "name": "Penrith" },
+      { "@type": "Place", "name": "Springwood" },
+      { "@type": "Place", "name": "Katoomba" },
+      { "@type": "Place", "name": "Leura" },
+      { "@type": "Place", "name": "Blue Mountains" }
+    ],
     "knowsAbout": [
       "Web development", "Technical SEO", "E-commerce", "Mobile app development",
       "Game development", "Web hosting", "Brand design", "Streaming platforms"
