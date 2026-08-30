@@ -1,6 +1,6 @@
 # Contact Email Storage
 
-This folder is reserved for one thing only: **email addresses, collected for the purpose of contacting people who've asked to hear from Velora Digital** (for example, a future newsletter or mailing list signup).
+This folder is reserved for one thing only: **email addresses, collected for the purpose of contacting people who've asked to hear from DigiCode** (for example, a future newsletter or mailing list signup).
 
 ## What is allowed to be stored here
 

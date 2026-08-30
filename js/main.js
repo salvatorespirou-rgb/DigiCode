@@ -224,8 +224,28 @@ if (!isConstrainedConnection()) {
   }
 }
 
-const CART_KEY = "veloraCart";
-const CUSTOMER_KEY = "veloraCustomerInfo";
+// One-time carry-over from the pre-rebrand key names. Renaming the storage
+// keys is otherwise a silent data loss: a visitor mid-purchase loses their
+// cart, and the saved PageSpeed key has to be pasted in again. Runs once —
+// the old key is removed after it's copied.
+(function carryOverLegacyKeys() {
+  const renamed = [
+    ["veloraCart", "digicodeCart"],
+    ["veloraCustomerInfo", "digicodeCustomerInfo"],
+    ["veloraPageSpeedKey", "digicodePageSpeedKey"],
+  ];
+  try {
+    renamed.forEach(([from, to]) => {
+      const value = localStorage.getItem(from);
+      if (value === null) return;
+      if (localStorage.getItem(to) === null) localStorage.setItem(to, value);
+      localStorage.removeItem(from);
+    });
+  } catch (e) { /* private mode — nothing to carry over anyway */ }
+})();
+
+const CART_KEY = "digicodeCart";
+const CUSTOMER_KEY = "digicodeCustomerInfo";
 
 function getCart() {
   try {
@@ -296,7 +316,7 @@ function mapProjectRow(row) {
 }
 
 async function loadProjects() {
-  const { data, error } = await veloraSupabase.from("projects").select("*").order("created_at", { ascending: false });
+  const { data, error } = await digicodeSupabase.from("projects").select("*").order("created_at", { ascending: false });
   if (!error) projectsCache = (data || []).map(mapProjectRow);
   return projectsCache;
 }
@@ -324,7 +344,7 @@ async function pushPendingProjectFromOrder(cart, customer) {
       ? existing
       : "https://" + existing;
 
-  await veloraSupabase.from("projects").insert({
+  await digicodeSupabase.from("projects").insert({
     status: "pending",
     service: serviceName,
     build_tier: buildItem ? `${buildItem.name} (${buildItem.price})` : null,
@@ -352,7 +372,7 @@ function mapDeveloperRow(row) {
 }
 
 async function loadTeam() {
-  const { data, error } = await veloraSupabase.from("developers").select("*").order("created_at", { ascending: true });
+  const { data, error } = await digicodeSupabase.from("developers").select("*").order("created_at", { ascending: true });
   if (!error) teamCache = (data || []).map(mapDeveloperRow);
   return teamCache;
 }
@@ -362,7 +382,7 @@ function getTeam() {
 }
 
 async function loadChats() {
-  const { data, error } = await veloraSupabase.from("chats").select("*").order("created_at", { ascending: true });
+  const { data, error } = await digicodeSupabase.from("chats").select("*").order("created_at", { ascending: true });
   if (error) return chatsCache;
   const grouped = {};
   (data || []).forEach((row) => {
@@ -387,8 +407,8 @@ let visitorMsgsCache = {};
 
 async function loadVisitorChats() {
   const [convos, msgs] = await Promise.all([
-    veloraSupabase.from("visitor_chats").select("*").order("last_message_at", { ascending: false }).limit(100),
-    veloraSupabase.from("visitor_messages").select("*").order("id", { ascending: true }).limit(2000),
+    digicodeSupabase.from("visitor_chats").select("*").order("last_message_at", { ascending: false }).limit(100),
+    digicodeSupabase.from("visitor_messages").select("*").order("id", { ascending: true }).limit(2000),
   ]);
   if (!convos.error) visitorChatsCache = convos.data || [];
   if (!msgs.error) {
@@ -432,7 +452,7 @@ function visitorUnreadCount(convoId) {
   return getVisitorMessages(convoId).filter((m) => m.sender === "visitor" && m.id > seenId).length;
 }
 
-const PSI_KEY_STORAGE = "veloraPageSpeedKey";
+const PSI_KEY_STORAGE = "digicodePageSpeedKey";
 
 function getPsiKey() {
   return localStorage.getItem(PSI_KEY_STORAGE) || "";
@@ -821,7 +841,7 @@ if (cartItemsEl) {
     applyBtn.disabled = true;
     showDiscountMsg("Checking…", false);
     try {
-      const { data, error } = await veloraSupabase.rpc("validate_discount_code", { p_code: raw });
+      const { data, error } = await digicodeSupabase.rpc("validate_discount_code", { p_code: raw });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
       if (!row) {
@@ -871,7 +891,7 @@ if (cartItemsEl) {
     // so one that lapsed between being entered and confirmed won't count.
     const discount = getDiscount();
     if (discount) {
-      try { await veloraSupabase.rpc("redeem_discount_code", { p_code: discount.code }); } catch (e) { /* non-fatal */ }
+      try { await digicodeSupabase.rpc("redeem_discount_code", { p_code: discount.code }); } catch (e) { /* non-fatal */ }
     }
     confirmOrderBtn.disabled = false;
 
@@ -893,7 +913,7 @@ if (cartItemsEl) {
 
     const subject = encodeURIComponent("New DigiCode Order");
     const body = encodeURIComponent(lines.join("\n"));
-    window.location.href = `mailto:hello@digi-code.com.au?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:developerteam@digi-code.com.au?subject=${subject}&body=${body}`;
   });
 }
 
@@ -946,7 +966,7 @@ if (portalLoginForm) {
   // Turns an email-or-username into the account's email. Returns
   // { email } on success, or { message } describing what to tell them.
   async function resolveIdentifier(identifier) {
-    const { data, error } = await veloraSupabase
+    const { data, error } = await digicodeSupabase
       .rpc("resolve_portal_login", { identifier });
     if (error) return { message: "We couldn't check that just now — please try again." };
     if (!data) return { message: "That email or username does not have access to the portal." };
@@ -970,7 +990,7 @@ if (portalLoginForm) {
     const resolved = await resolveIdentifier(identifier);
     if (!resolved.email) { failWith(resolved.message); return; }
 
-    const { error } = await veloraSupabase.auth.signInWithPassword({
+    const { error } = await digicodeSupabase.auth.signInWithPassword({
       email: resolved.email,
       password,
     });
@@ -1004,7 +1024,7 @@ if (portalLoginForm) {
     // shouldCreateUser stays true on purpose: a developer who's just been
     // added to the roster has no auth user yet, and this first code is
     // exactly what creates it (and promotes them — see supabase/003).
-    const { error } = await veloraSupabase.auth.signInWithOtp({
+    const { error } = await digicodeSupabase.auth.signInWithOtp({
       email: resolved.email,
       options: { shouldCreateUser: true },
     });
@@ -1013,14 +1033,14 @@ if (portalLoginForm) {
       return;
     }
 
-    sessionStorage.setItem("veloraPendingEmail", resolved.email);
+    sessionStorage.setItem("digicodePendingEmail", resolved.email);
     window.location.href = "verify.html";
   });
 }
 
 const verifyCodeForm = document.getElementById("verifyCodeForm");
 if (verifyCodeForm) {
-  const pendingEmail = sessionStorage.getItem("veloraPendingEmail");
+  const pendingEmail = sessionStorage.getItem("digicodePendingEmail");
   const subEl = document.getElementById("verifySub");
   if (pendingEmail && subEl) {
     subEl.textContent = `We've sent a one-time code to ${pendingEmail}. Enter it below and you'll choose your password next.`;
@@ -1036,7 +1056,7 @@ if (verifyCodeForm) {
     if (errorEl) errorEl.hidden = true;
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Verifying…"; }
 
-    const { error } = await veloraSupabase.auth.verifyOtp({
+    const { error } = await digicodeSupabase.auth.verifyOtp({
       email: pendingEmail,
       token: code,
       type: "email",
@@ -1048,19 +1068,19 @@ if (verifyCodeForm) {
       return;
     }
 
-    sessionStorage.removeItem("veloraPendingEmail");
+    sessionStorage.removeItem("digicodePendingEmail");
     // A code is only ever issued to set or reset a password now, so this
     // always lands on the password screen — the code isn't a way in on its
     // own. (An explicit redirect still wins, so the games can reuse this
     // flow later just to sync a profile.)
-    const redirect = sessionStorage.getItem("veloraAuthRedirect") || "create-password.html";
-    sessionStorage.removeItem("veloraAuthRedirect");
+    const redirect = sessionStorage.getItem("digicodeAuthRedirect") || "create-password.html";
+    sessionStorage.removeItem("digicodeAuthRedirect");
     window.location.href = redirect;
   });
 
   document.getElementById("resendCodeBtn")?.addEventListener("click", async () => {
     if (!pendingEmail) return;
-    await veloraSupabase.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true } });
+    await digicodeSupabase.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true } });
   });
 }
 
@@ -1079,7 +1099,7 @@ if (createPasswordForm) {
   // Landing here without having verified a code means there's nothing to
   // attach a password to — send them back to the start.
   (async () => {
-    const { data: { session } } = await veloraSupabase.auth.getSession();
+    const { data: { session } } = await digicodeSupabase.auth.getSession();
     if (!session) window.location.href = "signin.html";
   })();
 
@@ -1093,7 +1113,7 @@ if (createPasswordForm) {
     if (password !== confirm) { showError("Those two passwords don't match."); return; }
 
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Saving…"; }
-    const { error } = await veloraSupabase.auth.updateUser({ password });
+    const { error } = await digicodeSupabase.auth.updateUser({ password });
     if (error) {
       showError(error.message || "We couldn't save that password — please try again.");
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Create Password"; }
@@ -1124,7 +1144,7 @@ if (resetPasswordForm) {
     }
 
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Saving…"; }
-    const { error } = await veloraSupabase.auth.updateUser({ password: newPassword });
+    const { error } = await digicodeSupabase.auth.updateUser({ password: newPassword });
 
     if (error) {
       if (errorEl) {
@@ -1135,13 +1155,13 @@ if (resetPasswordForm) {
       return;
     }
 
-    window.location.href = "velora-gaming.html";
+    window.location.href = "digicode-gaming.html";
   });
 }
 
 document.addEventListener("click", async (e) => {
   if (!e.target.closest("[data-portal-logout]")) return;
-  await veloraSupabase.auth.signOut();
+  await digicodeSupabase.auth.signOut();
   window.location.href = "signin.html";
 });
 
@@ -1225,7 +1245,7 @@ if (devTabs.length) {
   }
 
   async function updateProjectFields(id, fields) {
-    await veloraSupabase.from("projects").update(fields).eq("id", id);
+    await digicodeSupabase.from("projects").update(fields).eq("id", id);
     await loadProjects();
   }
 
@@ -1349,7 +1369,7 @@ if (devTabs.length) {
 
     await updateProjectFields(id, {
       status: "assigned",
-      assigned_dev: window.veloraPortalEmail || "Dev",
+      assigned_dev: window.digicodePortalEmail || "Dev",
       assigned_at: new Date().toISOString(),
     });
 
@@ -1499,7 +1519,7 @@ if (devTabs.length) {
   // Mirrors public.can_manage_developers() in supabase/021. The database is the
   // real gate; this only decides whether to draw the controls.
   function canManageDevelopers() {
-    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const email = (window.digicodePortalEmail || "").toLowerCase();
     const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
     if (!me) return true; // owner account, not on the roster
     return me.rank === "Lead Developer" || (me.permissions || []).includes("Manage Developers");
@@ -1637,7 +1657,7 @@ if (devTabs.length) {
       const rank = document.getElementById("newDevRank").value;
       const permissions = Array.from(panel.querySelectorAll(".permission-grid input:checked")).map((cb) => cb.value);
 
-      await veloraSupabase.from("developers").insert({ name, email, username, rank, permissions });
+      await digicodeSupabase.from("developers").insert({ name, email, username, rank, permissions });
       await loadTeam();
       renderDevelopersPanel();
       renderChatPanel();
@@ -1647,7 +1667,7 @@ if (devTabs.length) {
       btn.addEventListener("click", async () => {
         const dev = getTeam().find((d) => String(d.id) === String(btn.dataset.id));
         if (!window.confirm(`Remove ${dev ? dev.name : "this developer"} from the roster? They'll lose portal access.`)) return;
-        const { error } = await veloraSupabase.from("developers").delete().eq("id", btn.dataset.id);
+        const { error } = await digicodeSupabase.from("developers").delete().eq("id", btn.dataset.id);
         if (error) {
           window.alert("Couldn't remove them — your account may not have permission.");
           return;
@@ -1682,7 +1702,7 @@ if (devTabs.length) {
         const permissions = Array.from(form.querySelectorAll(".edit-perms input:checked")).map((cb) => cb.value);
 
         err.hidden = true;
-        const { error } = await veloraSupabase
+        const { error } = await digicodeSupabase
           .from("developers")
           .update({ rank, permissions })
           .eq("id", id);
@@ -1780,7 +1800,7 @@ if (devTabs.length) {
               ? activeMsgs
                   .map(
                     (m) => `
-              <div class="chat-message ${m.from === window.veloraPortalEmail ? "mine" : "theirs"}">
+              <div class="chat-message ${m.from === window.digicodePortalEmail ? "mine" : "theirs"}">
                 <div class="chat-message-bubble">${escapeHtml(m.text)}</div>
                 <span class="chat-message-meta">${escapeHtml(m.from)} · ${formatDate(m.at)}</span>
               </div>`
@@ -1832,9 +1852,9 @@ if (devTabs.length) {
       const input = document.getElementById("chatInput");
       const text = input.value.trim();
       if (!text || !activeChatId) return;
-      await veloraSupabase.from("chats").insert({
+      await digicodeSupabase.from("chats").insert({
         chat_id: activeChatId,
-        from_name: window.veloraPortalEmail || "Dev",
+        from_name: window.digicodePortalEmail || "Dev",
         message: text,
       });
       await loadChats();
@@ -1852,7 +1872,7 @@ if (devTabs.length) {
   // the real gate — this only decides whether to draw the buttons, so a dev
   // isn't shown a control that would just bounce off RLS.
   function canDeleteVisitorChats() {
-    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const email = (window.digicodePortalEmail || "").toLowerCase();
     const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
     if (!me) return true; // owner account, not on the roster
     return me.rank === "Lead Developer" || (me.permissions || []).includes("Delete Live Chats");
@@ -1860,7 +1880,7 @@ if (devTabs.length) {
 
   async function deleteVisitorConversation(id, label) {
     if (!window.confirm(`Delete the whole conversation with ${label}? This can't be undone.`)) return;
-    const { error } = await veloraSupabase.from("visitor_chats").delete().eq("id", id);
+    const { error } = await digicodeSupabase.from("visitor_chats").delete().eq("id", id);
     if (error) {
       window.alert("Couldn't delete that conversation — your account may not have permission.");
       return;
@@ -1877,7 +1897,7 @@ if (devTabs.length) {
       return;
     }
     if (!window.confirm(`Delete ${stale.length} read conversation${stale.length === 1 ? "" : "s"}? This can't be undone.`)) return;
-    const { error } = await veloraSupabase
+    const { error } = await digicodeSupabase
       .from("visitor_chats")
       .delete()
       .in("id", stale.map((c) => c.id));
@@ -2016,7 +2036,7 @@ if (devTabs.length) {
       const text = input.value.trim();
       if (!text || !activeId) return;
       input.value = "";
-      const { error } = await veloraSupabase.from("visitor_messages").insert({
+      const { error } = await digicodeSupabase.from("visitor_messages").insert({
         conversation_id: activeId,
         sender: "dev",
         sender_name: resolvePortalFirstName() || "DigiCode",
@@ -2034,8 +2054,8 @@ if (devTabs.length) {
   // Push new visitor messages straight into the panel instead of waiting for
   // a refresh — this is the "live" half of live chat.
   function subscribeToVisitorChat() {
-    if (!veloraSupabase.channel) return;
-    veloraSupabase
+    if (!digicodeSupabase.channel) return;
+    digicodeSupabase
       .channel("visitor-chat-live")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "visitor_messages" }, async () => {
         await loadVisitorChats();
@@ -2055,7 +2075,7 @@ if (devTabs.length) {
   // to draw the form.
   // ---------------------------------------------------------------------
   function canManageDiscounts() {
-    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const email = (window.digicodePortalEmail || "").toLowerCase();
     const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
     if (!me) return true; // owner account, not on the roster
     return me.rank === "Lead Developer" || (me.permissions || []).includes("Manage Discount Codes");
@@ -2092,7 +2112,7 @@ if (devTabs.length) {
     const panel = document.getElementById("discountsPanel");
     if (!panel) return;
 
-    const { data, error } = await veloraSupabase
+    const { data, error } = await digicodeSupabase
       .from("discount_codes")
       .select("*")
       .order("created_at", { ascending: false });
@@ -2205,14 +2225,14 @@ if (devTabs.length) {
       if (kind === "percent" && amount > 100) return fail("A percentage discount can't be more than 100%.");
       if (!(days >= 1 && days <= 30)) return fail("A code can run for between 1 and 30 days.");
 
-      const { error: insErr } = await veloraSupabase.from("discount_codes").insert({
+      const { error: insErr } = await digicodeSupabase.from("discount_codes").insert({
         code,
         kind,
         amount,
         applies_to: applies,
         expires_at: new Date(Date.now() + days * 86400000).toISOString(),
         max_uses: maxUsesRaw ? parseInt(maxUsesRaw, 10) : null,
-        created_by: window.veloraPortalEmail || null,
+        created_by: window.digicodePortalEmail || null,
       });
 
       if (insErr) {
@@ -2227,7 +2247,7 @@ if (devTabs.length) {
 
     panel.querySelectorAll(".dc-toggle").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        await veloraSupabase
+        await digicodeSupabase
           .from("discount_codes")
           .update({ active: btn.dataset.active !== "true" })
           .eq("id", Number(btn.dataset.id));
@@ -2238,7 +2258,7 @@ if (devTabs.length) {
     panel.querySelectorAll(".dc-delete").forEach((btn) => {
       btn.addEventListener("click", async () => {
         if (!window.confirm(`Delete the code ${btn.dataset.code}? This can't be undone.`)) return;
-        await veloraSupabase.from("discount_codes").delete().eq("id", Number(btn.dataset.id));
+        await digicodeSupabase.from("discount_codes").delete().eq("id", Number(btn.dataset.id));
         renderDiscountsPanel();
       });
     });
@@ -2254,8 +2274,8 @@ if (devTabs.length) {
   }
 
   function waitForAuthReady() {
-    if (window.veloraPortalRole) return Promise.resolve();
-    return new Promise((resolve) => document.addEventListener("velora-auth-ready", resolve, { once: true }));
+    if (window.digicodePortalRole) return Promise.resolve();
+    return new Promise((resolve) => document.addEventListener("digicode-auth-ready", resolve, { once: true }));
   }
 
   // TEMP: Dev/Client preview toggle — for design/testing only, remove once a
@@ -2268,13 +2288,13 @@ if (devTabs.length) {
 
   function renderClientPreview() {
     if (!clientViewContainer) return;
-    const isRealClient = window.veloraPortalRole === "client";
+    const isRealClient = window.digicodePortalRole === "client";
     const projects = getProjects();
     const demoProject = projects[0];
 
     if (!demoProject) {
       clientViewContainer.innerHTML = isRealClient
-        ? `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:hello@digi-code.com.au">hello@digi-code.com.au</a> and we'll sort it out.</p>
+        ? `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:developerteam@digi-code.com.au">developerteam@digi-code.com.au</a> and we'll sort it out.</p>
            <div style="text-align: center; margin-top: 24px;"><button type="button" class="clear-cart-link" data-portal-logout>Log out</button></div>`
         : `<p class="dev-empty">No projects exist yet to preview.</p>`;
       return;
@@ -2474,7 +2494,7 @@ if (devTabs.length) {
         return;
       }
       if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
-      const { error } = await veloraSupabase.rpc("submit_project_review", {
+      const { error } = await digicodeSupabase.rpc("submit_project_review", {
         project_id: demoProject.id,
         rating: chosenRating,
         review_text: document.getElementById("clientReviewText").value.trim(),
@@ -2493,7 +2513,7 @@ if (devTabs.length) {
       const input = document.getElementById("clientChatInput");
       const text = input.value.trim();
       if (!text) return;
-      await veloraSupabase.from("chats").insert({
+      await digicodeSupabase.from("chats").insert({
         chat_id: chatId,
         from_name: demoProject.clientName || "Client",
         message: text,
@@ -2536,9 +2556,9 @@ if (devTabs.length) {
   }
 
   function resolvePortalFirstName() {
-    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const email = (window.digicodePortalEmail || "").toLowerCase();
 
-    const fromProfile = firstNameOf(window.veloraPortalName);
+    const fromProfile = firstNameOf(window.digicodePortalName);
     if (fromProfile) return fromProfile;
 
     const dev = getTeam().find((d) => (d.email || "").toLowerCase() === email);
@@ -2556,7 +2576,7 @@ if (devTabs.length) {
   }
 
   function applyPortalRole() {
-    const portalRole = window.veloraPortalRole;
+    const portalRole = window.digicodePortalRole;
     if (portalWelcomeName) {
       const firstName = resolvePortalFirstName();
       portalWelcomeName.textContent = firstName

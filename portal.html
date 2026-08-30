@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=19" />
+  <link rel="stylesheet" href="css/style.css?v=20" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabase-client.js"></script>
   <style>body { visibility: hidden; }</style>
@@ -18,7 +18,7 @@
 <body>
   <script>
     (async function () {
-      const { data: { session } } = await veloraSupabase.auth.getSession();
+      const { data: { session } } = await digicodeSupabase.auth.getSession();
       if (!session) {
         window.location.href = "signin.html";
         return;
@@ -27,27 +27,27 @@
       // against the same Supabase project, so a Flappy Dragon account would
       // otherwise walk straight in here as a "client". Re-check that this
       // email is actually on the dev roster or attached to a purchase.
-      const { data: hasAccess, error: accessError } = await veloraSupabase
+      const { data: hasAccess, error: accessError } = await digicodeSupabase
         .rpc("email_has_portal_access", { check_email: session.user.email });
       if (!accessError && !hasAccess) {
-        await veloraSupabase.auth.signOut();
+        await digicodeSupabase.auth.signOut();
         sessionStorage.setItem("digicodePortalDenied", "1");
         window.location.href = "signin.html";
         return;
       }
-      const { data: profile } = await veloraSupabase
+      const { data: profile } = await digicodeSupabase
         .from("profiles")
         .select("role, email, name")
         .eq("id", session.user.id)
         .single();
-      window.veloraPortalRole = profile ? profile.role : "client";
-      window.veloraPortalEmail = session.user.email;
+      window.digicodePortalRole = profile ? profile.role : "client";
+      window.digicodePortalEmail = session.user.email;
       // Devs get their name copied onto the profile at signup (see
       // supabase/003); clients don't, so this can be null and main.js falls
       // back to the roster / project records to greet them by name.
-      window.veloraPortalName = profile ? profile.name : null;
+      window.digicodePortalName = profile ? profile.name : null;
       document.body.style.visibility = "visible";
-      document.dispatchEvent(new CustomEvent("velora-auth-ready"));
+      document.dispatchEvent(new CustomEvent("digicode-auth-ready"));
     })();
   </script>
 
@@ -329,6 +329,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=11"></script>
+  <script src="js/main.js?v=12"></script>
 </body>
 </html>

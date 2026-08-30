@@ -1,4 +1,4 @@
--- Velora Digital — Flappy Dragon leaderboard.
+-- DigiCode — Flappy Dragon leaderboard.
 -- "Cycles every month" is handled at query time (WHERE created_at is in the
 -- current calendar month) rather than deleting old scores, so history isn't lost.
 

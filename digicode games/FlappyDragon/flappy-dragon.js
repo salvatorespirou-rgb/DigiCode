@@ -413,9 +413,25 @@
   // A registered player is remembered on this browser only (no login) — an
   // id + a per-row secret returned once at registration, used together so
   // nobody else can update a player they don't hold the key for.
-  const PLAYER_ID_KEY = "veloraGamePlayerId";
-  const PLAYER_EDIT_KEY = "veloraGamePlayerEditKey";
-  const PLAYER_NAME_KEY = "veloraGamePlayerName";
+  // Carry over the pre-rebrand key names once, so an anonymous player who
+  // already has a profile keeps it instead of silently becoming a new one.
+  (function carryOverLegacyKeys() {
+    try {
+      [["veloraGamePlayerId", "digicodeGamePlayerId"],
+       ["veloraGamePlayerEditKey", "digicodeGamePlayerEditKey"],
+       ["veloraGamePlayerName", "digicodeGamePlayerName"],
+       ["veloraGameMuted", "digicodeGameMuted"]].forEach(function (pair) {
+        var value = localStorage.getItem(pair[0]);
+        if (value === null) return;
+        if (localStorage.getItem(pair[1]) === null) localStorage.setItem(pair[1], value);
+        localStorage.removeItem(pair[0]);
+      });
+    } catch (e) { /* private mode */ }
+  })();
+
+  const PLAYER_ID_KEY = "digicodeGamePlayerId";
+  const PLAYER_EDIT_KEY = "digicodeGamePlayerEditKey";
+  const PLAYER_NAME_KEY = "digicodeGamePlayerName";
 
   let playerId = localStorage.getItem(PLAYER_ID_KEY);
   let playerEditKey = localStorage.getItem(PLAYER_EDIT_KEY);
@@ -434,7 +450,7 @@
 
   async function loadOwnBest() {
     if (!playerId) return;
-    const { data } = await veloraSupabase.from("game_players").select("best_score").eq("id", playerId).single();
+    const { data } = await digicodeSupabase.from("game_players").select("best_score").eq("id", playerId).single();
     if (data) {
       best = data.best_score;
       if (bestEl) bestEl.textContent = best;
@@ -473,7 +489,7 @@
       updateCoinDisplays();
       return;
     }
-    const { data } = await veloraSupabase
+    const { data } = await digicodeSupabase
       .from("game_players")
       .select(
         "coins, owned_dragons, equipped_dragon, daily_coins_collected, daily_pylons_cleared, daily_pylons_broken, daily_coin_rush_survived, daily_jet_chase_survived, daily_rage_survived, daily_runs_played, daily_best_score, daily_quests_claimed"
@@ -532,7 +548,7 @@
   }
 
   async function linkOrLoadAccountProfile() {
-    const { data: linked } = await veloraSupabase
+    const { data: linked } = await digicodeSupabase
       .from("game_players")
       .select("*")
       .eq("user_id", authUser.id)
@@ -546,7 +562,7 @@
     // is lost — otherwise they'll get a linked profile the next time they
     // register a name, same as any new player.
     if (playerId && playerEditKey) {
-      const { data: claimed, error } = await veloraSupabase
+      const { data: claimed, error } = await digicodeSupabase
         .from("game_players")
         .update({ user_id: authUser.id })
         .eq("id", playerId)
@@ -562,7 +578,7 @@
     if (authUser) {
       authStatusEl.innerHTML = `Synced as <strong>${escapeHtml(authUser.email)}</strong> · <button type="button" id="dragonSignOutBtn" class="dragon-auth-link">Sign out</button>`;
       document.getElementById("dragonSignOutBtn")?.addEventListener("click", async () => {
-        await veloraSupabase.auth.signOut();
+        await digicodeSupabase.auth.signOut();
         window.location.reload();
       });
     } else {
@@ -578,7 +594,7 @@
     try {
       const {
         data: { session },
-      } = await veloraSupabase.auth.getSession();
+      } = await digicodeSupabase.auth.getSession();
       authUser = session?.user || null;
     } catch (err) {
       authUser = null;
@@ -845,7 +861,7 @@
   // browsers block audio from starting on its own). Every sound routes
   // through one shared masterGain instead of straight to the destination,
   // so muting is a single gain change rather than gating every play call.
-  const MUTE_KEY = "veloraGameMuted";
+  const MUTE_KEY = "digicodeGameMuted";
   let isMuted = localStorage.getItem(MUTE_KEY) === "1";
   let audioCtx = null;
   let masterGain = null;
@@ -1150,7 +1166,7 @@
       // gate anything below it: a failed save here shouldn't block the
       // coin/best-score writes that matter more.
       try {
-        await veloraSupabase.rpc("record_daily_progress", {
+        await digicodeSupabase.rpc("record_daily_progress", {
           p_id: playerId,
           p_edit_key: playerEditKey,
           p_coins_collected: runCoinsCollected,
@@ -1179,7 +1195,7 @@
       let coinLine = "";
       if (coinsEarned > 0) {
         try {
-          const { data: newBalance, error } = await veloraSupabase.rpc("credit_coins", {
+          const { data: newBalance, error } = await digicodeSupabase.rpc("credit_coins", {
             p_id: playerId,
             p_edit_key: playerEditKey,
             p_amount: coinsEarned,
@@ -1197,7 +1213,7 @@
       let confirmedNewBest = false;
       if (looksLikeNewBest) {
         try {
-          const { data: updated } = await veloraSupabase
+          const { data: updated } = await digicodeSupabase
             .from("game_players")
             .update({ best_score: score, updated_at: new Date().toISOString() })
             .eq("id", playerId)
@@ -1212,7 +1228,7 @@
             // Something else (another tab, another device) already holds a
             // best_score >= this run's — pull the real value instead of
             // trusting our stale local one.
-            const { data: latest } = await veloraSupabase
+            const { data: latest } = await digicodeSupabase
               .from("game_players")
               .select("best_score")
               .eq("id", playerId)
@@ -1280,16 +1296,16 @@
       if (file) {
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await veloraSupabase.storage.from("avatars").upload(path, file);
+        const { error: uploadError } = await digicodeSupabase.storage.from("avatars").upload(path, file);
         if (!uploadError) {
-          const { data: pub } = veloraSupabase.storage.from("avatars").getPublicUrl(path);
+          const { data: pub } = digicodeSupabase.storage.from("avatars").getPublicUrl(path);
           avatarUrl = pub?.publicUrl || null;
         }
       }
 
       const insertPayload = { display_name: name, avatar_url: avatarUrl, best_score: score };
       if (authUser) insertPayload.user_id = authUser.id;
-      const { data, error } = await veloraSupabase
+      const { data, error } = await digicodeSupabase
         .from("game_players")
         .insert(insertPayload)
         .select()
@@ -1434,7 +1450,7 @@
   async function awardJetChaseBonus() {
     if (!playerId || !playerEditKey) return;
     try {
-      const { data: newBalance, error } = await veloraSupabase.rpc("credit_coins", {
+      const { data: newBalance, error } = await digicodeSupabase.rpc("credit_coins", {
         p_id: playerId,
         p_edit_key: playerEditKey,
         p_amount: JET_CHASE_REWARD,
@@ -1453,7 +1469,7 @@
   async function awardRageBonus() {
     if (!playerId || !playerEditKey) return;
     try {
-      const { data: newBalance, error } = await veloraSupabase.rpc("credit_coins", {
+      const { data: newBalance, error } = await digicodeSupabase.rpc("credit_coins", {
         p_id: playerId,
         p_edit_key: playerEditKey,
         p_amount: RAGE_REWARD,
@@ -2357,7 +2373,7 @@
     const listEl = document.getElementById("dragonLeaderboardList");
     if (!listEl) return;
 
-    const { data, error } = await veloraSupabase
+    const { data, error } = await digicodeSupabase
       .from("game_players")
       .select("id, display_name, avatar_url, best_score")
       .order("best_score", { ascending: false })
@@ -2615,7 +2631,7 @@
     const reward = Number(btn.dataset.reward);
     btn.disabled = true;
     try {
-      const { data: newBalance, error } = await veloraSupabase.rpc("claim_daily_quest", {
+      const { data: newBalance, error } = await digicodeSupabase.rpc("claim_daily_quest", {
         p_id: playerId,
         p_edit_key: playerEditKey,
         p_quest_id: questId,
@@ -2713,12 +2729,12 @@
 
     try {
       if (authModalMode === "signin") {
-        const { error } = await veloraSupabase.auth.signInWithPassword({ email, password });
+        const { error } = await digicodeSupabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         closeAuthModal();
         await initAuth();
       } else if (authModalMode === "signup") {
-        const { data, error } = await veloraSupabase.auth.signUp({ email, password });
+        const { data, error } = await digicodeSupabase.auth.signUp({ email, password });
         if (error) throw error;
         if (!data.session) {
           // Supabase deliberately doesn't say whether this email was new or
@@ -2732,7 +2748,7 @@
           await initAuth();
         }
       } else if (authModalMode === "reset") {
-        const { error } = await veloraSupabase.auth.resetPasswordForEmail(email, {
+        const { error } = await digicodeSupabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password.html`,
         });
         if (error) throw error;
@@ -2764,7 +2780,7 @@
       equippedDragonId = dragon.id;
       renderStore();
       try {
-        const { error } = await veloraSupabase
+        const { error } = await digicodeSupabase
           .from("game_players")
           .update({ equipped_dragon: dragon.id })
           .eq("id", playerId)
@@ -2785,7 +2801,7 @@
       try {
         const nextOwned = [...ownedDragons, dragon.id];
         const nextCoins = walletCoins - dragon.price;
-        const { error } = await veloraSupabase
+        const { error } = await digicodeSupabase
           .from("game_players")
           .update({ coins: nextCoins, owned_dragons: nextOwned, equipped_dragon: dragon.id })
           .eq("id", playerId)

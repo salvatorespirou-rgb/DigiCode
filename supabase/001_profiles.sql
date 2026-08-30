@@ -1,4 +1,4 @@
--- Velora Digital — Phase 1: real auth (profiles table + row-level security)
+-- DigiCode — Phase 1: real auth (profiles table + row-level security)
 -- Run this once in the Supabase SQL Editor for this project.
 
 create table public.profiles (

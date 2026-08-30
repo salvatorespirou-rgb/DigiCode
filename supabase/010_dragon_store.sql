@@ -1,4 +1,4 @@
--- Velora Digital — Dragon Store: a persistent coin wallet, which dragons a
+-- DigiCode — Dragon Store: a persistent coin wallet, which dragons a
 -- player owns, and which one they currently fly. No new RLS policies are
 -- needed — game_players already has an open UPDATE policy and every write
 -- from the app is scoped with .eq("edit_key", ...), same as best_score.

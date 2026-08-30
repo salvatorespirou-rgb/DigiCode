@@ -604,7 +604,14 @@
   // Habib!" star line is a placeholder hook (see playStarVoiceLine) for a
   // real recorded line to be dropped in later.
   // ---------------------------------------------------------------------
-  const MUTE_KEY = "veloraRunHabibMuted";
+  try {
+    var legacyMute = localStorage.getItem("veloraRunHabibMuted");
+    if (legacyMute !== null && localStorage.getItem("digicodeRunHabibMuted") === null) {
+      localStorage.setItem("digicodeRunHabibMuted", legacyMute);
+      localStorage.removeItem("veloraRunHabibMuted");
+    }
+  } catch (e) { /* private mode */ }
+  const MUTE_KEY = "digicodeRunHabibMuted";
   let isMuted = localStorage.getItem(MUTE_KEY) === "1";
   let audioCtx = null;
   let masterGain = null;

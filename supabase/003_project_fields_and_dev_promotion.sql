@@ -1,4 +1,4 @@
--- Velora Digital — Phase 2b: extra project fields + real dev promotion on signup
+-- DigiCode — Phase 2b: extra project fields + real dev promotion on signup
 -- Run this once in the Supabase SQL Editor, after 002_projects_chats_developers.sql.
 
 alter table public.projects drop column if exists form_lines;

@@ -1,4 +1,4 @@
--- Velora Digital — Daily Quests. Ten quests, all reset every day — a
+-- DigiCode — Daily Quests. Ten quests, all reset every day — a
 -- completely separate cadence from the weekly leaderboard reset
 -- (012_weekly_leaderboard_reset.sql, which stays weekly and untouched
 -- here), so this is its own columns, its own cron job, and its own

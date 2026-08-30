@@ -1,4 +1,4 @@
--- Velora Digital — Flappy Dragon player profiles (replaces the old
+-- DigiCode — Flappy Dragon player profiles (replaces the old
 -- game_scores-based leaderboard with persistent registered players).
 -- Run this once in the Supabase SQL Editor.
 

@@ -1,4 +1,4 @@
--- Velora Digital — Phase 2: real Dev pipeline (projects, chat, developer roster)
+-- DigiCode — Phase 2: real Dev pipeline (projects, chat, developer roster)
 -- Run this once in the Supabase SQL Editor, after 001_profiles.sql.
 
 create extension if not exists pgcrypto;

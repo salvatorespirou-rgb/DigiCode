@@ -1,4 +1,4 @@
--- Velora Digital — weekly leaderboard reset. Zeroes every player's
+-- DigiCode — weekly leaderboard reset. Zeroes every player's
 -- best_score only — display name, avatar, coins, owned dragons, and any
 -- linked account all stay exactly as they are. Runs automatically every
 -- Monday 6am AEST, and this migration also runs it once immediately.

@@ -1,4 +1,4 @@
 const SUPABASE_URL = "https://phlmnlildwkkichlbtoy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBobG1ubGlsZHdra2ljaGxidG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NzQ1ODksImV4cCI6MjEwMzE1MDU4OX0.5butaPl8qJGNT4eenhE7pFRAVw83i0g4xbeITIzUjW4";
 
-const veloraSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const digicodeSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
