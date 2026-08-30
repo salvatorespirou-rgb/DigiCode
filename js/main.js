@@ -651,6 +651,53 @@ if (cartItemsEl) {
   const cartEmptyEl = document.getElementById("cartEmpty");
   const cartSummaryEl = document.getElementById("cartSummary");
 
+  // ---------------------------------------------------------------------
+  // Discount codes. The shopper isn't signed in, so this goes through the
+  // anon-callable RPCs in supabase/020_discount_codes.sql — the codes table
+  // itself is closed to them. Kept in sessionStorage rather than localStorage
+  // so a code doesn't quietly persist for weeks after it expires.
+  // ---------------------------------------------------------------------
+  const DISCOUNT_KEY = "digicodeDiscount";
+
+  function getDiscount() {
+    try {
+      const raw = sessionStorage.getItem(DISCOUNT_KEY);
+      if (!raw) return null;
+      const d = JSON.parse(raw);
+      // A code held from earlier in the session may have expired since.
+      if (d.expires_at && new Date(d.expires_at) <= new Date()) {
+        sessionStorage.removeItem(DISCOUNT_KEY);
+        return null;
+      }
+      return d;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setDiscount(d) {
+    try {
+      if (d) sessionStorage.setItem(DISCOUNT_KEY, JSON.stringify(d));
+      else sessionStorage.removeItem(DISCOUNT_KEY);
+    } catch (e) { /* private mode */ }
+  }
+
+  function discountLabel(d) {
+    const value = d.kind === "percent" ? `${+d.amount}% off` : `$${(+d.amount).toFixed(2)} off`;
+    const scope =
+      d.applies_to === "one_time" ? "one-time" :
+      d.applies_to === "subscription" ? "subscription" : "everything";
+    return `${d.code.toUpperCase()} — ${value} ${scope}`;
+  }
+
+  // Returns what a discount takes off a given amount, never more than the
+  // amount itself.
+  function discountOn(d, amount) {
+    if (!d || amount <= 0) return 0;
+    const off = d.kind === "percent" ? amount * (+d.amount / 100) : +d.amount;
+    return Math.min(off, amount);
+  }
+
   function renderCart() {
     const cart = getCart();
 
@@ -706,7 +753,102 @@ if (cartItemsEl) {
       subRow.hidden = !subLine;
       subTotalEl.textContent = subLine;
     }
+
+    renderDiscount(oneTimeTotal, cart);
   }
+
+  // Shows the applied code and what it actually comes to. Subscription items
+  // are summed separately because they recur — a discount on them is quoted
+  // per month, not as one number off the order.
+  function renderDiscount(oneTimeTotal, cart) {
+    const d = getDiscount();
+    const appliedEl = document.getElementById("discountApplied");
+    const tagEl = document.getElementById("discountTag");
+    const rowEl = document.getElementById("discountedRow");
+    const labelEl = document.getElementById("discountedLabel");
+    const totalEl = document.getElementById("discountedTotal");
+    const inputWrap = document.querySelector(".cart-discount-row");
+    if (!appliedEl || !rowEl) return;
+
+    if (!d) {
+      appliedEl.hidden = true;
+      rowEl.hidden = true;
+      if (inputWrap) inputWrap.hidden = false;
+      return;
+    }
+
+    appliedEl.hidden = false;
+    tagEl.textContent = discountLabel(d);
+    if (inputWrap) inputWrap.hidden = true;
+
+    const subTotal = cart
+      .filter((i) => i.period !== "one-time")
+      .reduce((n, i) => n + (parseFloat(String(i.price).replace(/[^0-9.]/g, "")) || 0), 0);
+
+    const offOneTime = d.applies_to === "subscription" ? 0 : discountOn(d, oneTimeTotal);
+    const offSub = d.applies_to === "one_time" ? 0 : discountOn(d, subTotal);
+
+    const parts = [];
+    if (offOneTime > 0) parts.push(`$${(oneTimeTotal - offOneTime).toFixed(2)} one-time`);
+    if (offSub > 0) parts.push(`$${(subTotal - offSub).toFixed(2)}/mo`);
+
+    if (!parts.length) {
+      // Valid code, but nothing in the cart it applies to.
+      rowEl.hidden = true;
+      showDiscountMsg("That code doesn't apply to anything in your cart.", true);
+      return;
+    }
+
+    labelEl.textContent = `After discount (−$${(offOneTime + offSub).toFixed(2)})`;
+    totalEl.textContent = parts.join(" + ");
+    rowEl.hidden = false;
+  }
+
+  function showDiscountMsg(text, isError) {
+    const el = document.getElementById("discountMsg");
+    if (!el) return;
+    el.textContent = text;
+    el.hidden = !text;
+    el.classList.toggle("is-error", !!isError);
+  }
+
+  const applyBtn = document.getElementById("applyDiscountBtn");
+  const codeInput = document.getElementById("discountCodeInput");
+
+  async function applyDiscountCode() {
+    const raw = (codeInput.value || "").trim();
+    if (!raw) return;
+    applyBtn.disabled = true;
+    showDiscountMsg("Checking…", false);
+    try {
+      const { data, error } = await veloraSupabase.rpc("validate_discount_code", { p_code: raw });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) {
+        setDiscount(null);
+        showDiscountMsg("That code isn't valid or has expired.", true);
+      } else {
+        setDiscount(row);
+        showDiscountMsg("", false);
+        codeInput.value = "";
+      }
+    } catch (e) {
+      showDiscountMsg("Couldn't check that code. Try again in a moment.", true);
+    } finally {
+      applyBtn.disabled = false;
+      renderCart();
+    }
+  }
+
+  applyBtn?.addEventListener("click", applyDiscountCode);
+  codeInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); applyDiscountCode(); }
+  });
+  document.getElementById("removeDiscountBtn")?.addEventListener("click", () => {
+    setDiscount(null);
+    showDiscountMsg("", false);
+    renderCart();
+  });
 
   renderCart();
 
@@ -724,12 +866,24 @@ if (cartItemsEl) {
 
     confirmOrderBtn.disabled = true;
     await pushPendingProjectFromOrder(cart, customer);
+
+    // Count the use only now the order is real. The RPC re-checks the code,
+    // so one that lapsed between being entered and confirmed won't count.
+    const discount = getDiscount();
+    if (discount) {
+      try { await veloraSupabase.rpc("redeem_discount_code", { p_code: discount.code }); } catch (e) { /* non-fatal */ }
+    }
     confirmOrderBtn.disabled = false;
 
     const lines = ["Cart:"];
     cart.forEach((item) => {
       lines.push(`- ${item.service} — ${item.name} (${item.price}${item.period ? " " + item.period : ""})`);
     });
+
+    if (discount) {
+      lines.push("");
+      lines.push(`Discount code applied: ${discountLabel(discount)}`);
+    }
 
     if (customer?.lines?.length) {
       lines.push("");
@@ -1372,6 +1526,7 @@ if (devTabs.length) {
             <label class="checkbox-option"><input type="checkbox" value="Assign Projects" /> Assign Projects to Self</label>
             <label class="checkbox-option"><input type="checkbox" value="Manage Developers" /> Manage Other Developers</label>
             <label class="checkbox-option"><input type="checkbox" value="Delete Live Chats" /> Delete Live Chat History</label>
+            <label class="checkbox-option"><input type="checkbox" value="Manage Discount Codes" /> Manage Discount Codes</label>
           </div>
         </div>
         <button type="submit" class="btn btn-primary">Create Developer</button>
@@ -1779,8 +1934,204 @@ if (devTabs.length) {
       .subscribe();
   }
 
+  // ---------------------------------------------------------------------
+  // Discount codes. Mirrors public.can_manage_discount_codes() in
+  // supabase/020 — the database is the real gate, this just decides whether
+  // to draw the form.
+  // ---------------------------------------------------------------------
+  function canManageDiscounts() {
+    const email = (window.veloraPortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Manage Discount Codes");
+  }
+
+  function codeStatus(c) {
+    const now = Date.now();
+    const start = new Date(c.starts_at).getTime();
+    const end = new Date(c.expires_at).getTime();
+    const exhausted = c.max_uses != null && c.times_used >= c.max_uses;
+
+    if (!c.active) return { label: "Switched off", tone: "off" };
+    if (exhausted) return { label: "Used up", tone: "off" };
+    if (now < start) return { label: "Not started yet", tone: "wait" };
+    if (now >= end) return { label: "Expired", tone: "off" };
+
+    const hoursLeft = (end - now) / 3600000;
+    const left = hoursLeft >= 48
+      ? `${Math.floor(hoursLeft / 24)} days left`
+      : hoursLeft >= 2
+      ? `${Math.floor(hoursLeft)} hours left`
+      : `${Math.max(1, Math.floor(hoursLeft * 60))} min left`;
+    return { label: left, tone: hoursLeft < 48 ? "soon" : "live" };
+  }
+
+  function activeForLabel(c) {
+    const days = (Date.now() - new Date(c.starts_at).getTime()) / 86400000;
+    if (days < 0) return "Scheduled";
+    if (days < 1) return `Live ${Math.max(1, Math.floor(days * 24))}h`;
+    return `Live ${Math.floor(days)} day${Math.floor(days) === 1 ? "" : "s"}`;
+  }
+
+  async function renderDiscountsPanel() {
+    const panel = document.getElementById("discountsPanel");
+    if (!panel) return;
+
+    const { data, error } = await veloraSupabase
+      .from("discount_codes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      panel.innerHTML = `<p class="dev-empty">Couldn't load discount codes. If this is the first time, run supabase/020_discount_codes.sql.</p>`;
+      return;
+    }
+
+    const codes = data || [];
+    const canManage = canManageDiscounts();
+
+    const formHtml = canManage
+      ? `
+      <form class="add-dev-form" id="addDiscountForm">
+        <h3>Create a discount code</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="dcCode">Code</label>
+            <input type="text" id="dcCode" placeholder="e.g. LAUNCH20" maxlength="40" required />
+          </div>
+          <div class="form-group">
+            <label for="dcKind">Type</label>
+            <select id="dcKind">
+              <option value="percent">Percentage off</option>
+              <option value="fixed">Fixed amount off</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dcAmount">Amount</label>
+            <input type="number" id="dcAmount" min="1" step="0.01" placeholder="20" required />
+            <span class="form-hint" id="dcAmountHint">Percent off, 1–100.</span>
+          </div>
+          <div class="form-group">
+            <label for="dcApplies">Applies to</label>
+            <select id="dcApplies">
+              <option value="both">Everything in the cart</option>
+              <option value="one_time">One-time builds only</option>
+              <option value="subscription">Subscriptions only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dcDays">Runs for</label>
+            <input type="number" id="dcDays" min="1" max="30" value="14" required />
+            <span class="form-hint">Days from now. Maximum 30.</span>
+          </div>
+          <div class="form-group">
+            <label for="dcMaxUses">Usage limit</label>
+            <input type="number" id="dcMaxUses" min="1" placeholder="Leave blank for unlimited" />
+          </div>
+        </div>
+        <p class="portal-login-error" id="dcError" hidden></p>
+        <button type="submit" class="btn btn-primary">Create Code</button>
+      </form>`
+      : `<p class="dev-empty">You can see the codes here, but creating and changing them needs the Lead Developer rank or the "Manage Discount Codes" permission.</p>`;
+
+    const listHtml = codes.length
+      ? codes
+          .map((c) => {
+            const st = codeStatus(c);
+            const value = c.kind === "percent" ? `${+c.amount}% off` : `$${(+c.amount).toFixed(2)} off`;
+            const scope =
+              c.applies_to === "one_time" ? "one-time only" :
+              c.applies_to === "subscription" ? "subscriptions only" : "everything";
+            const uses = c.max_uses != null ? `${c.times_used} of ${c.max_uses} used` : `${c.times_used} used`;
+            return `
+          <div class="discount-row">
+            <div class="discount-main">
+              <span class="discount-code">${escapeHtml(c.code)}</span>
+              <span class="discount-value">${value} · ${scope}</span>
+              <span class="discount-meta">${activeForLabel(c)} · ${uses} · expires ${formatDate(c.expires_at)}</span>
+            </div>
+            <span class="discount-status tone-${st.tone}">${st.label}</span>
+            ${
+              canManage
+                ? `<div class="discount-actions">
+                     <button type="button" class="btn btn-ghost btn-small dc-toggle" data-id="${c.id}" data-active="${c.active}">${c.active ? "Turn off" : "Turn on"}</button>
+                     <button type="button" class="cart-item-remove dc-delete" data-id="${c.id}" data-code="${escapeHtml(c.code)}" aria-label="Delete ${escapeHtml(c.code)}">&times;</button>
+                   </div>`
+                : ""
+            }
+          </div>`;
+          })
+          .join("")
+      : `<p class="dev-empty">No discount codes yet.</p>`;
+
+    panel.innerHTML = formHtml + `<div class="discount-list">${listHtml}</div>`;
+
+    const kindEl = document.getElementById("dcKind");
+    kindEl?.addEventListener("change", () => {
+      document.getElementById("dcAmountHint").textContent =
+        kindEl.value === "percent" ? "Percent off, 1–100." : "Dollars off the total.";
+    });
+
+    document.getElementById("addDiscountForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const err = document.getElementById("dcError");
+      const code = document.getElementById("dcCode").value.trim().toUpperCase();
+      const kind = document.getElementById("dcKind").value;
+      const amount = parseFloat(document.getElementById("dcAmount").value);
+      const applies = document.getElementById("dcApplies").value;
+      const days = parseInt(document.getElementById("dcDays").value, 10);
+      const maxUsesRaw = document.getElementById("dcMaxUses").value.trim();
+
+      const fail = (m) => { err.textContent = m; err.hidden = false; };
+      err.hidden = true;
+
+      if (!/^[A-Z0-9_-]{3,40}$/.test(code)) return fail("Codes can use letters, numbers, dashes and underscores — 3 to 40 characters.");
+      if (!(amount > 0)) return fail("Enter a discount amount above zero.");
+      if (kind === "percent" && amount > 100) return fail("A percentage discount can't be more than 100%.");
+      if (!(days >= 1 && days <= 30)) return fail("A code can run for between 1 and 30 days.");
+
+      const { error: insErr } = await veloraSupabase.from("discount_codes").insert({
+        code,
+        kind,
+        amount,
+        applies_to: applies,
+        expires_at: new Date(Date.now() + days * 86400000).toISOString(),
+        max_uses: maxUsesRaw ? parseInt(maxUsesRaw, 10) : null,
+        created_by: window.veloraPortalEmail || null,
+      });
+
+      if (insErr) {
+        return fail(
+          /duplicate|unique/i.test(insErr.message)
+            ? "That code already exists."
+            : "Couldn't create that code — your account may not have permission."
+        );
+      }
+      renderDiscountsPanel();
+    });
+
+    panel.querySelectorAll(".dc-toggle").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await veloraSupabase
+          .from("discount_codes")
+          .update({ active: btn.dataset.active !== "true" })
+          .eq("id", Number(btn.dataset.id));
+        renderDiscountsPanel();
+      });
+    });
+
+    panel.querySelectorAll(".dc-delete").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!window.confirm(`Delete the code ${btn.dataset.code}? This can't be undone.`)) return;
+        await veloraSupabase.from("discount_codes").delete().eq("id", Number(btn.dataset.id));
+        renderDiscountsPanel();
+      });
+    });
+  }
+
   function renderAllPanels() {
     renderPendingPanel();
+    renderDiscountsPanel();
     renderAssignedPanel();
     renderFinishedPanel();
     renderDevelopersPanel();

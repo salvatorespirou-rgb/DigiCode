@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=16" />
+  <link rel="stylesheet" href="css/style.css?v=17" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabase-client.js"></script>
 </head>
@@ -81,6 +81,25 @@
               <span>Subscription</span>
               <span id="subscriptionTotal">—</span>
             </div>
+
+            <div class="cart-discount" id="cartDiscount">
+              <label class="cart-discount-label" for="discountCodeInput">Discount code</label>
+              <div class="cart-discount-row">
+                <input type="text" id="discountCodeInput" placeholder="Enter code" autocomplete="off"
+                       maxlength="40" spellcheck="false" />
+                <button type="button" id="applyDiscountBtn" class="btn btn-ghost btn-small">Add</button>
+              </div>
+              <p class="cart-discount-msg" id="discountMsg" hidden></p>
+              <div class="cart-discount-applied" id="discountApplied" hidden>
+                <span class="cart-discount-tag" id="discountTag"></span>
+                <button type="button" id="removeDiscountBtn" class="cart-discount-remove" aria-label="Remove discount code">&times;</button>
+              </div>
+            </div>
+
+            <div class="cart-total-row cart-total-final" id="discountedRow" hidden>
+              <span id="discountedLabel">After discount</span>
+              <span id="discountedTotal">—</span>
+            </div>
           </div>
 
           <div class="cart-actions">
@@ -100,7 +119,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=8"></script>
+  <script src="js/main.js?v=9"></script>
   <script src="js/live-chat.js?v=4"></script>
 </body>
 </html>
