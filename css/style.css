@@ -3887,3 +3887,12 @@ input[type="radio"] { accent-color: var(--purple); }
 @media (prefers-reduced-motion: reduce) {
   .stats-live-dot { animation: none; }
 }
+
+/* State labels in the footer service-area line. Slightly brighter than the
+   surrounding text so the eye can find NSW / QLD / WA without them shouting. */
+.footer-state {
+  color: rgba(215, 224, 234, 0.82);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-right: 2px;
+}
