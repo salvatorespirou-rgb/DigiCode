@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=23" />
+  <link rel="stylesheet" href="css/style.css?v=24" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabase-client.js"></script>
   <style>body { visibility: hidden; }</style>
@@ -114,185 +114,26 @@
 
     <section class="request-form-section" style="padding-top: 0;">
       <div id="devViewContainer" class="container">
-        <div class="portal-sample-banner">Visitor stats and health metrics below are sample data. The project pipeline is real and local to this browser — the sample projects are marked "Sample," and placing a real order through the cart on this device will actually appear in Pending Projects.</div>
+        <div class="portal-sample-banner">The project pipeline below is real. Sample projects are marked &ldquo;Sample,&rdquo; and placing a real order through the cart will appear in Pending Projects.</div>
 
         <div class="dashboard-section">
-          <h2 class="dashboard-section-title">Site Performance — Last 30 Days</h2>
-          <div class="stat-grid">
-            <div class="stat-tile">
-              <span class="stat-tile-label">Visitors</span>
-              <span class="stat-tile-value">2,481</span>
-              <div class="stat-tile-footer">
-                <span class="stat-delta up">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  12.4%
-                </span>
-                <svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30">
-                  <polyline class="spark-base" points="0,24 9,23 18,22 27,20 36,19 45,17 55,15 64,13 73,12 82,10 91,8 100,6" />
-                  <polyline class="spark-accent" points="91,8 100,6" />
-                  <circle class="spark-dot" cx="100" cy="6" r="3" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-tile">
-              <span class="stat-tile-label">Unique visitors</span>
-              <span class="stat-tile-value">1,932</span>
-              <div class="stat-tile-footer">
-                <span class="stat-delta up">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  8.1%
-                </span>
-                <svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30">
-                  <polyline class="spark-base" points="0,24 9,23 18,22 27,20 36,19 45,17 55,15 64,13 73,12 82,10 91,8 100,6" />
-                  <polyline class="spark-accent" points="91,8 100,6" />
-                  <circle class="spark-dot" cx="100" cy="6" r="3" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-tile">
-              <span class="stat-tile-label">Members</span>
-              <span class="stat-tile-value">14</span>
-              <div class="stat-tile-footer">
-                <span class="stat-delta up">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  +3 this month
-                </span>
-                <svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30">
-                  <polyline class="spark-base" points="0,26 9,24 18,21 27,19 36,16 45,14 55,12 64,10 73,9 82,7 91,5 100,3" />
-                  <polyline class="spark-accent" points="91,5 100,3" />
-                  <circle class="spark-dot" cx="100" cy="3" r="3" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-tile">
-              <span class="stat-tile-label">Requests started</span>
-              <span class="stat-tile-value">76</span>
-              <div class="stat-tile-footer">
-                <span class="stat-delta up">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  18.2%
-                </span>
-                <svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30">
-                  <polyline class="spark-base" points="0,26 9,24 18,21 27,19 36,16 45,14 55,12 64,10 73,9 82,7 91,5 100,3" />
-                  <polyline class="spark-accent" points="91,5 100,3" />
-                  <circle class="spark-dot" cx="100" cy="3" r="3" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-tile">
-              <span class="stat-tile-label">Orders sent</span>
-              <span class="stat-tile-value">22</span>
-              <div class="stat-tile-footer">
-                <span class="stat-delta up">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  5.0%
-                </span>
-                <svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30">
-                  <polyline class="spark-base" points="0,24 9,23 18,22 27,20 36,19 45,17 55,15 64,13 73,12 82,10 91,8 100,6" />
-                  <polyline class="spark-accent" points="91,8 100,6" />
-                  <circle class="spark-dot" cx="100" cy="6" r="3" />
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-tile">
-              <span class="stat-tile-label">Conversion rate</span>
-              <span class="stat-tile-value">0.9%</span>
-              <div class="stat-tile-footer">
-                <span class="stat-delta down">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v6M5 8L2 5M5 8l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  0.1%
-                </span>
-                <svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30">
-                  <polyline class="spark-base" points="0,8 9,9 18,10 27,12 36,13 45,15 55,16 64,18 73,19 82,21 91,22 100,24" />
-                  <polyline class="spark-accent" points="91,22 100,24" />
-                  <circle class="spark-dot" cx="100" cy="24" r="3" />
-                </svg>
-              </div>
-            </div>
+          <div class="dashboard-section-head">
+            <h2 class="dashboard-section-title">Site Performance — Last 30 Days</h2>
+            <button type="button" class="stats-refresh" id="statsRefresh" title="Reload the live figures">Refresh</button>
           </div>
+          <div class="stat-grid" id="statGrid"></div>
+          <p class="stats-stamp" id="statsStamp"></p>
         </div>
 
         <div class="dashboard-section">
           <h2 class="dashboard-section-title">Where Requests Come From</h2>
-          <div class="rank-list">
-            <div class="rank-row">
-              <span class="rank-label">Business Websites</span>
-              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: 34%;"></div></div>
-              <span class="rank-value">34%</span>
-            </div>
-            <div class="rank-row">
-              <span class="rank-label">Gaming Websites</span>
-              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: 24%;"></div></div>
-              <span class="rank-value">24%</span>
-            </div>
-            <div class="rank-row">
-              <span class="rank-label">SEO</span>
-              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: 16%;"></div></div>
-              <span class="rank-value">16%</span>
-            </div>
-            <div class="rank-row">
-              <span class="rank-label">Website Hosting</span>
-              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: 12%;"></div></div>
-              <span class="rank-value">12%</span>
-            </div>
-            <div class="rank-row">
-              <span class="rank-label">Update Management</span>
-              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: 9%;"></div></div>
-              <span class="rank-value">9%</span>
-            </div>
-            <div class="rank-row">
-              <span class="rank-label">Social Platforms</span>
-              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: 5%;"></div></div>
-              <span class="rank-value">5%</span>
-            </div>
-          </div>
+          <div class="rank-list" id="rankList"></div>
         </div>
 
         <div class="dashboard-section">
           <h2 class="dashboard-section-title">Health</h2>
-          <div class="perf-grid">
-            <div class="perf-tile">
-              <span class="perf-icon good">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-              <div class="perf-body">
-                <span class="perf-label">Avg. page load</span>
-                <span class="perf-value">0.8s</span>
-              </div>
-            </div>
-            <div class="perf-tile">
-              <span class="perf-icon good">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-              <div class="perf-body">
-                <span class="perf-label">Uptime</span>
-                <span class="perf-value">99.98%</span>
-              </div>
-            </div>
-            <div class="perf-tile">
-              <span class="perf-icon warning">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 4.3L2.9 17a1.8 1.8 0 001.6 2.7h15a1.8 1.8 0 001.6-2.7L13.7 4.3a1.8 1.8 0 00-3.4 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-              <div class="perf-body">
-                <span class="perf-label">Bounce rate</span>
-                <span class="perf-value">38%</span>
-              </div>
-            </div>
-            <div class="perf-tile">
-              <span class="perf-icon good">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-              <div class="perf-body">
-                <span class="perf-label">Avg. session</span>
-                <span class="perf-value">2m 14s</span>
-              </div>
-            </div>
-          </div>
+          <div class="perf-grid" id="perfGrid"></div>
+          <p class="stats-stamp" id="healthStamp"></p>
         </div>
 
         <div class="dashboard-section">
@@ -330,6 +171,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=12"></script>
+  <script src="js/main.js?v=13"></script>
 </body>
 </html>

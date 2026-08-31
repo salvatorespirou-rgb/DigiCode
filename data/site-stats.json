@@ -1,0 +1,33 @@
+{
+  "_comment": "Daily check snapshot for the portal dashboard. Everything here is something the site cannot measure about itself — uptime, Google's view of the site, and PageSpeed scores. Updated by Claude on each daily check. The traffic figures on the dashboard are live from Supabase and are NOT in this file.",
+  "generatedAt": "2026-08-31T22:10:00+10:00",
+  "checkedBy": "Claude",
+  "uptime": {
+    "status": "up",
+    "httpCode": 200,
+    "responseMs": 210,
+    "note": "https://www.digi-code.com.au/ responded normally."
+  },
+  "pagespeed": {
+    "performance": null,
+    "seo": null,
+    "accessibility": null,
+    "bestPractices": null,
+    "note": "Not yet run — needs the PageSpeed key from the Developers tab."
+  },
+  "search": {
+    "indexedPages": null,
+    "sitemapUrls": 24,
+    "sitemapStatus": "submitted",
+    "clicks": null,
+    "impressions": null,
+    "avgPosition": null,
+    "note": "Search Console property verified 31 Aug 2026. Performance data needs a day or two before Google reports anything."
+  },
+  "log": [
+    {
+      "date": "2026-08-31",
+      "note": "Analytics installed and dashboard switched from sample data to live. Search Console verified, sitemap submitted (24 URLs, all returning 200), homepage indexing requested."
+    }
+  ]
+}

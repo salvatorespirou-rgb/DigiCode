@@ -469,6 +469,13 @@ function formatDate(ts) {
     " · " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
+// Same, but date only - for the dashboard stamps, where the time of day adds
+// nothing and the separator in formatDate reads like the sentence has ended.
+function formatDay(ts) {
+  if (!ts) return "-";
+  return new Date(ts).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
 // Any text a visitor typed into a form (name, project details, chat messages, etc.)
 // gets rendered back into the dev dashboard via innerHTML — escape it so someone
 // typing HTML/script into a request form can't run script in the dashboard viewer.
@@ -1289,6 +1296,9 @@ if (devTabs.length) {
 
     await updateProjectFields(projectId, { health: { loading: true } });
     renderAllPanels();
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
 
     const url =
       `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(project.domain)}` +
@@ -1321,6 +1331,9 @@ if (devTabs.length) {
     }
 
     renderAllPanels();
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
   }
 
   function renderPendingPanel() {
@@ -1382,6 +1395,9 @@ if (devTabs.length) {
     }
 
     renderAllPanels();
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
   }
 
   function renderAssignedPanel() {
@@ -1453,6 +1469,9 @@ if (devTabs.length) {
   async function finishProject(id) {
     await updateProjectFields(id, { status: "finished", finished_at: new Date().toISOString() });
     renderAllPanels();
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
   }
 
   function renderFinishedPanel() {
@@ -2598,9 +2617,284 @@ if (devTabs.length) {
     }
   }
 
+  // ---------------------------------------------------------------------
+  // Live dashboard
+  //
+  // The traffic figures come straight out of Supabase every time this page
+  // loads — see public.site_stats() in supabase/022_site_analytics.sql, fed by
+  // js/analytics.js on the public pages. The few things the site can't measure
+  // about itself (uptime, PageSpeed, what Google thinks) live in
+  // data/site-stats.json and are refreshed on a daily check.
+  // ---------------------------------------------------------------------
+
+  let siteStats = null;
+  let statsSnapshot = null;
+
+  async function loadSiteStats() {
+    try {
+      const { data, error } = await digicodeSupabase.rpc("site_stats");
+      if (error) throw error;
+      siteStats = data || null;
+    } catch (e) {
+      siteStats = null;
+    }
+    return siteStats;
+  }
+
+  async function loadStatsSnapshot() {
+    try {
+      const res = await fetch("data/site-stats.json?t=" + Date.now(), { cache: "no-store" });
+      statsSnapshot = res.ok ? await res.json() : null;
+    } catch (e) {
+      statsSnapshot = null;
+    }
+    return statsSnapshot;
+  }
+
+  const ARROW_UP = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M5 2L2 5M5 2l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const ARROW_DOWN = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v6M5 8L2 5M5 8l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function pctChange(cur, prev) {
+    cur = Number(cur) || 0;
+    prev = Number(prev) || 0;
+    if (!prev) return cur > 0 ? { dir: "up", text: "new" } : { dir: "flat", text: "—" };
+    const pct = ((cur - prev) / prev) * 100;
+    return {
+      dir: pct > 0.05 ? "up" : pct < -0.05 ? "down" : "flat",
+      text: (pct >= 0 ? "" : "") + Math.abs(pct).toFixed(1) + "%",
+    };
+  }
+
+  // 12 numbers -> a polyline across the 100x30 viewBox the CSS already expects.
+  function sparkPoints(series) {
+    const vals = Array.isArray(series) && series.length ? series.map((n) => Number(n) || 0) : [];
+    if (!vals.length) return null;
+    const max = Math.max(...vals);
+    const min = Math.min(...vals);
+    const span = max - min || 1;
+    return vals.map((v, i) => {
+      const x = (i / (vals.length - 1 || 1)) * 100;
+      const y = 27 - ((v - min) / span) * 24;
+      return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+    });
+  }
+
+  function sparkSvg(series) {
+    const pts = sparkPoints(series);
+    if (!pts) return "";
+    const all = pts.map((p) => `${p.x},${p.y}`).join(" ");
+    const tail = pts.slice(-2).map((p) => `${p.x},${p.y}`).join(" ");
+    const last = pts[pts.length - 1];
+    return `<svg class="stat-sparkline" width="80" height="24" viewBox="0 0 100 30" aria-hidden="true">
+                  <polyline class="spark-base" points="${all}" />
+                  <polyline class="spark-accent" points="${tail}" />
+                  <circle class="spark-dot" cx="${last.x}" cy="${last.y}" r="3" />
+                </svg>`;
+  }
+
+  function statTile(label, value, delta, series) {
+    const arrow = delta.dir === "down" ? ARROW_DOWN : delta.dir === "up" ? ARROW_UP : "";
+    const cls = delta.dir === "flat" ? "" : ` ${delta.dir}`;
+    return `<div class="stat-tile">
+              <span class="stat-tile-label">${escapeHtml(label)}</span>
+              <span class="stat-tile-value">${escapeHtml(value)}</span>
+              <div class="stat-tile-footer">
+                <span class="stat-delta${cls}">${arrow}${escapeHtml(delta.text)}</span>
+                ${sparkSvg(series)}
+              </div>
+            </div>`;
+  }
+
+  function renderStatGrid() {
+    const grid = document.getElementById("statGrid");
+    const stamp = document.getElementById("statsStamp");
+    if (!grid) return;
+
+    if (!siteStats) {
+      grid.innerHTML = `<p class="dev-empty">Couldn't load live stats. If this is the first time, run <code>supabase/022_site_analytics.sql</code> in the Supabase SQL editor.</p>`;
+      if (stamp) stamp.textContent = "";
+      return;
+    }
+
+    const s = siteStats;
+    const spark = s.spark_sessions || [];
+    const visitors = Number(s.visitors) || 0;
+    const orders = Number(s.orders_sent) || 0;
+    const conv = visitors ? (orders / visitors) * 100 : 0;
+    const prevVisitors = Number(s.visitors_prev) || 0;
+    const prevConv = prevVisitors ? ((Number(s.orders_sent_prev) || 0) / prevVisitors) * 100 : 0;
+
+    grid.innerHTML = [
+      statTile("Visitors", visitors.toLocaleString(), pctChange(visitors, s.visitors_prev), spark),
+      statTile("Unique visitors", (Number(s.unique_visitors) || 0).toLocaleString(), pctChange(s.unique_visitors, s.unique_visitors_prev), spark),
+      statTile("Members", (Number(s.members) || 0).toLocaleString(), {
+        dir: Number(s.members_new) > 0 ? "up" : "flat",
+        text: Number(s.members_new) > 0 ? `+${s.members_new} this month` : "no change",
+      }, null),
+      statTile("Requests started", (Number(s.requests_started) || 0).toLocaleString(), pctChange(s.requests_started, s.requests_started_prev), null),
+      statTile("Orders sent", orders.toLocaleString(), pctChange(orders, s.orders_sent_prev), null),
+      statTile("Conversion rate", conv.toFixed(1) + "%", pctChange(conv, prevConv), null),
+    ].join("");
+
+    if (stamp) {
+      const since = s.first_view_at ? ` · collecting since ${formatDay(s.first_view_at)}` : "";
+      stamp.innerHTML = `<span class="stats-live-dot"></span>Live from the site — read just now${escapeHtml(since)}. ${escapeHtml((Number(s.page_views) || 0).toLocaleString())} page views in the window.`;
+    }
+  }
+
+  function renderRankList() {
+    const list = document.getElementById("rankList");
+    if (!list) return;
+
+    if (!siteStats) {
+      list.innerHTML = `<p class="dev-empty">No data yet.</p>`;
+      return;
+    }
+
+    // Real orders are the better signal. Until there are enough of those, fall
+    // back to which service pages people are actually reading.
+    const byService = siteStats.by_service || [];
+    let rows = byService;
+    let basis = "from orders placed in the last 90 days";
+
+    if (rows.length < 2) {
+      rows = (siteStats.by_page || []).map((r) => ({
+        label: prettyServicePath(r.label),
+        n: r.n,
+      }));
+      basis = "from service-page visits — switches to real orders once a few come in";
+    }
+
+    if (!rows.length) {
+      list.innerHTML = `<p class="dev-empty">Nothing to show yet — this fills in as people visit the service pages.</p>`;
+      return;
+    }
+
+    const total = rows.reduce((sum, r) => sum + (Number(r.n) || 0), 0) || 1;
+    list.innerHTML =
+      rows
+        .slice(0, 6)
+        .map((r) => {
+          const pct = Math.round((Number(r.n) || 0) * 100 / total);
+          return `<div class="rank-row">
+              <span class="rank-label">${escapeHtml(r.label)}</span>
+              <div class="rank-bar-track"><div class="rank-bar-fill" style="width: ${pct}%;"></div></div>
+              <span class="rank-value">${pct}%</span>
+            </div>`;
+        })
+        .join("") + `<p class="stats-stamp">${escapeHtml(basis)}.</p>`;
+  }
+
+  function prettyServicePath(path) {
+    const file = String(path || "").split("/").pop().replace(/\.html$/, "");
+    const names = {
+      business: "Business Websites",
+      gaming: "Gaming Websites",
+      seo: "SEO",
+      hosting: "Website Hosting",
+      updates: "Update Management",
+      social: "Social Platforms",
+    };
+    return names[file] || file || "Other";
+  }
+
+  const TICK = `<svg viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const WARN = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 4.3L2.9 17a1.8 1.8 0 001.6 2.7h15a1.8 1.8 0 001.6-2.7L13.7 4.3a1.8 1.8 0 00-3.4 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function perfTile(label, value, state) {
+    const icon = state === "warning" ? WARN : TICK;
+    return `<div class="perf-tile">
+              <span class="perf-icon ${state}">${icon}</span>
+              <div class="perf-body">
+                <span class="perf-label">${escapeHtml(label)}</span>
+                <span class="perf-value">${escapeHtml(value)}</span>
+              </div>
+            </div>`;
+  }
+
+  function renderPerfGrid() {
+    const grid = document.getElementById("perfGrid");
+    const stamp = document.getElementById("healthStamp");
+    if (!grid) return;
+
+    const s = siteStats || {};
+    const snap = statsSnapshot || {};
+    const tiles = [];
+
+    // Real user timing, straight from visitors' browsers.
+    if (s.avg_load_ms != null) {
+      const sec = Number(s.avg_load_ms) / 1000;
+      tiles.push(perfTile("Avg. page load", sec.toFixed(1) + "s", sec <= 2.5 ? "good" : "warning"));
+    } else {
+      tiles.push(perfTile("Avg. page load", "—", "good"));
+    }
+
+    const up = snap.uptime || {};
+    if (up.status) {
+      tiles.push(perfTile("Uptime", up.status === "up" ? "Up" : "Down", up.status === "up" ? "good" : "warning"));
+    }
+
+    if (s.bounce_pct != null) {
+      const b = Number(s.bounce_pct);
+      tiles.push(perfTile("Bounce rate", b.toFixed(0) + "%", b <= 60 ? "good" : "warning"));
+    } else {
+      tiles.push(perfTile("Bounce rate", "—", "good"));
+    }
+
+    if (s.avg_session_sec != null) {
+      const sec = Number(s.avg_session_sec);
+      const m = Math.floor(sec / 60);
+      tiles.push(perfTile("Avg. session", (m ? m + "m " : "") + Math.round(sec % 60) + "s", "good"));
+    } else {
+      tiles.push(perfTile("Avg. session", "—", "good"));
+    }
+
+    if (s.open_chats != null) {
+      const open = Number(s.open_chats);
+      tiles.push(perfTile("Open chats", String(open), open > 0 ? "warning" : "good"));
+    }
+
+    const ps = snap.pagespeed || {};
+    if (ps.performance != null) {
+      tiles.push(perfTile("PageSpeed", String(ps.performance), Number(ps.performance) >= 90 ? "good" : "warning"));
+    }
+
+    grid.innerHTML = tiles.join("");
+
+    if (stamp) {
+      const when = snap.generatedAt ? formatDay(snap.generatedAt) : null;
+      const by = snap.checkedBy ? ` by ${snap.checkedBy}` : "";
+      stamp.textContent = when
+        ? `Page load, bounce, session and chats are live. Uptime and PageSpeed come from the last daily check — ${when}${by}.`
+        : `Page load, bounce, session and chats are live. No daily check has run yet.`;
+    }
+  }
+
+  async function refreshDashboard() {
+    const btn = document.getElementById("statsRefresh");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Refreshing…";
+    }
+    await Promise.all([loadSiteStats(), loadStatsSnapshot()]);
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Refresh";
+    }
+  }
+
+  const statsRefreshBtn = document.getElementById("statsRefresh");
+  if (statsRefreshBtn) statsRefreshBtn.addEventListener("click", refreshDashboard);
+
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot()]);
     renderAllPanels();
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
     applyPortalRole();
     subscribeToVisitorChat();
   })();

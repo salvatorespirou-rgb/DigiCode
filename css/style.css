@@ -3822,3 +3822,68 @@ input[type="radio"] { accent-color: var(--purple); }
 }
 .footer-areas a { color: rgba(143, 212, 255, 0.85); text-decoration: none; }
 .footer-areas a:hover { color: #8fd4ff; text-decoration: underline; }
+
+/* Live dashboard — section header with a refresh control, and the small
+   "where this number came from" line under each block. */
+.dashboard-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard-section-head .dashboard-section-title {
+  margin-bottom: 20px;
+}
+
+.stats-refresh {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.stats-refresh:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.stats-refresh:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.stats-stamp {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 14px 0 0;
+  line-height: 1.5;
+}
+
+.stats-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #33d17a;
+  margin-right: 7px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 0 rgba(51, 209, 122, 0.6);
+  animation: statsPulse 2.4s ease-out infinite;
+}
+
+@keyframes statsPulse {
+  0% { box-shadow: 0 0 0 0 rgba(51, 209, 122, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(51, 209, 122, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(51, 209, 122, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-live-dot { animation: none; }
+}
