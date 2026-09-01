@@ -312,6 +312,8 @@ function mapProjectRow(row) {
     review: row.review,
     domain: row.domain,
     health: row.health,
+    orderKind: row.order_kind || "enquiry",
+    amountCents: row.amount_cents,
   };
 }
 
@@ -648,7 +650,32 @@ if (requestForm) {
     });
   });
 
+  // "None of those fit?" — asking for a custom quote replaces buying a package,
+  // so the button changes to match rather than sending someone to a cart.
+  const quoteBox = document.getElementById("wantQuote");
+  const quoteDetail = document.getElementById("quoteDetail");
+  const wantsQuote = () => !!(quoteBox && quoteBox.checked);
+
   const checkoutBtn = document.getElementById("checkoutBtn");
+
+  if (quoteBox) {
+    quoteBox.addEventListener("change", () => {
+      if (quoteDetail) quoteDetail.hidden = !quoteBox.checked;
+      if (!checkoutBtn) return;
+      checkoutBtn.textContent = quoteBox.checked
+        ? "Request a Quote"
+        : checkoutBtn.dataset.enquiry === "true"
+        ? "Send Request"
+        : "Checkout";
+      // Untick any package they'd already chosen, so the two can't conflict.
+      if (quoteBox.checked) {
+        requestForm
+          .querySelectorAll('input[name="buildTier"]')
+          .forEach((r) => (r.checked = false));
+      }
+    });
+  }
+
   if (checkoutBtn) {
     checkoutBtn.addEventListener("click", () => {
       const lines = [];
@@ -672,6 +699,36 @@ if (requestForm) {
       }
 
       localStorage.setItem(CUSTOMER_KEY, JSON.stringify({ service: serviceName, lines }));
+
+      // A quote request takes no payment: it lands in Pending Projects marked
+      // as a quote so it is obvious it needs pricing rather than starting.
+      if (wantsQuote()) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = "Sending…";
+        const field = (label) => {
+          const line = lines.find((l) => l.startsWith(label + ":"));
+          return line ? line.slice(label.length + 1).trim() : "";
+        };
+        digicodeSupabase
+          .rpc("request_quote", {
+            p_service: serviceName + " — quote",
+            p_name: field("Name"),
+            p_email: field("Email"),
+            p_details: lines.join("\n"),
+          })
+          .catch(() => {})
+          .then(() => {
+            const subject = encodeURIComponent(`Quote request — ${serviceName}`);
+            const body = encodeURIComponent(
+              [`Quote request — ${serviceName}`, ""].concat(lines).join("\n")
+            );
+            window.location.href =
+              `mailto:developerteam@digi-code.com.au?subject=${subject}&body=${body}`;
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = "Request a Quote";
+          });
+        return;
+      }
 
       // Pages with nothing to add to a cart (SEO, for instance — that work is
       // quoted, not bought off a shelf) send the enquiry instead of sending
@@ -1368,6 +1425,27 @@ if (devTabs.length) {
       ${healthHtml}`;
   }
 
+  // Paid work needs starting; a quote needs pricing and a reply. Same list,
+  // opposite next action, so the card has to say which at a glance.
+  function orderKindBadge(p) {
+    if (p.orderKind === "paid") {
+      const amount = p.amountCents
+        ? " · $" + (p.amountCents / 100).toFixed(2)
+        : "";
+      return `<div class="order-flag flag-paid">
+                <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true"><path d="M5 12l4 4L19 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Paid${escapeHtml(amount)} — ready to start
+              </div>`;
+    }
+    if (p.orderKind === "quote") {
+      return `<div class="order-flag flag-quote">
+                <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true"><path d="M12 17h.01M12 13a2.5 2.5 0 10-2.5-2.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                Quote requested — needs pricing
+              </div>`;
+    }
+    return `<div class="order-flag flag-enquiry">Enquiry — no payment taken</div>`;
+  }
+
   async function updateProjectFields(id, fields) {
     await digicodeSupabase.from("projects").update(fields).eq("id", id);
     await loadProjects();
@@ -1466,7 +1544,7 @@ if (devTabs.length) {
     panel.innerHTML = list
       .map(
         (p) => `
-      <div class="project-card">
+      <div class="project-card${p.orderKind === "quote" ? " is-quote" : p.orderKind === "paid" ? " is-paid" : ""}">
         <div class="project-card-head">
           <div>
             <span class="project-service">${escapeHtml(p.service)}${p.sample ? " · Sample" : ""}</span>
@@ -1474,6 +1552,7 @@ if (devTabs.length) {
           </div>
           <span class="project-date">Submitted ${formatDate(p.createdAt)}</span>
         </div>
+        ${orderKindBadge(p)}
         <div class="project-tiers">${tierTagsHtml(p)}</div>
         <dl class="project-contact">
           <div><dt>Email</dt><dd>${escapeHtml(p.clientEmail) || "—"}</dd></div>

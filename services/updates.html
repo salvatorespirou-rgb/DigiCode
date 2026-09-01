@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css?v=26" />
+  <link rel="stylesheet" href="../css/style.css?v=27" />
 </head>
 <body>
 
@@ -392,6 +392,22 @@
             <p class="form-note">Secure card payment via Stripe at checkout.</p>
           </div>
 
+          <div class="form-card quote-card">
+            <h2>None of Those Fit?</h2>
+            <p class="form-hint">The packages above cover most jobs, but not every one. If what you need is bigger, smaller, or just a different shape, ask us to price it properly — it might come in under the packages, it might come in over. Either way you get a real number before you commit to anything.</p>
+            <div class="form-group">
+              <label class="checkbox-option quote-toggle">
+                <input type="checkbox" id="wantQuote" name="wantQuote" data-label="Requested a custom quote" />
+                I'd like a custom quote instead of a fixed package
+              </label>
+            </div>
+            <div class="form-group quote-detail" id="quoteDetail" hidden>
+              <label for="quoteWhat">What do you need?</label>
+              <textarea id="quoteWhat" name="quoteWhat" data-label="Quote request" rows="4" placeholder="Describe it in your own words — no technical language needed. What should it do, roughly how big is it, and is there anything unusual about it?"></textarea>
+              <p class="form-note" style="margin-top: 10px;">We'll come back with a fixed price and what's included. No obligation, and no payment taken now — everything you've filled in above comes with it.</p>
+            </div>
+          </div>
+
           <div class="form-card">
             <h2>Website Management</h2>
             <p class="form-hint">After launch — updates, hosting, SEO monitoring, and someone who actually answers when you need a change made.</p>
@@ -419,7 +435,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../js/supabase-client.js"></script>
-  <script src="../js/main.js?v=18"></script>
+  <script src="../js/main.js?v=19"></script>
   <script src="../js/live-chat.js?v=4"></script>
   <script src="../js/uploads.js?v=1"></script>
   <script src="../js/analytics.js?v=1"></script>

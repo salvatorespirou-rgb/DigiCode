@@ -3964,3 +3964,43 @@ input[type="radio"] { accent-color: var(--purple); }
   .check-grid { grid-template-columns: 1fr; }
   .upload-drop { flex-direction: column; text-align: center; }
 }
+
+/* Pending Projects: paid work needs starting, a quote needs pricing. The flag
+   makes the difference visible before you read anything else on the card. */
+.order-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.flag-paid {
+  color: #57d98a;
+  background: rgba(87, 217, 138, 0.11);
+  border: 1px solid rgba(87, 217, 138, 0.3);
+}
+
+.flag-quote {
+  color: #ffc46b;
+  background: rgba(255, 196, 107, 0.11);
+  border: 1px solid rgba(255, 196, 107, 0.32);
+}
+
+.flag-enquiry {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+}
+
+.project-card.is-paid { border-left: 3px solid rgba(87, 217, 138, 0.55); }
+.project-card.is-quote { border-left: 3px solid rgba(255, 196, 107, 0.55); }
+
+/* The quote card on the request forms */
+.quote-card .quote-toggle { font-weight: 600; }
+.quote-detail { margin-top: 4px; }
+.quote-detail[hidden] { display: none; }
