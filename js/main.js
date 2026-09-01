@@ -667,6 +667,18 @@ if (requestForm) {
       const serviceName = requestForm.dataset.service || "Website";
       localStorage.setItem(CUSTOMER_KEY, JSON.stringify({ service: serviceName, lines }));
 
+      // Pages with nothing to add to a cart (SEO, for instance — that work is
+      // quoted, not bought off a shelf) send the enquiry instead of sending
+      // someone to an empty cart.
+      if (checkoutBtn.dataset.enquiry === "true") {
+        const subject = encodeURIComponent(`${serviceName} enquiry`);
+        const body = encodeURIComponent(
+          [`${serviceName} enquiry:`, ""].concat(lines).join("\n")
+        );
+        window.location.href = `mailto:developerteam@digi-code.com.au?subject=${subject}&body=${body}`;
+        return;
+      }
+
       window.location.href = checkoutBtn.dataset.cartUrl || "cart.html";
     });
   }
@@ -2997,4 +3009,103 @@ if (devTabs.length) {
     applyPortalRole();
     subscribeToVisitorChat();
   })();
+}
+
+// ---------------------------------------------------------------------------
+// Subscription page — choose a plan, then tell us about the site.
+//
+// Management is sold on its own now, separate from builds: a plan can start on
+// a site we built or one that already exists somewhere else. So the questions
+// here are about taking over an existing site, not specifying a new one.
+// ---------------------------------------------------------------------------
+const mgmtForm = document.getElementById("mgmtForm");
+
+if (mgmtForm) {
+  const chosenLine = document.getElementById("mgmtChosenLine");
+  const tierInput = document.getElementById("mgmtTierInput");
+  const tierGrid = document.getElementById("tierGrid");
+  const buildCta = document.getElementById("mgmtBuildCta");
+
+  function currentCycle() {
+    const active = document.querySelector(".billing-tab.active");
+    return active && active.dataset.billing === "weekly" ? "weekly" : "monthly";
+  }
+
+  function priceFor(tierName, cycle) {
+    const card = [...document.querySelectorAll(".tier-card")].find(
+      (c) => c.querySelector(".tier-name")?.textContent.trim() === tierName
+    );
+    const el = card?.querySelector(".price-amount");
+    if (!el) return { amount: "", period: "" };
+    return {
+      amount: cycle === "weekly" ? el.dataset.weekly : el.dataset.monthly,
+      period: cycle === "weekly" ? "/wk" : "/mo",
+    };
+  }
+
+  function showForm(tierName) {
+    const cycle = currentCycle();
+    const { amount, period } = priceFor(tierName, cycle);
+
+    tierInput.value = `${tierName} (${amount}${period})`;
+    chosenLine.textContent =
+      `${tierName} — ${amount}${period}, billed ${cycle}. ` +
+      `Everything below helps us take the site over cleanly.`;
+
+    mgmtForm.hidden = false;
+    if (tierGrid) tierGrid.hidden = true;
+    if (buildCta) buildCta.hidden = true;
+    mgmtForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.querySelectorAll(".mgmt-choose").forEach((btn) => {
+    btn.addEventListener("click", () => showForm(btn.dataset.tier));
+  });
+
+  document.getElementById("mgmtChangeBtn")?.addEventListener("click", () => {
+    mgmtForm.hidden = true;
+    if (tierGrid) tierGrid.hidden = false;
+    if (buildCta) buildCta.hidden = false;
+    tierGrid?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  document.getElementById("mgmtCheckoutBtn")?.addEventListener("click", () => {
+    const tierName = (tierInput.value || "").split(" (")[0];
+    if (!tierName) return;
+
+    const cycle = currentCycle();
+    const { amount, period } = priceFor(tierName, cycle);
+
+    // Management is its own cart, never mixed with a build — that is what lets
+    // checkout use the subscription-scoped Stripe key on its own.
+    saveCartItems([
+      {
+        key: "Website Management::mgmtTier",
+        service: "Website Management",
+        type: "Management",
+        name: tierName,
+        price: amount,
+        period,
+      },
+    ]);
+    updateCartBadge();
+
+    const lines = [];
+    mgmtForm.querySelectorAll("input, textarea").forEach((el) => {
+      const label = el.dataset.label;
+      if (!label) return;
+      if (el.type === "radio" || el.type === "checkbox") {
+        if (el.checked) lines.push(label);
+      } else {
+        const val = el.value.trim();
+        if (val) lines.push(`${label}: ${val}`);
+      }
+    });
+
+    localStorage.setItem(
+      CUSTOMER_KEY,
+      JSON.stringify({ service: "Website Management", lines })
+    );
+    window.location.href = "cart.html";
+  });
 }

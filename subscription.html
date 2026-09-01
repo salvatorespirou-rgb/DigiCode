@@ -88,7 +88,7 @@
             </div>
 
             <div class="tier-grid">
-              <div class="tier-card tier-silver info-only">
+              <div class="tier-card tier-silver">
                 <div class="tier-card-inner">
                   <span class="tier-name">Silver</span>
                   <p class="tier-subtitle">Steady, reliable upkeep for a site that's already live. The right starting point once your build is finished and you just want it looked after — content kept current, domain handled, nothing falling through the cracks.</p>
@@ -102,10 +102,11 @@
                     <li>Direct email support for update requests</li>
                     <li>Basic uptime monitoring</li>
                   </ul>
+                  <button type="button" class="tier-purchase-btn mgmt-choose" data-tier="Silver">Choose Silver</button>
                 </div>
               </div>
 
-              <div class="tier-card tier-gold info-only">
+              <div class="tier-card tier-gold">
                 <div class="tier-card-inner">
                   <span class="tier-name">Gold</span>
                   <p class="tier-subtitle">More updates, real design support, and a photographer in your corner. Built for businesses whose site needs to keep evolving, not just stay online — new content, fresh visuals, and faster turnaround on requests.</p>
@@ -121,10 +122,11 @@
                     <li>Priority email support</li>
                     <li>Uptime monitoring with alerts</li>
                   </ul>
+                  <button type="button" class="tier-purchase-btn mgmt-choose" data-tier="Gold">Choose Gold</button>
                 </div>
               </div>
 
-              <div class="tier-card tier-platinum info-only">
+              <div class="tier-card tier-platinum">
                 <div class="tier-card-inner">
                   <span class="tier-name">Platinum</span>
                   <p class="tier-subtitle">Everything, on a weekly rhythm — the full DigiCode team behind your site. For businesses that treat their website as core infrastructure, not an afterthought.</p>
@@ -142,15 +144,135 @@
                     <li>Priority support and faster turnaround on every request</li>
                     <li>Direct line to your assigned developer</li>
                   </ul>
+                  <button type="button" class="tier-purchase-btn mgmt-choose" data-tier="Platinum">Choose Platinum</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="info-cta">
-          <p>Ready to add a plan to your project? Pick the service you need, and you'll choose your management tier as part of that request.</p>
-          <a href="index.html#services" class="quick-link-tab">Go to Services</a>
+        <!-- Revealed once a plan is chosen. Everything we need to actually take
+             over looking after someone's site — which is a different set of
+             questions from building one from scratch. -->
+        <div class="request-form" id="mgmtForm" hidden>
+          <div class="form-card" id="mgmtChosenCard">
+            <h2>Your Plan</h2>
+            <p class="form-hint" id="mgmtChosenLine">—</p>
+            <input type="hidden" id="mgmtTierInput" name="mgmtTier" data-label="Chosen plan" value="" />
+            <button type="button" class="clear-cart-link" id="mgmtChangeBtn">Change plan</button>
+          </div>
+
+          <div class="form-card">
+            <h2>Contact Details</h2>
+            <p class="form-hint">So we know who we're managing the site for, and how to reach you when something needs a decision.</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="mName">Name</label>
+                <input type="text" id="mName" name="mName" data-label="Name" placeholder="Your name" />
+              </div>
+              <div class="form-group">
+                <label for="mBusiness">Business name</label>
+                <input type="text" id="mBusiness" name="mBusiness" data-label="Business" placeholder="Trading name" />
+              </div>
+              <div class="form-group">
+                <label for="mEmail">Email</label>
+                <input type="email" id="mEmail" name="mEmail" data-label="Email" placeholder="you@example.com" />
+              </div>
+              <div class="form-group">
+                <label for="mMobile">Mobile</label>
+                <input type="tel" id="mMobile" name="mMobile" data-label="Mobile" placeholder="Optional" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mApprover">Who approves changes?</label>
+              <input type="text" id="mApprover" name="mApprover" data-label="Approver" placeholder="You, or someone else we should copy in — name and email" />
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>The Website</h2>
+            <p class="form-hint">The more of this you can answer, the faster we can take it over cleanly. &ldquo;Not sure&rdquo; is a perfectly good answer — we can find out.</p>
+            <div class="form-group">
+              <label for="mUrl">Website address</label>
+              <input type="text" id="mUrl" name="mUrl" data-label="Website" placeholder="www.yourbusiness.com.au" />
+            </div>
+            <div class="form-group">
+              <span class="form-label">Who built it?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="mBuiltBy" value="digicode" data-label="Built by: DigiCode" /> DigiCode built it</label>
+                <label class="radio-option"><input type="radio" name="mBuiltBy" value="other" data-label="Built by: another developer" /> Another developer</label>
+                <label class="radio-option"><input type="radio" name="mBuiltBy" value="self" data-label="Built by: myself" /> I built it myself</label>
+                <label class="radio-option"><input type="radio" name="mBuiltBy" value="unsure" data-label="Built by: not sure" /> Not sure</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mPlatform">What is it built on?</label>
+              <input type="text" id="mPlatform" name="mPlatform" data-label="Platform" placeholder="WordPress, Wix, Squarespace, Shopify, custom code, not sure" />
+            </div>
+            <div class="form-group">
+              <span class="form-label">Do you have admin access to the site?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="mAdmin" value="yes" data-label="Admin access: Yes" /> Yes</label>
+                <label class="radio-option"><input type="radio" name="mAdmin" value="no" data-label="Admin access: No" /> No</label>
+                <label class="radio-option"><input type="radio" name="mAdmin" value="unsure" data-label="Admin access: Not sure" /> Not sure</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mHosting">Where is it hosted, and do you have the login?</label>
+              <input type="text" id="mHosting" name="mHosting" data-label="Hosting" placeholder="e.g. GoDaddy, Crazy Domains, Wix — and whether you can get in" />
+            </div>
+            <div class="form-group">
+              <label for="mDomainReg">Where is the domain registered?</label>
+              <input type="text" id="mDomainReg" name="mDomainReg" data-label="Domain registrar" placeholder="Often the same place as hosting — or not sure" />
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>What You Need From Us</h2>
+            <div class="form-group">
+              <span class="form-label">How often do things need changing?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="mFreq" value="rarely" data-label="Update frequency: A few times a year" /> A few times a year</label>
+                <label class="radio-option"><input type="radio" name="mFreq" value="monthly" data-label="Update frequency: Monthly" /> Monthly</label>
+                <label class="radio-option"><input type="radio" name="mFreq" value="weekly" data-label="Update frequency: Weekly" /> Weekly</label>
+                <label class="radio-option"><input type="radio" name="mFreq" value="constant" data-label="Update frequency: Constantly" /> Constantly</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mUpdateKind">What kind of updates, usually?</label>
+              <textarea id="mUpdateKind" name="mUpdateKind" data-label="Update types" rows="3" placeholder="Prices, opening hours, new products, photo galleries, blog posts, staff changes, seasonal promos…"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="mBroken">Anything broken or worrying you right now?</label>
+              <textarea id="mBroken" name="mBroken" data-label="Current problems" rows="3" placeholder="Slow to load, doesn't work on phones, forms not arriving, can't edit it, out of date — anything at all"></textarea>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Do you have brand assets we can use?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="mAssets" value="yes" data-label="Brand assets: Yes" /> Yes — logo, fonts, photos</label>
+                <label class="radio-option"><input type="radio" name="mAssets" value="some" data-label="Brand assets: Some" /> Some of it</label>
+                <label class="radio-option"><input type="radio" name="mAssets" value="no" data-label="Brand assets: No" /> No, we'd need those made</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="mMoving">Are you moving from another provider?</label>
+              <input type="text" id="mMoving" name="mMoving" data-label="Moving from" placeholder="Who currently looks after it, if anyone — and anything we should know about the handover" />
+            </div>
+            <div class="form-group">
+              <label for="mNotes">Anything else?</label>
+              <textarea id="mNotes" name="mNotes" data-label="Notes" rows="3" placeholder="Upcoming events or deadlines, quiet periods, things you'd rather we didn't touch…"></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="mgmtCheckoutBtn" class="btn btn-primary btn-large">Continue to Payment</button>
+            <p class="form-note">Billed to your card on the cycle you chose. Cancel any time — management plans have no lock-in contract.</p>
+          </div>
+        </div>
+
+        <div class="info-cta" id="mgmtBuildCta">
+          <p>Need the website built first? Management plans work on any site, but if you don't have one yet, start with a build.</p>
+          <a href="builds.html" class="quick-link-tab">See Website Builds</a>
         </div>
       </div>
     </section>
@@ -163,7 +285,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=16"></script>
+  <script src="js/main.js?v=17"></script>
   <script src="js/live-chat.js?v=4"></script>
   <script src="js/analytics.js?v=1"></script>
 </body>
