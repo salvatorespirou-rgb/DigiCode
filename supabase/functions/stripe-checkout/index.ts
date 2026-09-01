@@ -5,12 +5,17 @@
 // never leaves this process. The browser only ever receives a checkout URL.
 //
 // Deploy:
-//   supabase secrets set STRIPE_SECRET_KEY=sk_test_...
+//   supabase secrets set STRIPE_SECRET_KEY=rk_test_...        (one-off carts)
+//   supabase secrets set STRIPE_SUBSCRIPTION_KEY=rk_test_...  (carts with a plan)
 //   supabase functions deploy stripe-checkout --no-verify-jwt
 //
 // --no-verify-jwt is deliberate: visitors are not signed in when they buy.
 
+// Two separately scoped keys. The one-off key cannot create subscriptions and
+// the subscription key is only reachable by a cart that contains a plan, so a
+// leak of either is limited to what that key can do.
 const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+const STRIPE_SUB_KEY = Deno.env.get("STRIPE_SUBSCRIPTION_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const SITE = Deno.env.get("SITE_URL") ?? "https://www.digi-code.com.au";
@@ -56,7 +61,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
-  if (!STRIPE_KEY || !SERVICE_KEY) {
+  if ((!STRIPE_KEY && !STRIPE_SUB_KEY) || !SERVICE_KEY) {
     return json({ error: "Payment is not configured yet." }, 503);
   }
 
@@ -84,14 +89,20 @@ Deno.serve(async (req) => {
     const lines = quote.lines ?? [];
     const hasSub = lines.some((l: any) => l.kind === "subscription");
 
-    // Subscriptions are not switched on yet: the restricted key is scoped to
-    // one-off payments only. Refuse the whole cart rather than charging the
-    // build and silently dropping the management plan — the site falls back to
-    // the email order, which is how management plans are handled today.
-    if (hasSub && Deno.env.get("ENABLE_SUBSCRIPTIONS") !== "true") {
+    // Pick the key scoped to what this cart actually is. A cart with a plan
+    // needs the subscription key; without it we refuse the whole cart rather
+    // than charging the build and silently dropping the plan — the site falls
+    // back to the email order.
+    const key = hasSub ? STRIPE_SUB_KEY : STRIPE_KEY;
+    if (!key) {
       return json(
-        { error: "Subscriptions are not available for card payment yet.", subscriptions_disabled: true },
-        409,
+        {
+          error: hasSub
+            ? "Subscriptions are not available for card payment yet."
+            : "Payment is not configured yet.",
+          subscriptions_disabled: hasSub,
+        },
+        hasSub ? 409 : 503,
       );
     }
     const p = form({
@@ -132,7 +143,7 @@ Deno.serve(async (req) => {
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${STRIPE_KEY}`,
+        Authorization: `Bearer ${key}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: p,
