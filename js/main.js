@@ -886,25 +886,50 @@ if (cartItemsEl) {
     renderCart();
   });
 
-  const confirmOrderBtn = document.getElementById("confirmOrderBtn");
-  confirmOrderBtn?.addEventListener("click", async () => {
-    const cart = getCart();
-    const customer = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "null");
+  // ---------------------------------------------------------------------
+  // Stripe checkout
+  //
+  // The cart sends SKUs only — never prices. public.quote_cart() in
+  // supabase/023 decides what the order costs, so editing these numbers in
+  // dev tools achieves nothing. If the Edge Function isn't deployed yet the
+  // old email flow still runs, so the cart never simply breaks.
+  // ---------------------------------------------------------------------
 
-    confirmOrderBtn.disabled = true;
-    await pushPendingProjectFromOrder(cart, customer);
+  const CHECKOUT_FN =
+    "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/stripe-checkout";
 
-    // Count the use only now the order is real. The RPC re-checks the code,
-    // so one that lapsed between being entered and confirmed won't count.
-    const discount = getDiscount();
-    if (discount) {
-      try { await digicodeSupabase.rpc("redeem_discount_code", { p_code: discount.code }); } catch (e) { /* non-fatal */ }
+  // Cart entries carry a display name and period; the catalog keys off a SKU.
+  function skuFor(item) {
+    const name = (item.name || "").toLowerCase();
+    const weekly = /wk|week/.test(item.period || "");
+
+    if (item.type === "Build") {
+      if (name.includes("basic")) return "build-basic";
+      if (name.includes("common")) return "build-common";
+      if (name.includes("ultimate")) return "build-ultimate";
+      return null;
     }
-    confirmOrderBtn.disabled = false;
 
+    const suffix = weekly ? "week" : "month";
+    if (name.includes("silver")) return `mgmt-silver-${suffix}`;
+    if (name.includes("gold")) return `mgmt-gold-${suffix}`;
+    if (name.includes("platinum")) return `mgmt-platinum-${suffix}`;
+    return null;
+  }
+
+  function cartLine(customer, label) {
+    const line = customer?.lines?.find((l) => l.startsWith(label + ":"));
+    return line ? line.slice(label.length + 1).trim() : "";
+  }
+
+  // Falls back to the email order. Kept as its own function so both the
+  // "payments not set up yet" and "Stripe is down" paths land somewhere sane.
+  function emailTheOrder(cart, customer, discount) {
     const lines = ["Cart:"];
     cart.forEach((item) => {
-      lines.push(`- ${item.service} — ${item.name} (${item.price}${item.period ? " " + item.period : ""})`);
+      lines.push(
+        `- ${item.service} — ${item.name} (${item.price}${item.period ? " " + item.period : ""})`
+      );
     });
 
     if (discount) {
@@ -921,6 +946,77 @@ if (cartItemsEl) {
     const subject = encodeURIComponent("New DigiCode Order");
     const body = encodeURIComponent(lines.join("\n"));
     window.location.href = `mailto:developerteam@digi-code.com.au?subject=${subject}&body=${body}`;
+  }
+
+  const confirmOrderBtn = document.getElementById("confirmOrderBtn");
+  confirmOrderBtn?.addEventListener("click", async () => {
+    const cart = getCart();
+    const customer = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "null");
+    const discount = getDiscount();
+    if (!cart.length) return;
+
+    const originalText = confirmOrderBtn.textContent;
+    confirmOrderBtn.disabled = true;
+    confirmOrderBtn.textContent = "Taking you to checkout…";
+
+    const items = cart
+      .map((i) => ({ sku: skuFor(i), qty: 1 }))
+      .filter((i) => i.sku);
+
+    // Anything we couldn't map to a real product can't be priced safely, so
+    // that order goes by email rather than being charged a guess.
+    if (items.length !== cart.length) {
+      confirmOrderBtn.disabled = false;
+      confirmOrderBtn.textContent = originalText;
+      await pushPendingProjectFromOrder(cart, customer);
+      emailTheOrder(cart, customer, discount);
+      return;
+    }
+
+    try {
+      // The function keeps Supabase's JWT check on, which the public anon key
+      // satisfies — the same header live-chat.js already sends. It is not a
+      // secret; the real protection is that prices are decided server-side.
+      const res = await fetch(CHECKOUT_FN, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          items,
+          code: discount ? discount.code : null,
+          email: cartLine(customer, "Email") || null,
+          name: cartLine(customer, "Name") || null,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.url) {
+        // Stripe confirms the payment by webhook, which is what creates the
+        // project and counts the discount — deliberately not done here, since
+        // arriving back on the success page proves nothing about payment.
+        window.location.href = data.url;
+        return;
+      }
+
+      // 503 means the function is deployed but has no Stripe key yet.
+      throw new Error(data.error || `checkout unavailable (${res.status})`);
+    } catch (err) {
+      confirmOrderBtn.disabled = false;
+      confirmOrderBtn.textContent = originalText;
+      await pushPendingProjectFromOrder(cart, customer);
+      if (discount) {
+        try {
+          await digicodeSupabase.rpc("redeem_discount_code", { p_code: discount.code });
+        } catch (e) {
+          /* non-fatal */
+        }
+      }
+      emailTheOrder(cart, customer, discount);
+    }
   });
 }
 
