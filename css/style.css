@@ -3896,3 +3896,71 @@ input[type="radio"] { accent-color: var(--purple); }
   letter-spacing: 0.02em;
   margin-right: 2px;
 }
+
+/* Multi-column tick lists. The build forms ask a lot now, so these need to
+   read as a scannable grid rather than a long column of checkboxes. */
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px 18px;
+  margin-top: 6px;
+}
+
+.check-grid .checkbox-option {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+/* File attachment */
+.upload-drop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.upload-drop:hover,
+.upload-drop:focus-visible,
+.upload-drop.is-over {
+  border-color: var(--accent, #8fd4ff);
+  background: rgba(143, 212, 255, 0.06);
+  outline: none;
+}
+
+.upload-icon { color: var(--accent, #8fd4ff); flex-shrink: 0; display: flex; }
+
+.upload-copy { display: flex; flex-direction: column; gap: 3px; }
+.upload-copy strong { font-size: 0.95rem; }
+.upload-copy span { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
+
+.upload-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+
+.upload-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.84rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.upload-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-state { flex-shrink: 0; color: var(--text-muted); font-size: 0.78rem; }
+.upload-ok .upload-state { color: #57d98a; }
+.upload-bad .upload-state { color: #ff7a7a; }
+.upload-busy .upload-state { color: var(--accent, #8fd4ff); }
+
+.upload-note { margin-top: 10px; }
+
+@media (max-width: 620px) {
+  .check-grid { grid-template-columns: 1fr; }
+  .upload-drop { flex-direction: column; text-align: center; }
+}

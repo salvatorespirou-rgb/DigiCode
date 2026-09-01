@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css?v=25" />
+  <link rel="stylesheet" href="../css/style.css?v=26" />
 </head>
 <body>
 
@@ -203,6 +203,196 @@
           </div>
 
           <div class="form-card">
+            <h2>Your Platform</h2>
+            <div class="form-group">
+              <span class="form-label">What should creators be able to do? (tick any)</span>
+              <div class="check-grid">
+                <label class="checkbox-option"><input type="checkbox" name="sStream" data-label="Platform: Live streaming" /> Stream live</label>
+                <label class="checkbox-option"><input type="checkbox" name="sGift" data-label="Platform: Gifts &amp; tips" /> Receive gifts &amp; tips</label>
+                <label class="checkbox-option"><input type="checkbox" name="sSubs" data-label="Platform: Subscriptions" /> Sell subscriptions</label>
+                <label class="checkbox-option"><input type="checkbox" name="sPaywall" data-label="Platform: Paywalled content" /> Lock content behind a paywall</label>
+                <label class="checkbox-option"><input type="checkbox" name="sPost" data-label="Platform: Post feed" /> Post to a feed</label>
+                <label class="checkbox-option"><input type="checkbox" name="sDm" data-label="Platform: Direct messages" /> Message each other</label>
+                <label class="checkbox-option"><input type="checkbox" name="sVod" data-label="Platform: Upload video" /> Upload video</label>
+                <label class="checkbox-option"><input type="checkbox" name="sPayout" data-label="Platform: Creator payouts" /> Get paid out</label>
+                <label class="checkbox-option"><input type="checkbox" name="sModerate" data-label="Platform: Moderation tools" /> Moderation tools</label>
+                <label class="checkbox-option"><input type="checkbox" name="sVerify" data-label="Platform: Verified accounts" /> Verified accounts</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="sCut">What cut would you take?</label>
+              <input type="text" id="sCut" name="sCut" data-label="Platform cut" placeholder="e.g. 10% of gifts — or none, if it is your own content only" />
+            </div>
+            <div class="form-group">
+              <span class="form-label">Who is it for?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="sWho" value="me" data-label="Platform for: Just me" /> Just me</label>
+                <label class="radio-option"><input type="radio" name="sWho" value="team" data-label="Platform for: My team" /> Me and my team</label>
+                <label class="radio-option"><input type="radio" name="sWho" value="open" data-label="Platform for: Open to creators" /> Open to any creator</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="sModel">How do you picture it making money?</label>
+              <textarea id="sModel" name="sModel" data-label="Revenue model" rows="2" placeholder="Gifts, subscriptions, ads, a cut of sales — or not yet decided"></textarea>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Look &amp; Feel</h2>
+            <p class="form-hint">The more of this you fill in, the closer the first draft lands. Skip anything you're not sure about — we'll suggest options.</p>
+            <div class="form-group">
+              <span class="form-label">What feel are you after? (tick any)</span>
+              <div class="check-grid">
+                <label class="checkbox-option"><input type="checkbox" name="feelClean" data-label="Feel: Clean &amp; minimal" /> Clean &amp; minimal</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelBold" data-label="Feel: Bold &amp; loud" /> Bold &amp; loud</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelDark" data-label="Feel: Dark &amp; moody" /> Dark &amp; moody</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelBright" data-label="Feel: Bright &amp; friendly" /> Bright &amp; friendly</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelCorporate" data-label="Feel: Corporate &amp; serious" /> Corporate &amp; serious</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelPlayful" data-label="Feel: Playful" /> Playful</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelLuxury" data-label="Feel: Premium / luxury" /> Premium / luxury</label>
+                <label class="checkbox-option"><input type="checkbox" name="feelTech" data-label="Feel: Technical / futuristic" /> Technical / futuristic</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Light or dark?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="theme" value="dark" data-label="Theme: Dark" /> Dark</label>
+                <label class="radio-option"><input type="radio" name="theme" value="light" data-label="Theme: Light" /> Light</label>
+                <label class="radio-option"><input type="radio" name="theme" value="either" data-label="Theme: Show me both" /> Show me both</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="colours">Brand colours</label>
+              <input type="text" id="colours" name="colours" data-label="Colours" placeholder="Hex codes if you have them, or just describe — e.g. deep navy and gold" />
+            </div>
+            <div class="form-group">
+              <span class="form-label">Do you have a logo?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="hasLogo" value="yes" data-label="Logo: Yes, attaching it" /> Yes — I'll attach it</label>
+                <label class="radio-option"><input type="radio" name="hasLogo" value="needs-work" data-label="Logo: Have one, needs tidying" /> Have one, needs tidying up</label>
+                <label class="radio-option"><input type="radio" name="hasLogo" value="no" data-label="Logo: Need one designed" /> Need one designed</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="likeSites">Sites you like the look of</label>
+              <textarea id="likeSites" name="likeSites" data-label="Sites they like" rows="2" placeholder="Paste two or three links — they don't have to be in your industry, we just want to see what appeals"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="dislikes">Anything you definitely don't want</label>
+              <input type="text" id="dislikes" name="dislikes" data-label="Dislikes" placeholder="e.g. no stock photos of handshakes, nothing that looks like a template" />
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Video &amp; Motion</h2>
+            <p class="form-hint">Movement is what separates a site that feels alive from one that feels like a brochure — but it has to earn its place.</p>
+            <div class="form-group">
+              <span class="form-label">Do you want video on the site?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="video" value="have" data-label="Video: Yes, have footage" /> Yes — I have footage</label>
+                <label class="radio-option"><input type="radio" name="video" value="need" data-label="Video: Yes, need it produced" /> Yes — need it made</label>
+                <label class="radio-option"><input type="radio" name="video" value="no" data-label="Video: No" /> No</label>
+                <label class="radio-option"><input type="radio" name="video" value="unsure" data-label="Video: Not sure" /> Not sure</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <span class="form-label">How much animation? (tick any)</span>
+              <div class="check-grid">
+                <label class="checkbox-option"><input type="checkbox" name="animHover" data-label="Animation: Hover effects" /> Subtle hover effects</label>
+                <label class="checkbox-option"><input type="checkbox" name="animScroll" data-label="Animation: Scroll reveals" /> Things appear as you scroll</label>
+                <label class="checkbox-option"><input type="checkbox" name="animHero" data-label="Animation: Animated hero" /> Animated hero / header</label>
+                <label class="checkbox-option"><input type="checkbox" name="anim3d" data-label="Animation: 3D or particles" /> 3D or particle effects</label>
+                <label class="checkbox-option"><input type="checkbox" name="animLoader" data-label="Animation: Loading animation" /> Branded loading animation</label>
+                <label class="checkbox-option"><input type="checkbox" name="animNone" data-label="Animation: Keep it still" /> Keep it still and fast</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Photography</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="photos" value="have" data-label="Photos: Have professional photos" /> Have professional photos</label>
+                <label class="radio-option"><input type="radio" name="photos" value="phone" data-label="Photos: Only phone photos" /> Only phone photos</label>
+                <label class="radio-option"><input type="radio" name="photos" value="need" data-label="Photos: Need a shoot arranged" /> Need a shoot arranged</label>
+                <label class="radio-option"><input type="radio" name="photos" value="stock" data-label="Photos: Use stock" /> Use stock imagery</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>What Should It Do?</h2>
+            <p class="form-hint">Tick whatever you need. Anything not here, put it in the notes at the bottom.</p>
+            <div class="form-group">
+              <div class="check-grid">
+                <label class="checkbox-option"><input type="checkbox" name="fContact" data-label="Feature: Contact form" /> Contact form</label>
+                <label class="checkbox-option"><input type="checkbox" name="fBooking" data-label="Feature: Online bookings" /> Online bookings</label>
+                <label class="checkbox-option"><input type="checkbox" name="fPayments" data-label="Feature: Take payments" /> Take payments online</label>
+                <label class="checkbox-option"><input type="checkbox" name="fShop" data-label="Feature: Online shop" /> Online shop</label>
+                <label class="checkbox-option"><input type="checkbox" name="fGallery" data-label="Feature: Photo gallery" /> Photo gallery</label>
+                <label class="checkbox-option"><input type="checkbox" name="fBlog" data-label="Feature: Blog / news" /> Blog or news</label>
+                <label class="checkbox-option"><input type="checkbox" name="fReviews" data-label="Feature: Reviews / testimonials" /> Reviews &amp; testimonials</label>
+                <label class="checkbox-option"><input type="checkbox" name="fMap" data-label="Feature: Map / directions" /> Map &amp; directions</label>
+                <label class="checkbox-option"><input type="checkbox" name="fChat" data-label="Feature: Live chat" /> Live chat</label>
+                <label class="checkbox-option"><input type="checkbox" name="fNewsletter" data-label="Feature: Newsletter signup" /> Newsletter signup</label>
+                <label class="checkbox-option"><input type="checkbox" name="fLogin" data-label="Feature: Member logins" /> Member logins</label>
+                <label class="checkbox-option"><input type="checkbox" name="fDownloads" data-label="Feature: Downloads / PDFs" /> Downloads / PDFs</label>
+                <label class="checkbox-option"><input type="checkbox" name="fSocial" data-label="Feature: Social feeds" /> Social media feeds</label>
+                <label class="checkbox-option"><input type="checkbox" name="fMulti" data-label="Feature: More than one language" /> More than one language</label>
+                <label class="checkbox-option"><input type="checkbox" name="fAccessible" data-label="Feature: Accessibility priority" /> Accessibility is a priority</label>
+                <label class="checkbox-option"><input type="checkbox" name="fApp" data-label="Feature: Phone app later" /> A phone app later on</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Content &amp; Files</h2>
+            <div class="form-group">
+              <span class="form-label">Who's writing the words?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="copy" value="client" data-label="Copy: Client provides" /> I'll provide it</label>
+                <label class="radio-option"><input type="radio" name="copy" value="digicode" data-label="Copy: DigiCode writes it" /> Please write it for me</label>
+                <label class="radio-option"><input type="radio" name="copy" value="mix" data-label="Copy: A mix" /> A mix of both</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Is your content ready to go?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="contentReady" value="yes" data-label="Content ready: Yes" /> Yes, ready now</label>
+                <label class="radio-option"><input type="radio" name="contentReady" value="partly" data-label="Content ready: Partly" /> Some of it</label>
+                <label class="radio-option"><input type="radio" name="contentReady" value="no" data-label="Content ready: Not started" /> Not started</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Attach anything useful</span>
+              <div id="fileUpload"></div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Timing &amp; Anything Else</h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="deadline">Do you have a deadline?</label>
+                <input type="text" id="deadline" name="deadline" data-label="Deadline" placeholder="A date, an event, or 'no rush'" />
+              </div>
+              <div class="form-group">
+                <label for="budget">Rough budget</label>
+                <input type="text" id="budget" name="budget" data-label="Budget" placeholder="Optional — helps us suggest the right build" />
+              </div>
+            </div>
+            <div class="form-group">
+              <span class="form-label">Have you had a website before?</span>
+              <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="prevSite" value="never" data-label="Previous site: First one" /> This is my first</label>
+                <label class="radio-option"><input type="radio" name="prevSite" value="replacing" data-label="Previous site: Replacing one" /> Replacing an existing one</label>
+                <label class="radio-option"><input type="radio" name="prevSite" value="bad" data-label="Previous site: Had a bad experience" /> Had one, bad experience</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="notes">Anything else we should know?</label>
+              <textarea id="notes" name="notes" data-label="Notes" rows="4" placeholder="Competitors you want to beat, something that has annoyed you about other developers, an idea you can't stop thinking about — all useful."></textarea>
+            </div>
+          </div>
+
+          <div class="form-card">
             <h2>Build Your Website</h2>
             <p class="form-hint">From a single sharp page to a full online store — pick the build that matches what you're going for. One-time payment, no subscription.</p>
 
@@ -296,8 +486,11 @@
     </div>
   </footer>
 
-  <script src="../js/main.js?v=17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../js/supabase-client.js"></script>
+  <script src="../js/main.js?v=18"></script>
   <script src="../js/live-chat.js?v=4"></script>
+  <script src="../js/uploads.js?v=1"></script>
   <script src="../js/analytics.js?v=1"></script>
 </body>
 </html>

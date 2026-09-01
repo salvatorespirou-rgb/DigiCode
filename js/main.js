@@ -665,6 +665,12 @@ if (requestForm) {
       });
 
       const serviceName = requestForm.dataset.service || "Website";
+      // Anything the client attached (js/uploads.js) rides along with the
+      // enquiry, so the order names the files and their upload reference.
+      if (typeof window.digicodeUploads === "function") {
+        lines.push(...window.digicodeUploads());
+      }
+
       localStorage.setItem(CUSTOMER_KEY, JSON.stringify({ service: serviceName, lines }));
 
       // Pages with nothing to add to a cart (SEO, for instance — that work is
