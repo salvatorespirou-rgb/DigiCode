@@ -963,9 +963,15 @@ if (cartItemsEl) {
       .map((i) => ({ sku: skuFor(i), qty: 1 }))
       .filter((i) => i.sku);
 
+    // Card payment covers one-off builds only for now — the Stripe key is
+    // scoped to one-time payments until subscriptions are set up. A cart with
+    // a management plan goes by email in full, rather than charging the build
+    // and quietly dropping the plan.
+    const hasPlan = cart.some((i) => i.type === "Management");
+
     // Anything we couldn't map to a real product can't be priced safely, so
     // that order goes by email rather than being charged a guess.
-    if (items.length !== cart.length) {
+    if (hasPlan || items.length !== cart.length) {
       confirmOrderBtn.disabled = false;
       confirmOrderBtn.textContent = originalText;
       await pushPendingProjectFromOrder(cart, customer);

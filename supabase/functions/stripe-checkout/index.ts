@@ -83,6 +83,17 @@ Deno.serve(async (req) => {
     // Build the Stripe session from the server's numbers.
     const lines = quote.lines ?? [];
     const hasSub = lines.some((l: any) => l.kind === "subscription");
+
+    // Subscriptions are not switched on yet: the restricted key is scoped to
+    // one-off payments only. Refuse the whole cart rather than charging the
+    // build and silently dropping the management plan — the site falls back to
+    // the email order, which is how management plans are handled today.
+    if (hasSub && Deno.env.get("ENABLE_SUBSCRIPTIONS") !== "true") {
+      return json(
+        { error: "Subscriptions are not available for card payment yet.", subscriptions_disabled: true },
+        409,
+      );
+    }
     const p = form({
       mode: hasSub ? "subscription" : "payment",
       success_url: `${SITE}/cart.html?paid=1&ref=${ref}`,
