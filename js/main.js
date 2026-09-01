@@ -314,6 +314,8 @@ function mapProjectRow(row) {
     health: row.health,
     orderKind: row.order_kind || "enquiry",
     amountCents: row.amount_cents,
+    cancelledAt: row.cancelled_at,
+    cancelledReason: row.cancelled_reason,
   };
 }
 
@@ -1446,6 +1448,68 @@ if (devTabs.length) {
     return `<div class="order-flag flag-enquiry">Enquiry — no payment taken</div>`;
   }
 
+  // Mirrors public.can_remove_projects() in supabase/026. The database is the
+  // real gate; this only decides whether the button is worth showing.
+  function canRemoveProjects() {
+    const email = (window.digicodePortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Delete Projects");
+  }
+
+  // Cancel keeps the row — right for a real job that fell through, especially
+  // a paid one where the record is the money trail. Delete removes it, which
+  // is only ever right for test rows, spam and duplicates.
+  function projectActionsHtml(p) {
+    const del = canRemoveProjects()
+      ? `<button type="button" class="clear-cart-link danger-link delete-project-btn" data-id="${p.id}">Delete</button>`
+      : "";
+    return `<div class="project-actions">
+              <button type="button" class="clear-cart-link cancel-project-btn" data-id="${p.id}">Cancel</button>
+              ${del}
+            </div>`;
+  }
+
+  async function cancelProject(id) {
+    const why = window.prompt(
+      "Cancel this project? It stays on record, marked cancelled.\n\nReason (optional):",
+      ""
+    );
+    if (why === null) return;
+    const { error } = await digicodeSupabase.rpc("cancel_project", { p_id: id, p_reason: why });
+    if (error) {
+      window.alert("Couldn't cancel that — if this is the first time, run supabase/026_project_cancel_delete.sql.");
+      return;
+    }
+    await loadProjects();
+    renderAllPanels();
+  }
+
+  async function deleteProject(id, label, kind) {
+    const extra =
+      kind === "paid"
+        ? "\n\nThis one was PAID. Deleting it removes the record of that payment from the portal — cancel it instead unless this is a test row."
+        : "";
+    if (!window.confirm(`Delete "${label}" permanently? This can't be undone.${extra}`)) return;
+    const { error } = await digicodeSupabase.from("projects").delete().eq("id", id);
+    if (error) {
+      window.alert("Couldn't delete that — your account may not have permission.");
+      return;
+    }
+    await loadProjects();
+    renderAllPanels();
+  }
+
+  async function restoreProject(id) {
+    const { error } = await digicodeSupabase.rpc("restore_project", { p_id: id });
+    if (error) {
+      window.alert("Couldn't restore that project.");
+      return;
+    }
+    await loadProjects();
+    renderAllPanels();
+  }
+
   async function updateProjectFields(id, fields) {
     await digicodeSupabase.from("projects").update(fields).eq("id", id);
     await loadProjects();
@@ -1536,8 +1600,42 @@ if (devTabs.length) {
     if (!panel) return;
     const list = getProjects().filter((p) => p.status === "pending");
 
+    // Cancelled jobs are kept, listed under the live ones, and can be put
+    // back — so cancelling is never a decision you can't walk away from.
+    const cancelled = getProjects().filter((p) => p.status === "cancelled");
+    const cancelledHtml = cancelled.length
+      ? `<div class="cancelled-block">
+           <h3 class="cancelled-head">Cancelled (${cancelled.length})</h3>
+           ${cancelled
+             .map(
+               (p) => `
+             <div class="project-card is-cancelled">
+               <div class="project-card-head">
+                 <div>
+                   <span class="project-service">${escapeHtml(p.service)}</span>
+                   <span class="project-client">${escapeHtml(p.clientName) || "No name provided"}</span>
+                 </div>
+                 <span class="project-date">Cancelled ${formatDate(p.cancelledAt)}</span>
+               </div>
+               ${p.cancelledReason ? `<p class="project-details">Reason: ${escapeHtml(p.cancelledReason)}</p>` : ""}
+               <div class="project-actions">
+                 <button type="button" class="clear-cart-link restore-project-btn" data-id="${p.id}">Restore</button>
+                 ${
+                   canRemoveProjects()
+                     ? `<button type="button" class="clear-cart-link danger-link delete-project-btn" data-id="${p.id}">Delete</button>`
+                     : ""
+                 }
+               </div>
+             </div>`
+             )
+             .join("")}
+         </div>`
+      : "";
+
     if (!list.length) {
-      panel.innerHTML = `<p class="dev-empty">No pending projects right now.</p>`;
+      panel.innerHTML =
+        `<p class="dev-empty">No pending projects right now.</p>` + cancelledHtml;
+      wireProjectActions(panel);
       return;
     }
 
@@ -1562,14 +1660,32 @@ if (devTabs.length) {
         <p class="project-details">${escapeHtml(p.details) || "No project details provided."}</p>
         ${domainAndHealthHtml(p)}
         <button type="button" class="btn btn-primary assign-btn" data-id="${p.id}">Assign to Me</button>
+        ${projectActionsHtml(p)}
       </div>`
       )
-      .join("");
+      .join("") + cancelledHtml;
 
     panel.querySelectorAll(".assign-btn").forEach((btn) => {
       btn.addEventListener("click", () => assignProject(btn.dataset.id));
     });
+    wireProjectActions(panel);
     wireDomainAndHealthHandlers(panel);
+  }
+
+  // Shared by the pending list and the cancelled list below it.
+  function wireProjectActions(panel) {
+    panel.querySelectorAll(".cancel-project-btn").forEach((btn) => {
+      btn.addEventListener("click", () => cancelProject(btn.dataset.id));
+    });
+    panel.querySelectorAll(".delete-project-btn").forEach((btn) => {
+      const p = getProjects().find((x) => x.id === btn.dataset.id);
+      btn.addEventListener("click", () =>
+        deleteProject(btn.dataset.id, (p && p.service) || "this project", p && p.orderKind)
+      );
+    });
+    panel.querySelectorAll(".restore-project-btn").forEach((btn) => {
+      btn.addEventListener("click", () => restoreProject(btn.dataset.id));
+    });
   }
 
   async function assignProject(id) {
@@ -1718,6 +1834,7 @@ if (devTabs.length) {
     ["Manage Developers", "Manage Other Developers"],
     ["Delete Live Chats", "Delete Live Chat History"],
     ["Manage Discount Codes", "Manage Discount Codes"],
+    ["Delete Projects", "Delete Projects"],
   ];
   const DEV_RANKS = ["Junior Developer", "Developer", "Senior Developer", "Lead Developer"];
   const DEFAULT_NEW_DEV_PERMISSIONS = ["View Pending", "View Assigned", "View Finished"];

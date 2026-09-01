@@ -4004,3 +4004,34 @@ input[type="radio"] { accent-color: var(--purple); }
 .quote-card .quote-toggle { font-weight: 600; }
 .quote-detail { margin-top: 4px; }
 .quote-detail[hidden] { display: none; }
+
+/* Cancel / delete on project cards. Deliberately quiet links rather than
+   buttons — destructive actions shouldn't compete with "Assign to Me". */
+.project-actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.danger-link { color: #ff7a7a; }
+.danger-link:hover { color: #ff9d9d; }
+
+.cancelled-block { margin-top: 40px; }
+
+.cancelled-head {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 16px;
+}
+
+.project-card.is-cancelled {
+  opacity: 0.62;
+  border-left: 3px solid rgba(255, 122, 122, 0.45);
+}
+
+.project-card.is-cancelled:hover { opacity: 1; }
