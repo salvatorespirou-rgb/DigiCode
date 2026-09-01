@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DigiCode</title>
+</head>
+<!--
+  DigiCode — cold outreach template.
+
+  Built for email clients, not browsers. That means tables rather than
+  flex/grid (Outlook renders neither), styles inline rather than in a <head>
+  block (Gmail strips those), and one small image rather than a designed
+  banner (image-heavy mail lands in spam, and half of recipients have images
+  switched off — everything that matters here is real selectable text).
+
+  Merge fields to fill per recipient:
+    {{FirstName}}     e.g. Dave
+    {{BusinessName}}  e.g. Dave's Plumbing
+    {{Observation}}   ONE specific true thing about their site. This is the
+                      single biggest factor in whether you get a reply. See
+                      the notes in README.md before sending.
+    {{UnsubLink}}     required by the Spam Act 2003 — see README.md
+-->
+<body style="margin:0;padding:0;background:#f4f6f8;">
+
+<!-- Preheader: the grey text shown after the subject line in most inboxes.
+     Hidden in the body itself. -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+  Hand-coded websites from Sydney. No page builders, no monthly licence.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f8;">
+  <tr>
+    <td align="center" style="padding:28px 12px;">
+
+      <!--[if mso]>
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td>
+      <![endif]-->
+      <!-- width:100% + max-width is what lets this shrink on a phone. Outlook
+           ignores max-width, hence the fixed-width wrapper above, which only
+           Outlook sees. -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+             style="width:100%;max-width:600px;background:#ffffff;border-radius:10px;overflow:hidden;
+                    border:1px solid #e2e6ea;">
+
+        <!-- Header -->
+        <tr>
+          <td align="center" style="background:#0B0F1A;padding:26px 24px;">
+            <img src="https://www.digi-code.com.au/assets/images/digicode-logo.png"
+                 width="72" height="72" alt="DigiCode"
+                 style="display:block;border:0;width:72px;height:72px;" />
+            <div style="font-family:Helvetica,Arial,sans-serif;font-size:19px;line-height:26px;
+                        font-weight:700;color:#ffffff;letter-spacing:1.5px;padding-top:12px;">
+              DIGICODE
+            </div>
+            <div style="font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;
+                        color:#8fd4ff;letter-spacing:0.6px;padding-top:3px;">
+              Hand-coded websites &middot; Sydney
+            </div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 34px 8px;font-family:Helvetica,Arial,sans-serif;
+                     font-size:16px;line-height:25px;color:#1d2530;">
+
+            <p style="margin:0 0 18px;">Hi {{FirstName}},</p>
+
+            <p style="margin:0 0 18px;">
+              I had a look at the {{BusinessName}} website this morning. {{Observation}}
+            </p>
+
+            <p style="margin:0 0 18px;">
+              I'm Sam. I hand-code websites out of Sydney — no page builders, no bought
+              templates, and no monthly licence just to keep your own site online. You own
+              the code outright the day it's finished, so you're never stuck with me.
+            </p>
+
+            <p style="margin:0 0 22px;">
+              If it's useful, I'll put together a short breakdown of what's holding your
+              site back and send it over. Free, no obligation, and yours to keep whether
+              you ever hire me or not.
+            </p>
+
+            <!-- CTA -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 26px;">
+              <tr>
+                <td align="center" bgcolor="#5b6cff" style="border-radius:8px;">
+                  <a href="https://www.digi-code.com.au/"
+                     style="display:inline-block;padding:13px 30px;font-family:Helvetica,Arial,sans-serif;
+                            font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">
+                    See what we build &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 6px;">
+              Or just reply to this email — it comes straight to me, not a ticket queue.
+            </p>
+
+            <p style="margin:22px 0 0;">
+              Sam<br />
+              <span style="color:#5a6472;">DigiCode</span>
+            </p>
+          </td>
+        </tr>
+
+        <!-- Three reasons, kept short. Text only so it survives images-off. -->
+        <tr>
+          <td style="padding:26px 34px 4px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border-top:1px solid #e6e9ed;">
+              <tr>
+                <td style="padding:20px 0 0;font-family:Helvetica,Arial,sans-serif;
+                           font-size:14px;line-height:23px;color:#3d4653;">
+                  <strong style="color:#1d2530;">Written by hand.</strong>
+                  No plugins to slow it down. Around a second to load, not six.<br /><br />
+                  <strong style="color:#1d2530;">Fixed price, agreed first.</strong>
+                  You know the number before anything starts. It doesn't move.<br /><br />
+                  <strong style="color:#1d2530;">You own it.</strong>
+                  Take the code anywhere, any time. Hosting and management optional.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:26px 34px 30px;font-family:Helvetica,Arial,sans-serif;
+                     font-size:12px;line-height:20px;color:#7b8694;">
+            <div style="border-top:1px solid #e6e9ed;padding-top:18px;">
+              <strong style="color:#3d4653;">DigiCode</strong> &middot;
+              <a href="https://www.digi-code.com.au/" style="color:#4a5bd8;text-decoration:none;">www.digi-code.com.au</a><br />
+              <a href="mailto:developerteam@digi-code.com.au" style="color:#4a5bd8;text-decoration:none;">developerteam@digi-code.com.au</a><br />
+              Serving all of Australia — Sydney, Parramatta, Western Sydney and the Blue Mountains.
+              <br /><br />
+              You're receiving this because {{BusinessName}} is a business in an area we work in.
+              <a href="{{UnsubLink}}" style="color:#7b8694;text-decoration:underline;">Unsubscribe</a>
+              and I won't contact you again.
+            </div>
+          </td>
+        </tr>
+
+      </table>
+      <!--[if mso]>
+      </td></tr></table>
+      <![endif]-->
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -12,3 +12,6 @@ Disallow: /create-password.html
 Disallow: /cart.html
 
 Sitemap: https://www.digi-code.com.au/sitemap.xml
+
+# Internal sales assets, not site content.
+Disallow: /email-templates/

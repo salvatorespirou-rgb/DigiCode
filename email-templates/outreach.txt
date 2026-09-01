@@ -1,0 +1,28 @@
+Hi {{FirstName}},
+
+I had a look at the {{BusinessName}} website this morning. {{Observation}}
+
+I'm Sam. I hand-code websites out of Sydney - no page builders, no bought
+templates, and no monthly licence just to keep your own site online. You own
+the code outright the day it's finished, so you're never stuck with me.
+
+If it's useful, I'll put together a short breakdown of what's holding your
+site back and send it over. Free, no obligation, and yours to keep whether
+you ever hire me or not.
+
+Or just reply to this email - it comes straight to me, not a ticket queue.
+
+Sam
+DigiCode
+
+  Written by hand - no plugins to slow it down. Around a second to load.
+  Fixed price, agreed before anything starts. It doesn't move.
+  You own it - take the code anywhere, any time.
+
+www.digi-code.com.au
+developerteam@digi-code.com.au
+Serving all of Australia - Sydney, Parramatta, Western Sydney, Blue Mountains.
+
+You're receiving this because {{BusinessName}} is a business in an area we
+work in. To stop hearing from me, reply with "unsubscribe" or use this link:
+{{UnsubLink}}
