@@ -14,8 +14,21 @@
 // Two separately scoped keys. The one-off key cannot create subscriptions and
 // the subscription key is only reachable by a cart that contains a plan, so a
 // leak of either is limited to what that key can do.
-const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-const STRIPE_SUB_KEY = Deno.env.get("STRIPE_SUBSCRIPTION_KEY") ?? "";
+//
+// Each is looked up under a couple of names: the canonical one, plus the name
+// the secret was originally stored under in this project. Supabase's edit
+// dialog will not rename a secret without re-entering its value, so rather
+// than have anyone handle the key again we just read whichever exists.
+function envAny(...names: string[]) {
+  for (const n of names) {
+    const v = Deno.env.get(n);
+    if (v) return v;
+  }
+  return "";
+}
+
+const STRIPE_KEY = envAny("STRIPE_SECRET_KEY", "digicode ontime payment");
+const STRIPE_SUB_KEY = envAny("STRIPE_SUBSCRIPTION_KEY", "digicode sub key");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const SITE = Deno.env.get("SITE_URL") ?? "https://www.digi-code.com.au";
