@@ -4087,3 +4087,329 @@ input[type="radio"] { accent-color: var(--purple); }
   gap: 18px;
   flex-wrap: wrap;
 }
+
+/* ===========================================================================
+   DigiCode Gaming — scripting sections.
+   Deliberately off-centre: a page of centred columns reads like a brochure,
+   and this half of the page has to sell.
+   =========================================================================== */
+
+.script-band {
+  padding: 90px 0 70px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background:
+    radial-gradient(900px 380px at 12% 0%, rgba(91, 108, 255, 0.13), transparent 70%),
+    radial-gradient(700px 320px at 92% 100%, rgba(143, 212, 255, 0.09), transparent 70%);
+}
+
+/* Text left, numbers right — not a centred stack. */
+.script-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.85fr);
+  gap: 56px;
+  align-items: start;
+  text-align: left;
+}
+
+.script-split-main h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4.4vw, 3.1rem);
+  line-height: 1.1;
+  margin: 6px 0 20px;
+}
+
+.script-lede {
+  font-size: 1.06rem;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0 0 14px;
+  max-width: 56ch;
+}
+
+.script-lede-sub {
+  font-size: 0.97rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0 0 28px;
+  max-width: 54ch;
+}
+
+.script-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.script-actions .quick-link-tab { cursor: pointer; }
+
+/* The stat column sits slightly lower than the heading, which is what stops
+   the two halves reading as one centred block. */
+.script-stats {
+  display: grid;
+  gap: 14px;
+  margin-top: 52px;
+}
+
+.script-stat {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent, #8fd4ff);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 16px 20px;
+}
+
+.script-stat-num {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.script-stat-plus { color: var(--accent, #8fd4ff); }
+
+.script-stat-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Platform names as a wrapping strip rather than another card grid. */
+.platform-strip {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 46px 0 0;
+  padding: 0;
+}
+
+.platform-strip li {
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 15px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Headings that don't sit in the middle. */
+.script-heading-left,
+.script-shelf-head { text-align: left; }
+
+.script-heading-left .section-title,
+.script-shelf-head .section-title { margin-left: 0; }
+
+.script-heading-left .section-sub,
+.script-shelf-head .section-sub { margin-left: 0; max-width: 62ch; }
+
+/* Shelf: heading left, "what's included" panel right. */
+.script-shelf-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(230px, 0.8fr);
+  gap: 44px;
+  align-items: start;
+  margin-bottom: 32px;
+}
+
+.script-shelf-note {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.script-shelf-note strong {
+  display: block;
+  font-size: 0.86rem;
+  margin-bottom: 10px;
+}
+
+.script-shelf-note ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.script-shelf-note li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.45;
+}
+
+.script-shelf-note li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent, #8fd4ff);
+}
+
+.script-shelf-empty { text-align: left; }
+.script-shelf-empty .coming-soon-icon { margin-left: 0; }
+
+.script-shelf-meanwhile {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.script-shelf-meanwhile .clear-cart-link {
+  font-size: 0.9rem;
+  color: var(--accent, #8fd4ff);
+}
+
+/* Closing band — copy left, promises right. */
+.script-cta-band {
+  padding: 80px 0 90px;
+  border-top: 1px solid var(--border);
+  background: radial-gradient(760px 340px at 85% 20%, rgba(91, 108, 255, 0.12), transparent 70%);
+}
+
+.script-cta-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 54px;
+  align-items: center;
+  text-align: left;
+}
+
+.script-cta-split h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+  line-height: 1.15;
+  margin: 0 0 16px;
+}
+
+.script-cta-split p {
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0 0 26px;
+  max-width: 50ch;
+}
+
+.script-cta-split .quick-link-tab { cursor: pointer; }
+
+.script-promise {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.script-promise li {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  padding-left: 26px;
+  position: relative;
+}
+
+.script-promise li strong { color: var(--text); }
+
+.script-promise li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 12px;
+  height: 7px;
+  border-left: 2px solid var(--accent, #8fd4ff);
+  border-bottom: 2px solid var(--accent, #8fd4ff);
+  transform: rotate(-45deg);
+}
+
+/* --------------------------------------------------------------------------
+   Script request modal
+   -------------------------------------------------------------------------- */
+
+.script-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 16px;
+  overflow-y: auto;
+  background: rgba(4, 7, 14, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.script-modal[hidden] { display: none; }
+
+.script-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.script-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 2;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.9rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.script-modal-close:hover { color: var(--text); }
+
+.script-modal-body { padding: 34px 34px 30px; }
+
+.script-modal-body > h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin: 0 0 8px;
+}
+
+.script-modal-body > .form-hint { margin-bottom: 24px; }
+
+/* Cards inside the modal shouldn't have the page-level outer chrome. */
+.script-request-form .form-card { margin-bottom: 20px; }
+
+body.script-modal-open { overflow: hidden; }
+
+/* --------------------------------------------------------------------------
+   Narrow screens: everything becomes one column, but stays left-aligned.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .script-split,
+  .script-shelf-head,
+  .script-cta-split {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  .script-stats { margin-top: 4px; }
+  .script-band { padding: 64px 0 54px; }
+  .script-cta-band { padding: 60px 0 66px; }
+}
+
+@media (max-width: 620px) {
+  .script-modal { padding: 0; }
+  .script-modal-card { border-radius: 0; border-left: none; border-right: none; min-height: 100%; }
+  .script-modal-body { padding: 26px 18px 24px; }
+  .script-actions { flex-direction: column; align-items: stretch; }
+  .script-actions .quick-link-tab { text-align: center; }
+}
