@@ -1118,6 +1118,17 @@ if (portalLoginForm) {
     }
   }
 
+  // Signed out by js/idle-logout.js. Saying why avoids the "it just logged me
+  // out for no reason" confusion.
+  if (sessionStorage.getItem("digicodePortalTimedOut")) {
+    sessionStorage.removeItem("digicodePortalTimedOut");
+    const idleEl = document.getElementById("loginError");
+    if (idleEl) {
+      idleEl.textContent = "You were signed out after 15 minutes of inactivity. Sign in again to carry on.";
+      idleEl.hidden = false;
+    }
+  }
+
   const codeForm = document.getElementById("portalCodeForm");
   const backRow = document.getElementById("backToPasswordRow");
   const showCodeBtn = document.getElementById("showCodeFormBtn");

@@ -4035,3 +4035,55 @@ input[type="radio"] { accent-color: var(--purple); }
 }
 
 .project-card.is-cancelled:hover { opacity: 1; }
+
+/* Idle sign-out warning. Sits above everything and is deliberately hard to
+   miss — being logged out mid-task with no explanation is worse than a
+   prompt you have to dismiss. */
+.idle-warning {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 7, 14, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.idle-warning.is-shown { display: flex; }
+
+.idle-warning-inner {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px 28px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.idle-warning-inner strong {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+
+.idle-warning-inner p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.idle-count { color: #ff9d6b; font-weight: 700; }
+
+.idle-warning-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
