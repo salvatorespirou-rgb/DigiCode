@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In — DigiCode</title>
-  <meta name="description" content="Sign in to your DigiCode portal." />
-  <link rel="canonical" href="https://www.digi-code.com.au/signin.html" />
+  <title>Game Scripts — DigiCode</title>
+  <meta name="description" content="Ready-made scripts for FiveM, Roblox and more. Full source code, instant download, no escrow and no licence server." />
+  <link rel="canonical" href="https://www.digi-code.com.au/scripts.html" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="DigiCode" />
-  <meta property="og:title" content="Sign In — DigiCode" />
-  <meta property="og:description" content="Sign in to your DigiCode portal." />
-  <meta property="og:url" content="https://www.digi-code.com.au/signin.html" />
+  <meta property="og:title" content="Game Scripts — DigiCode" />
+  <meta property="og:description" content="Ready-made scripts for FiveM, Roblox and more. Full source code, instant download, no escrow and no licence server." />
+  <meta property="og:url" content="https://www.digi-code.com.au/scripts.html" />
   <meta property="og:image" content="https://www.digi-code.com.au/assets/images/digicode-og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Sign In — DigiCode" />
-  <meta name="twitter:description" content="Sign in to your DigiCode portal." />
+  <meta name="twitter:title" content="Game Scripts — DigiCode" />
+  <meta name="twitter:description" content="Ready-made scripts for FiveM, Roblox and more. Full source code, instant download, no escrow and no licence server." />
   <meta name="twitter:image" content="https://www.digi-code.com.au/assets/images/digicode-og.png" />
   <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,60 +68,30 @@
         <a href="index.html" class="page-hero-logo-link" aria-label="DigiCode home">
           <img src="assets/images/digicode-logo-768.png" alt="DigiCode" class="page-hero-logo" width="768" height="768" decoding="async" />
         </a>
-        <p class="eyebrow">Sign In</p>
-        <h1>Access your <span class="gradient-text">portal.</span></h1>
-        <p class="hero-sub">Sign in with your email or username and your password. Setting up for the first time, or forgotten it? Grab a one-time code below.</p>
+        <p class="eyebrow">Game Scripts</p>
+        <h1>Scripts you can <span class="gradient-text">actually own.</span></h1>
+        <p class="hero-sub">Ready-made scripts for FiveM, Roblox and more. Full source, instant download, no escrow and nothing phoning home to a licence server.</p>
       </div>
     </section>
 
-    <section class="request-form-section">
+    <section class="request-form-section" style="padding-top: 0;">
       <div class="container">
-        <div class="portal-card">
-          <div class="portal-lock">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6" />
-              <path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-          </div>
-          <!-- Normal, everyday sign-in: password. -->
-          <form id="portalLoginForm" class="portal-login-form">
-            <div class="form-group">
-              <label for="loginEmail">Email or username</label>
-              <input type="text" id="loginEmail" autocomplete="username" required />
-            </div>
-            <div class="form-group">
-              <label for="loginPassword">Password</label>
-              <input type="password" id="loginPassword" autocomplete="current-password" required />
-            </div>
-            <p class="portal-login-error" id="loginError" hidden></p>
-            <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Sign In</button>
-          </form>
-          <p class="portal-note">
-            First time here, or forgotten your password?
-            <button type="button" id="showCodeFormBtn" class="clear-cart-link" style="display:inline; padding:0;">Get a one-time code</button>.
-          </p>
+        <div class="script-store-note">
+          <span class="script-store-dot"></span>
+          Buy once, download straight away. The source comes with it — edit it, extend it, run it on as many of your own servers as you like.
+        </div>
 
-          <!-- One-time code: only used to set or reset a password, never as
-               the everyday way in. -->
-          <form id="portalCodeForm" class="portal-login-form" hidden>
-            <div class="form-group">
-              <label for="codeIdentifier">Email or username</label>
-              <input type="text" id="codeIdentifier" autocomplete="username" />
-            </div>
-            <p class="portal-note" style="margin-top:0;">We'll email you a one-time code. Enter it on the next screen and you'll choose your password.</p>
-            <p class="portal-login-error" id="codeError" hidden></p>
-            <button type="submit" class="btn btn-primary" id="codeSubmitBtn">Send Code</button>
-          </form>
-          <p class="portal-note" id="backToPasswordRow" hidden>
-            Remembered it? <button type="button" id="showPasswordFormBtn" class="clear-cart-link" style="display:inline; padding:0;">Sign in with a password</button>.
-          </p>
+        <div id="scriptList" class="script-store-grid">
+          <p class="dev-empty">Loading scripts…</p>
+        </div>
 
-          <p class="portal-note">Just purchased a build or a management plan? Use the same email you checked out with.</p>
+        <div class="info-cta" style="margin-top: 46px;">
+          <p>Need something that isn't here? We build custom scripts to order — tell us what it has to do.</p>
+          <a href="digicode-gaming.html#script-request" class="quick-link-tab">Request a Custom Script</a>
         </div>
       </div>
     </section>
   </main>
-
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>&copy; <span id="year"></span> DigiCode. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
@@ -133,6 +103,7 @@
   <script src="js/supabase-client.js"></script>
   <script src="js/main.js?v=22"></script>
   <script src="js/live-chat.js?v=4"></script>
+  <script src="js/script-store.js?v=1"></script>
   <script src="js/analytics.js?v=1"></script>
 </body>
 </html>

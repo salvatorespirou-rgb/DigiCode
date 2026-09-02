@@ -977,6 +977,10 @@ if (cartItemsEl) {
 
   // Cart entries carry a display name and period; the catalog keys off a SKU.
   function skuFor(item) {
+    // Scripts carry their own SKU because the catalogue is dynamic — the slug
+    // only exists once someone has listed that script for sale.
+    if (item.sku) return item.sku;
+
     const name = (item.name || "").toLowerCase();
     const weekly = /wk|week/.test(item.period || "");
 
@@ -1566,9 +1570,6 @@ if (devTabs.length) {
 
     await updateProjectFields(projectId, { health: { loading: true } });
     renderAllPanels();
-    renderStatGrid();
-    renderRankList();
-    renderPerfGrid();
 
     const url =
       `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(project.domain)}` +
@@ -1601,9 +1602,6 @@ if (devTabs.length) {
     }
 
     renderAllPanels();
-    renderStatGrid();
-    renderRankList();
-    renderPerfGrid();
   }
 
   function renderPendingPanel() {
@@ -1718,9 +1716,6 @@ if (devTabs.length) {
     }
 
     renderAllPanels();
-    renderStatGrid();
-    renderRankList();
-    renderPerfGrid();
   }
 
   function renderAssignedPanel() {
@@ -1792,9 +1787,6 @@ if (devTabs.length) {
   async function finishProject(id) {
     await updateProjectFields(id, { status: "finished", finished_at: new Date().toISOString() });
     renderAllPanels();
-    renderStatGrid();
-    renderRankList();
-    renderPerfGrid();
   }
 
   function renderFinishedPanel() {
@@ -1846,6 +1838,7 @@ if (devTabs.length) {
     ["Delete Live Chats", "Delete Live Chat History"],
     ["Manage Discount Codes", "Manage Discount Codes"],
     ["Delete Projects", "Delete Projects"],
+    ["Manage Scripts", "List Scripts For Sale"],
   ];
   const DEV_RANKS = ["Junior Developer", "Developer", "Senior Developer", "Lead Developer"];
   const DEFAULT_NEW_DEV_PERMISSIONS = ["View Pending", "View Assigned", "View Finished"];
@@ -2614,6 +2607,10 @@ if (devTabs.length) {
     renderFinishedPanel();
     renderDevelopersPanel();
     renderChatPanel();
+    renderScriptsPanel();
+    renderStatGrid();
+    renderRankList();
+    renderPerfGrid();
   }
 
   function waitForAuthReady() {
@@ -2949,6 +2946,281 @@ if (devTabs.length) {
   // js/analytics.js on the public pages. The few things the site can't measure
   // about itself (uptime, PageSpeed, what Google thinks) live in
   // data/site-stats.json and are refreshed on a daily check.
+
+  // ---------------------------------------------------------------------
+  // Scripts tab — listing script files for sale.
+  //
+  // Mirrors public.can_manage_scripts() in supabase/027: Lead Developer, the
+  // "Manage Scripts" permission, or the owner account that isn't on the
+  // roster. The database is the real gate; this only decides what to render.
+  // ---------------------------------------------------------------------
+
+  const SCRIPT_BUCKET = "script-files";
+  let scriptsCache = [];
+  let editingScriptId = null;
+
+  function canManageScripts() {
+    const email = (window.digicodePortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Manage Scripts");
+  }
+
+  async function loadScripts() {
+    const { data, error } = await digicodeSupabase
+      .from("script_products")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error) scriptsCache = data || [];
+    return scriptsCache;
+  }
+
+  function scriptSize(bytes) {
+    if (!bytes) return "no file";
+    return bytes > 1048576
+      ? (bytes / 1048576).toFixed(1) + " MB"
+      : Math.round(bytes / 1024) + " KB";
+  }
+
+  function slugify(s) {
+    return String(s || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60);
+  }
+
+  function scriptFormHtml(s) {
+    const v = (k, d) => escapeHtml(s && s[k] != null ? s[k] : d || "");
+    return `
+      <form class="form-card script-form" id="scriptForm">
+        <h2>${s ? "Edit script" : "List a new script"}</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="sfName">Name</label>
+            <input type="text" id="sfName" value="${v("name")}" placeholder="Advanced Garage System" required />
+          </div>
+          <div class="form-group">
+            <label for="sfPlatform">Platform</label>
+            <input type="text" id="sfPlatform" value="${v("platform")}" placeholder="FiveM / Roblox / Minecraft" />
+          </div>
+          <div class="form-group">
+            <label for="sfPrice">Price (AUD)</label>
+            <input type="text" id="sfPrice" value="${s ? (s.price_cents / 100).toFixed(2) : ""}" placeholder="49.00" required />
+          </div>
+          <div class="form-group">
+            <label for="sfVersion">Version</label>
+            <input type="text" id="sfVersion" value="${v("version")}" placeholder="1.0.0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="sfSummary">One-line summary</label>
+          <input type="text" id="sfSummary" value="${v("summary")}" placeholder="Shown on the store card — keep it to a sentence" />
+        </div>
+        <div class="form-group">
+          <label for="sfDesc">Full description</label>
+          <textarea id="sfDesc" rows="5" placeholder="What it does, what it needs to run, what's included. Buyers read this before they read the price.">${v("description")}</textarea>
+        </div>
+        <div class="form-group">
+          <span class="form-label">Script file (.zip)</span>
+          <input type="file" id="sfFile" accept=".zip,.rar,.7z" />
+          <p class="form-note" id="sfFileNote">${
+            s && s.file_name
+              ? "Currently: " + escapeHtml(s.file_name) + " · " + scriptSize(s.file_bytes) + ". Choose a file only to replace it."
+              : "Up to 200MB. This is what the buyer downloads."
+          }</p>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-option">
+            <input type="checkbox" id="sfActive" ${s && s.active ? "checked" : ""} />
+            Listed for sale on the store
+          </label>
+        </div>
+        <div class="form-actions" style="padding:0;">
+          <button type="submit" class="btn btn-primary" id="sfSave">${s ? "Save changes" : "List script"}</button>
+          ${s ? `<button type="button" class="clear-cart-link" id="sfCancel">Cancel</button>` : ""}
+          <p class="form-note" id="sfStatus"></p>
+        </div>
+      </form>`;
+  }
+
+  function renderScriptsPanel() {
+    const panel = document.getElementById("scriptsPanel");
+    if (!panel) return;
+
+    if (!canManageScripts()) {
+      panel.innerHTML = `<p class="dev-empty">Only the Lead Developer can list scripts for sale.</p>`;
+      return;
+    }
+
+    const editing = editingScriptId
+      ? scriptsCache.find((s) => String(s.id) === String(editingScriptId))
+      : null;
+
+    const rows = scriptsCache.length
+      ? scriptsCache
+          .map(
+            (s) => `
+        <div class="project-card${s.active ? " is-paid" : ""}">
+          <div class="project-card-head">
+            <div>
+              <span class="project-service">${escapeHtml(s.platform || "Script")}${s.version ? " · v" + escapeHtml(s.version) : ""}</span>
+              <span class="project-client">${escapeHtml(s.name)}</span>
+            </div>
+            <span class="project-date">$${(s.price_cents / 100).toFixed(2)}</span>
+          </div>
+          <div class="order-flag ${s.active ? "flag-paid" : "flag-enquiry"}">
+            ${s.active ? "Live on the store" : "Draft — not listed"}
+          </div>
+          ${s.summary ? `<p class="project-details">${escapeHtml(s.summary)}</p>` : ""}
+          <p class="script-row-meta">${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)} · ${s.sales_count} sold</p>
+          <div class="project-actions">
+            <button type="button" class="clear-cart-link script-edit" data-id="${s.id}">Edit</button>
+            <button type="button" class="clear-cart-link script-toggle" data-id="${s.id}">${s.active ? "Unlist" : "List for sale"}</button>
+            <button type="button" class="clear-cart-link danger-link script-delete" data-id="${s.id}">Delete</button>
+          </div>
+        </div>`
+          )
+          .join("")
+      : `<p class="dev-empty">No scripts listed yet.</p>`;
+
+    panel.innerHTML = scriptFormHtml(editing) + `<div class="script-admin-list">${rows}</div>`;
+
+    panel.querySelector("#scriptForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      saveScript(editing);
+    });
+    panel.querySelector("#sfCancel")?.addEventListener("click", () => {
+      editingScriptId = null;
+      renderScriptsPanel();
+    });
+    panel.querySelectorAll(".script-edit").forEach((b) =>
+      b.addEventListener("click", () => {
+        editingScriptId = b.dataset.id;
+        renderScriptsPanel();
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      })
+    );
+    panel.querySelectorAll(".script-toggle").forEach((b) =>
+      b.addEventListener("click", () => toggleScript(b.dataset.id))
+    );
+    panel.querySelectorAll(".script-delete").forEach((b) =>
+      b.addEventListener("click", () => deleteScript(b.dataset.id))
+    );
+  }
+
+  async function saveScript(existing) {
+    const status = document.getElementById("sfStatus");
+    const save = document.getElementById("sfSave");
+    const name = document.getElementById("sfName").value.trim();
+    const priceRaw = document.getElementById("sfPrice").value.replace(/[^0-9.]/g, "");
+    const cents = Math.round(parseFloat(priceRaw || "0") * 100);
+    const file = document.getElementById("sfFile").files[0];
+
+    if (!name) return;
+    if (!Number.isFinite(cents) || cents < 0) {
+      status.textContent = "That price doesn't look right.";
+      return;
+    }
+    if (!existing && !file) {
+      status.textContent = "Choose the script file to upload.";
+      return;
+    }
+
+    save.disabled = true;
+    status.textContent = file ? "Uploading…" : "Saving…";
+
+    const fields = {
+      name,
+      slug: existing ? existing.slug : slugify(name) + "-" + Date.now().toString(36).slice(-4),
+      platform: document.getElementById("sfPlatform").value.trim() || null,
+      version: document.getElementById("sfVersion").value.trim() || null,
+      summary: document.getElementById("sfSummary").value.trim() || null,
+      description: document.getElementById("sfDesc").value.trim() || null,
+      price_cents: cents,
+      active: document.getElementById("sfActive").checked,
+      updated_at: new Date().toISOString(),
+    };
+
+    try {
+      if (file) {
+        const path =
+          fields.slug + "/" + Date.now() + "-" + file.name.replace(/[^A-Za-z0-9._-]/g, "_");
+        const up = await digicodeSupabase.storage
+          .from(SCRIPT_BUCKET)
+          .upload(path, file, { upsert: false });
+        if (up.error) throw up.error;
+        fields.file_path = path;
+        fields.file_name = file.name;
+        fields.file_bytes = file.size;
+      }
+
+      if (existing) {
+        const { error } = await digicodeSupabase
+          .from("script_products")
+          .update(fields)
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        fields.created_by = window.digicodePortalEmail || null;
+        const { error } = await digicodeSupabase.from("script_products").insert(fields);
+        if (error) throw error;
+      }
+
+      editingScriptId = null;
+      await loadScripts();
+      renderScriptsPanel();
+    } catch (err) {
+      save.disabled = false;
+      status.textContent =
+        "Couldn't save that — " + (err && err.message ? err.message : "check permissions.");
+    }
+  }
+
+  async function toggleScript(id) {
+    const s = scriptsCache.find((x) => String(x.id) === String(id));
+    if (!s) return;
+    if (!s.file_path && !s.active) {
+      window.alert("Upload the script file before listing it for sale.");
+      return;
+    }
+    const { error } = await digicodeSupabase
+      .from("script_products")
+      .update({ active: !s.active, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) {
+      window.alert("Couldn't change that — your account may not have permission.");
+      return;
+    }
+    await loadScripts();
+    renderScriptsPanel();
+  }
+
+  async function deleteScript(id) {
+    const s = scriptsCache.find((x) => String(x.id) === String(id));
+    if (!s) return;
+    if (s.sales_count > 0) {
+      window.alert(
+        `"${s.name}" has ${s.sales_count} sale${s.sales_count > 1 ? "s" : ""}. ` +
+          "Deleting it would break those buyers' downloads — unlist it instead."
+      );
+      return;
+    }
+    if (!window.confirm(`Delete "${s.name}" and its file? This can't be undone.`)) return;
+
+    try {
+      if (s.file_path) {
+        await digicodeSupabase.storage.from(SCRIPT_BUCKET).remove([s.file_path]);
+      }
+      const { error } = await digicodeSupabase.from("script_products").delete().eq("id", id);
+      if (error) throw error;
+    } catch (err) {
+      window.alert("Couldn't delete that — your account may not have permission.");
+      return;
+    }
+    await loadScripts();
+    renderScriptsPanel();
+  }
   // ---------------------------------------------------------------------
 
   let siteStats = null;
@@ -3214,11 +3486,8 @@ if (devTabs.length) {
   if (statsRefreshBtn) statsRefreshBtn.addEventListener("click", refreshDashboard);
 
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts()]);
     renderAllPanels();
-    renderStatGrid();
-    renderRankList();
-    renderPerfGrid();
     applyPortalRole();
     subscribeToVisitorChat();
   })();

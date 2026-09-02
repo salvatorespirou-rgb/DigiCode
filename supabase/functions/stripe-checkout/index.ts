@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
     // Build the Stripe session from the server's numbers.
     const lines = quote.lines ?? [];
     const hasSub = lines.some((l: any) => l.kind === "subscription");
+    const hasScript = lines.some((l: any) => String(l.sku || "").startsWith("script:"));
 
     // Pick the key scoped to what this cart actually is. A cart with a plan
     // needs the subscription key; without it we refuse the whole cart rather
@@ -120,7 +121,11 @@ Deno.serve(async (req) => {
     }
     const p = form({
       mode: hasSub ? "subscription" : "payment",
-      success_url: `${SITE}/cart.html?paid=1&ref=${ref}`,
+      // A script order returns to the store, which is where the download
+      // link is shown; everything else goes back to the cart.
+      success_url: hasScript
+        ? `${SITE}/scripts.html?paid=1&ref=${ref}`
+        : `${SITE}/cart.html?paid=1&ref=${ref}`,
       cancel_url: `${SITE}/cart.html?cancelled=1`,
       client_reference_id: ref,
       "metadata[order_reference]": ref,
