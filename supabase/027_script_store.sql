@@ -12,7 +12,39 @@
 -- Someone who shares their token shares their own purchase, which is the same
 -- exposure as sharing the zip — not a hole in the store.
 
+create extension if not exists pgcrypto;
+
+
 -- ---------------------------------------------------------------------------
+-- Who may run the store. Lead Developer only, plus the owner account that is
+-- not on the roster, plus anyone explicitly granted the permission.
+-- ---------------------------------------------------------------------------
+
+create or replace function public.can_manage_scripts()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select public.is_dev()
+     and (
+       not exists (
+         select 1 from public.developers
+         where lower(email) = lower(auth.jwt() ->> 'email')
+       )
+       or exists (
+         select 1 from public.developers
+         where lower(email) = lower(auth.jwt() ->> 'email')
+           and (rank = 'Lead Developer' or permissions ? 'Manage Scripts')
+       )
+     );
+$$;
+
+revoke all on function public.can_manage_scripts() from public;
+revoke execute on function public.can_manage_scripts() from anon;
+grant execute on function public.can_manage_scripts() to authenticated;
+
 -- Where the files live
 -- ---------------------------------------------------------------------------
 
@@ -61,34 +93,6 @@ create policy "Script managers can remove"
   using (bucket_id = 'script-files' and public.can_manage_scripts());
 
 -- ---------------------------------------------------------------------------
--- Who may run the store. Lead Developer only, plus the owner account that is
--- not on the roster, plus anyone explicitly granted the permission.
--- ---------------------------------------------------------------------------
-
-create or replace function public.can_manage_scripts()
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select public.is_dev()
-     and (
-       not exists (
-         select 1 from public.developers
-         where lower(email) = lower(auth.jwt() ->> 'email')
-       )
-       or exists (
-         select 1 from public.developers
-         where lower(email) = lower(auth.jwt() ->> 'email')
-           and (rank = 'Lead Developer' or permissions ? 'Manage Scripts')
-       )
-     );
-$$;
-
-revoke all on function public.can_manage_scripts() from public;
-revoke execute on function public.can_manage_scripts() from anon;
-grant execute on function public.can_manage_scripts() to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- The products
