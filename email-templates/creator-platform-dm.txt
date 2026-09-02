@@ -1,0 +1,94 @@
+CREATOR / STREAMER OUTREACH — direct message
+============================================
+
+For approaching someone who already has an audience on TikTok, Twitch, Kick,
+Instagram or similar. Swap {{Name}} and send as a DM, not an email — these
+land better in the place they already talk to people.
+
+The argument is not "your site could look nicer". It is: you built the
+audience, someone else is charging you to reach it.
+
+Do not oversell "100%". Card processing takes roughly 1.75% + 30c in
+Australia, and a creator who has been paid out before will know that. Saying
+"everything except the card fee" is both true and more convincing than a round
+number.
+
+
+---------------------------------------------------------------------------
+SHORT VERSION — opener, when you have no relationship yet
+---------------------------------------------------------------------------
+
+Hey {{Name}},
+
+Random question — how much of each gift do you actually keep?
+
+I build streaming sites for creators: live video, chat, gifts, subs, all on
+your own domain. You keep everything except the card fee, and the audience
+list is yours rather than rented.
+
+Made a demo so people can click it instead of imagining it:
+https://www.digi-code.com.au/Portfolio/Streaming/Jeffos/index.html
+
+Worth a look?
+
+Sam — DigiCode
+
+
+---------------------------------------------------------------------------
+FULL VERSION — when they have replied, or you already know them
+---------------------------------------------------------------------------
+
+Hey {{Name}},
+
+Quick idea for you — tell me to get lost if it's not for you.
+
+Every gift someone sends you, the platform takes a slice of. You did the work
+of building the audience, and they charge you to reach it. And if the account
+ever gets restricted or the algorithm turns, the whole thing goes with it —
+followers, income, the lot.
+
+I build creator platforms from scratch. Live streaming, live chat, animated
+gifts, subscriptions, member-only content, payouts — on your own domain, under
+your own name. Two things change:
+
+  1. You keep the money. Not a bigger share — all of it, minus what the card
+     processor takes (roughly 2%).
+  2. You own the audience. Emails, subscribers, payment relationships. Nobody
+     can switch it off.
+
+Rather than describe it, here's one I built so you can click through it:
+https://www.digi-code.com.au/Portfolio/Streaming/Jeffos/index.html
+
+Live stream page, chat down the side, gifts that actually animate on screen.
+Hand-coded, no template, no page builder underneath it.
+
+It doesn't have to start big either — a single page with streaming and gifting
+works, and it grows from there.
+
+If you're interested I'll put together what it would do and what it would cost.
+No charge for that and no obligation. If not, all good, I won't chase it.
+
+Sam
+DigiCode
+www.digi-code.com.au
+developerteam@digi-code.com.au
+
+
+---------------------------------------------------------------------------
+IF THEY ASK THE OBVIOUS QUESTIONS
+---------------------------------------------------------------------------
+
+"Who handles the payments?"
+  Stripe, in your name, paying into your account. Money never touches me.
+
+"What about the app stores / moderation?"
+  It's a website, so no app store cut and no approval process. Moderation
+  tools are part of the build - you decide the rules, not a platform.
+
+"Won't people just stay on TikTok?"
+  Most will. The point isn't replacing it - it's having somewhere to send the
+  ones who'd pay you properly, and owning that relationship. Keep posting where
+  the audience is, monetise where you keep it.
+
+"What if I want to leave?"
+  You own the code outright. Take it to any developer, any time.
