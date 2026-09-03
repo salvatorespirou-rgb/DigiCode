@@ -4437,10 +4437,13 @@ body.script-modal-open { overflow: hidden; }
   background: #57d98a; flex-shrink: 0; margin-top: 7px;
 }
 
+/* Sized to match the service tiles on the homepage: a fixed 3-up grid, so a
+   tenth script widens the shelf rather than lengthening the page. */
 .script-store-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  align-items: stretch;
 }
 
 .script-card {
@@ -4451,6 +4454,8 @@ body.script-modal-open { overflow: hidden; }
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
+  min-height: 400px;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -4469,10 +4474,17 @@ body.script-modal-open { overflow: hidden; }
 .script-version { font-size: 0.75rem; color: var(--text-muted); }
 
 .script-card h3 { font-family: var(--font-heading); font-size: 1.15rem; margin: 0; }
-.script-summary { font-size: 0.92rem; color: var(--text); margin: 0; line-height: 1.5; }
+.script-summary {
+  font-size: 0.92rem; color: var(--text); margin: 0; line-height: 1.5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  line-clamp: 2; overflow: hidden;
+}
+
 .script-desc {
   font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.6;
   white-space: pre-line;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  line-clamp: 3; overflow: hidden;
 }
 
 .script-card-foot {
@@ -4515,8 +4527,13 @@ body.script-modal-open { overflow: hidden; }
 .script-admin-list { display: grid; gap: 18px; }
 .script-row-meta { font-size: 0.78rem; color: var(--text-muted); margin: 8px 0 0; }
 
+@media (max-width: 1000px) {
+  .script-store-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 620px) {
   .script-store-grid { grid-template-columns: 1fr; }
+  .script-card { min-height: 0; }
   .script-card-foot { flex-direction: column; align-items: stretch; }
 }
 
