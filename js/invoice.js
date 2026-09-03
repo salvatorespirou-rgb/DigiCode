@@ -27,8 +27,16 @@
     });
   }
 
+  // Grouped thousands, because an invoice can run to five figures and
+  // "$12000.00" is easy to misread as "$1200.00".
   function money(cents) {
-    return "$" + ((Number(cents) || 0) / 100).toFixed(2);
+    return (
+      "$" +
+      ((Number(cents) || 0) / 100).toLocaleString("en-AU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
   }
 
   function longDate(d) {

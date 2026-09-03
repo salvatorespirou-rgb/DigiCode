@@ -3425,8 +3425,32 @@ if (devTabs.length) {
     return me.rank === "Lead Developer" || (me.permissions || []).includes("Price Quotes");
   }
 
+  // Grouped thousands, because an invoice can run to five figures and
+  // "$12000.00" is easy to misread as "$1200.00".
   function money(cents) {
-    return "$" + ((Number(cents) || 0) / 100).toFixed(2);
+    return (
+      "$" +
+      ((Number(cents) || 0) / 100).toLocaleString("en-AU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    );
+  }
+
+  // due_at is a Postgres `date`, so it arrives as "2026-10-01" with no time in
+  // it. formatDate() would append one, and parsing it with new Date() reads it
+  // as UTC midnight, which can shift the day — so the parts are used as given.
+  function invoiceDate(d) {
+    if (!d) return "";
+    const parts = String(d).slice(0, 10).split("-");
+    if (parts.length !== 3) return String(d);
+    const dt = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(dt)) return String(d);
+    return dt.toLocaleDateString("en-AU", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   }
 
   // The form takes dollars because that is what people think in; everything
@@ -3596,7 +3620,7 @@ if (devTabs.length) {
 
         <div class="invoice-tag-row">
           ${invoiceStatusTag(inv)}
-          ${inv.due_at && !paid ? `<span class="invoice-tag tag-due">Due ${formatDate(inv.due_at)}</span>` : ""}
+          ${inv.due_at && !paid ? `<span class="invoice-tag tag-due">Due ${invoiceDate(inv.due_at)}</span>` : ""}
         </div>
 
         <ul class="invoice-mini-lines">
@@ -3637,6 +3661,8 @@ if (devTabs.length) {
         </div>
       </div>`;
   }
+
+  window.digicodeInvoiceEmail = (inv) => invoiceEmail(inv);
 
   function renderInvoicesPanel() {
     const panel = document.getElementById("invoicesPanel");
@@ -3930,36 +3956,50 @@ if (devTabs.length) {
     }
 
     if (delivery === "both") {
-      const url = invoicePayUrl(inv.reference);
-      const itemLines = (inv.lines || [])
-        .map(
-          (l) =>
-            "  - " + l.description + (Number(l.qty) > 1 ? " x " + l.qty : "") +
-            " — " + invoiceLineLabel(l)
-        )
-        .join("\n");
-
-      const subject = "Your DigiCode quote — " + money(inv.total_cents);
-      const body =
-        "Hi " + (inv.client_name || "there") + ",\n\n" +
-        "Thanks for your patience — here's the quote for " + inv.title + ".\n\n" +
-        itemLines + "\n\n" +
-        (inv.discount_cents ? "  Discount — -" + money(inv.discount_cents) + "\n\n" : "") +
-        "Total: " + money(inv.total_cents) + " AUD\n" +
-        (inv.due_at ? "Due by: " + formatDate(inv.due_at) + "\n" : "") +
-        (inv.notes ? "\n" + inv.notes + "\n" : "") +
-        "\nYou can look it over and pay securely by card here:\n" + url + "\n\n" +
-        "Any questions at all, just reply to this email.\n\n" +
-        "Thanks,\nDigiCode\nhttps://www.digi-code.com.au";
-
-      window.location.href =
-        "mailto:" + encodeURIComponent(inv.client_email) +
-        "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(body);
+      window.location.href = invoiceMailto(inv);
     }
 
     await loadInvoices();
     renderInvoicesPanel();
+  }
+
+  // The email a lead developer sends. Split out from sendInvoice so the text
+  // can be inspected on its own — a mailto: assignment is a navigation, and
+  // there is no reading one back once it has happened.
+  function invoiceEmail(inv) {
+    const url = invoicePayUrl(inv.reference);
+    const itemLines = (inv.lines || [])
+      .map(
+        (l) =>
+          "  - " + l.description + (Number(l.qty) > 1 ? " x " + l.qty : "") +
+          " — " + invoiceLineLabel(l)
+      )
+      .join("\n");
+
+    const subject = "Your DigiCode quote — " + money(inv.total_cents);
+    const body =
+      "Hi " + (inv.client_name || "there") + ",\n\n" +
+      "Thanks for your patience — here's what we've put together.\n\n" +
+      inv.title + "\n\n" +
+      itemLines + "\n" +
+      (inv.discount_cents ? "  Discount — -" + money(inv.discount_cents) + "\n" : "") +
+      "\nTotal: " + money(inv.total_cents) + " AUD\n" +
+      (inv.due_at ? "Due by: " + invoiceDate(inv.due_at) + "\n" : "") +
+      (inv.notes ? "\n" + inv.notes + "\n" : "") +
+      "\nYou can look it over and pay securely by card here:\n" + url + "\n\n" +
+      "Any questions at all, just reply to this email.\n\n" +
+      "Thanks,\nDigiCode\nhttps://www.digi-code.com.au";
+
+    return { to: inv.client_email, subject, body };
+  }
+
+  function invoiceMailto(inv) {
+    const e = invoiceEmail(inv);
+    return (
+      "mailto:" + encodeURIComponent(e.to) +
+      "?subject=" + encodeURIComponent(e.subject) +
+      "&body=" + encodeURIComponent(e.body)
+    );
   }
 
   async function voidInvoice(id) {
@@ -4020,7 +4060,7 @@ if (devTabs.length) {
           </div>
           <div class="invoice-tag-row">
             ${invoiceStatusTag(inv)}
-            ${inv.due_at && !paid ? `<span class="invoice-tag tag-due">Due ${formatDate(inv.due_at)}</span>` : ""}
+            ${inv.due_at && !paid ? `<span class="invoice-tag tag-due">Due ${invoiceDate(inv.due_at)}</span>` : ""}
           </div>
           <ul class="invoice-mini-lines">
             ${(inv.lines || [])

@@ -4685,7 +4685,31 @@ body.script-modal-open { overflow: hidden; }
 }
 
 .invoice-line-row { margin-bottom: 10px; }
-.invoice-line-row input { width: 100%; }
+
+/* The line inputs sit outside .form-group, so they don't inherit the site's
+   field styling and were rendering as bare white boxes. */
+.invoice-line-row input,
+.inv-price-wrap input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.invoice-line-row input:focus,
+.inv-price-wrap input:focus {
+  outline: none;
+  border-color: rgba(109, 78, 232, 0.6);
+  box-shadow: 0 0 0 3px rgba(109, 78, 232, 0.15);
+}
+
+.invoice-line-row input::placeholder { color: var(--text-muted); opacity: 0.7; }
+.inv-qty { text-align: center; }
 
 .inv-price-wrap { position: relative; display: flex; align-items: center; }
 .inv-price-wrap span {
