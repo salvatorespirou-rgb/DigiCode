@@ -125,9 +125,16 @@
 
   // ----- The storefront -----------------------------------------------------
 
+  var IMAGE_BASE =
+    "https://phlmnlildwkkichlbtoy.supabase.co/storage/v1/object/public/script-images/";
+
   function card(s) {
     return (
       '<article class="script-card">' +
+        (s.image_path
+          ? '<div class="script-thumb"><img src="' + esc(IMAGE_BASE + s.image_path) +
+            '" alt="' + esc(s.name) + '" loading="lazy" /></div>'
+          : "") +
         '<div class="script-card-top">' +
           (s.platform ? '<span class="script-platform">' + esc(s.platform) + "</span>" : "") +
           (s.version ? '<span class="script-version">v' + esc(s.version) + "</span>" : "") +

@@ -2956,6 +2956,13 @@ if (devTabs.length) {
   // ---------------------------------------------------------------------
 
   const SCRIPT_BUCKET = "script-files";
+  const SCRIPT_IMAGE_BUCKET = "script-images";
+
+  // Thumbnails live in a separate PUBLIC bucket - the zip must stay unreadable
+  // without a purchase, the shop photo has to be readable by everyone.
+  function scriptImageUrl(path) {
+    return path ? `${SUPABASE_URL}/storage/v1/object/public/${SCRIPT_IMAGE_BUCKET}/${path}` : "";
+  }
   let scriptsCache = [];
   let editingScriptId = null;
 
@@ -3031,6 +3038,27 @@ if (devTabs.length) {
           }</p>
         </div>
         <div class="form-group">
+          <span class="form-label">Thumbnail</span>
+          <div class="script-image-row">
+            <div class="script-image-preview" id="sfImagePreview">
+              ${
+                s && s.image_path
+                  ? `<img src="${escapeHtml(scriptImageUrl(s.image_path))}" alt="" />`
+                  : `<span>No image</span>`
+              }
+            </div>
+            <div class="script-image-controls">
+              <input type="file" id="sfImage" accept="image/png,image/jpeg,image/webp,image/gif" />
+              <p class="form-note">Shown on the store card. Landscape works best — around 800&times;450. Up to 5MB.</p>
+              ${
+                s && s.image_path
+                  ? `<button type="button" class="clear-cart-link danger-link" id="sfImageClear">Remove image</button>`
+                  : ""
+              }
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
           <label class="checkbox-option">
             <input type="checkbox" id="sfActive" ${s && s.active ? "checked" : ""} />
             Listed for sale on the store
@@ -3063,9 +3091,16 @@ if (devTabs.length) {
             (s) => `
         <div class="project-card${s.active ? " is-paid" : ""}">
           <div class="project-card-head">
-            <div>
-              <span class="project-service">${escapeHtml(s.platform || "Script")}${s.version ? " · v" + escapeHtml(s.version) : ""}</span>
-              <span class="project-client">${escapeHtml(s.name)}</span>
+            <div class="script-admin-head">
+              ${
+                s.image_path
+                  ? `<img class="script-admin-thumb" src="${escapeHtml(scriptImageUrl(s.image_path))}" alt="" />`
+                  : ""
+              }
+              <div>
+                <span class="project-service">${escapeHtml(s.platform || "Script")}${s.version ? " · v" + escapeHtml(s.version) : ""}</span>
+                <span class="project-client">${escapeHtml(s.name)}</span>
+              </div>
             </div>
             <span class="project-date">$${(s.price_cents / 100).toFixed(2)}</span>
           </div>
@@ -3089,6 +3124,21 @@ if (devTabs.length) {
     panel.querySelector("#scriptForm").addEventListener("submit", (e) => {
       e.preventDefault();
       saveScript(editing);
+    });
+
+    // Show the chosen image straight away — picking a thumbnail blind and only
+    // finding out how it crops after saving is a poor way to do it.
+    const imgInput = panel.querySelector("#sfImage");
+    imgInput?.addEventListener("change", () => {
+      const f = imgInput.files[0];
+      const box = panel.querySelector("#sfImagePreview");
+      if (!f || !box) return;
+      const url = URL.createObjectURL(f);
+      box.innerHTML = `<img src="${url}" alt="" />`;
+    });
+
+    panel.querySelector("#sfImageClear")?.addEventListener("click", () => {
+      clearScriptImage(editing);
     });
     panel.querySelector("#sfCancel")?.addEventListener("click", () => {
       editingScriptId = null;
@@ -3155,6 +3205,26 @@ if (devTabs.length) {
         fields.file_bytes = file.size;
       }
 
+      const image = document.getElementById("sfImage").files[0];
+      if (image) {
+        status.textContent = "Uploading image…";
+        const ipath =
+          fields.slug + "/" + Date.now() + "-" + image.name.replace(/[^A-Za-z0-9._-]/g, "_");
+        const iup = await digicodeSupabase.storage
+          .from(SCRIPT_IMAGE_BUCKET)
+          .upload(ipath, image, { upsert: false, contentType: image.type || undefined });
+        if (iup.error) throw iup.error;
+
+        // Replacing a thumbnail shouldn't leave the old one lying in storage.
+        if (existing && existing.image_path) {
+          await digicodeSupabase.storage
+            .from(SCRIPT_IMAGE_BUCKET)
+            .remove([existing.image_path])
+            .catch(() => {});
+        }
+        fields.image_path = ipath;
+      }
+
       if (existing) {
         const { error } = await digicodeSupabase
           .from("script_products")
@@ -3175,6 +3245,24 @@ if (devTabs.length) {
       status.textContent =
         "Couldn't save that — " + (err && err.message ? err.message : "check permissions.");
     }
+  }
+
+  async function clearScriptImage(s) {
+    if (!s || !s.image_path) return;
+    if (!window.confirm("Remove the thumbnail from this listing?")) return;
+    try {
+      await digicodeSupabase.storage.from(SCRIPT_IMAGE_BUCKET).remove([s.image_path]);
+      const { error } = await digicodeSupabase
+        .from("script_products")
+        .update({ image_path: null, updated_at: new Date().toISOString() })
+        .eq("id", s.id);
+      if (error) throw error;
+    } catch (e) {
+      window.alert("Couldn't remove that image.");
+      return;
+    }
+    await loadScripts();
+    renderScriptsPanel();
   }
 
   async function toggleScript(id) {

@@ -4519,3 +4519,60 @@ body.script-modal-open { overflow: hidden; }
   .script-store-grid { grid-template-columns: 1fr; }
   .script-card-foot { flex-direction: column; align-items: stretch; }
 }
+
+/* Script thumbnails. The store card's image is the first thing a buyer looks
+   at, so it gets a real aspect ratio rather than whatever was uploaded. */
+.script-thumb {
+  margin: -24px -24px 4px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.script-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Portal: the upload row and its preview */
+.script-image-row {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.script-image-preview {
+  width: 160px;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.script-image-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.script-image-preview span { font-size: 0.75rem; color: var(--text-muted); }
+
+.script-image-controls { flex: 1; min-width: 220px; display: grid; gap: 8px; }
+
+.script-admin-head { display: flex; gap: 14px; align-items: center; }
+
+.script-admin-thumb {
+  width: 64px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 620px) {
+  .script-image-preview { width: 100%; }
+}
