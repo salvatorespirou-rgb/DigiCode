@@ -3029,6 +3029,20 @@ if (devTabs.length) {
           <textarea id="sfDesc" rows="5" placeholder="What it does, what it needs to run, what's included. Buyers read this before they read the price.">${v("description")}</textarea>
         </div>
         <div class="form-group">
+          <span class="form-label">How is it delivered?</span>
+          <div class="radio-row">
+            <label class="radio-option">
+              <input type="radio" name="sfDelivery" value="file" ${s && s.drive_url ? "" : "checked"} />
+              Upload the file (up to 50MB)
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="sfDelivery" value="drive" ${s && s.drive_url ? "checked" : ""} />
+              Google Drive link (for bigger files)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" id="sfFileGroup">
           <span class="form-label">Script file (.zip)</span>
           <input type="file" id="sfFile" accept=".zip,.rar,.7z" />
           <p class="form-note" id="sfFileNote">${
@@ -3036,6 +3050,17 @@ if (devTabs.length) {
               ? "Currently: " + escapeHtml(s.file_name) + " · " + scriptSize(s.file_bytes) + ". Choose a file only to replace it."
               : "Up to 50MB (the Supabase plan limit). This is what the buyer downloads."
           }</p>
+        </div>
+
+        <div class="form-group" id="sfDriveGroup" ${s && s.drive_url ? "" : "hidden"}>
+          <label for="sfDrive">Google Drive link</label>
+          <input type="url" id="sfDrive" value="${escapeHtml((s && s.drive_url) || "")}"
+                 placeholder="https://drive.google.com/file/d/..." />
+          <p class="form-note">
+            Set the file's sharing to <strong>Anyone with the link</strong> in Drive, or buyers
+            won't be able to open it. Revealed only after payment — but unlike an uploaded file,
+            a Drive link can't expire, so anyone a buyer passes it to can download it too.
+          </p>
         </div>
         <div class="form-group">
           <span class="form-label">Thumbnail</span>
@@ -3108,7 +3133,11 @@ if (devTabs.length) {
             ${s.active ? "Live on the store" : "Draft — not listed"}
           </div>
           ${s.summary ? `<p class="project-details">${escapeHtml(s.summary)}</p>` : ""}
-          <p class="script-row-meta">${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)} · ${s.sales_count} sold</p>
+          <p class="script-row-meta">${
+            s.drive_url
+              ? `<span class="script-route">Google Drive</span> · link revealed on purchase`
+              : `${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)}`
+          } · ${s.sales_count} sold</p>
           <div class="project-actions">
             <button type="button" class="clear-cart-link script-edit" data-id="${s.id}">Edit</button>
             <button type="button" class="clear-cart-link script-toggle" data-id="${s.id}">${s.active ? "Unlist" : "List for sale"}</button>
@@ -3139,6 +3168,15 @@ if (devTabs.length) {
 
     panel.querySelector("#sfImageClear")?.addEventListener("click", () => {
       clearScriptImage(editing);
+    });
+
+    // Only ever show the field for the route actually chosen.
+    panel.querySelectorAll('input[name="sfDelivery"]').forEach((r) => {
+      r.addEventListener("change", () => {
+        const drive = r.value === "drive" && r.checked;
+        panel.querySelector("#sfFileGroup").hidden = drive;
+        panel.querySelector("#sfDriveGroup").hidden = !drive;
+      });
     });
     panel.querySelector("#sfCancel")?.addEventListener("click", () => {
       editingScriptId = null;
@@ -3172,8 +3210,21 @@ if (devTabs.length) {
       status.textContent = "That price doesn't look right.";
       return;
     }
-    if (!existing && !file) {
+    const delivery =
+      document.querySelector('input[name="sfDelivery"]:checked')?.value || "file";
+    const driveUrl = (document.getElementById("sfDrive")?.value || "").trim();
+
+    if (delivery === "drive") {
+      if (!/^https:\/\/(drive|docs)\.google\.com\//i.test(driveUrl)) {
+        status.textContent =
+          "That doesn't look like a Google Drive link — it should start with https://drive.google.com/";
+        return;
+      }
+    } else if (!existing && !file) {
       status.textContent = "Choose the script file to upload.";
+      return;
+    } else if (existing && !existing.file_path && !file) {
+      status.textContent = "This listing has no file yet — choose one to upload.";
       return;
     }
 
@@ -3181,10 +3232,10 @@ if (devTabs.length) {
     // rules are even consulted, so say so here rather than letting the upload
     // run and fail with a less obvious message.
     const MAX_UPLOAD = 50 * 1024 * 1024;
-    if (file && file.size > MAX_UPLOAD) {
+    if (delivery === "file" && file && file.size > MAX_UPLOAD) {
       status.textContent =
         `That file is ${(file.size / 1048576).toFixed(1)}MB. The plan caps uploads at 50MB — ` +
-        `split it, compress it harder, or upgrade Supabase to Pro.`;
+        `split it, or switch to a Google Drive link above.`;
       return;
     }
     const imageCheck = document.getElementById("sfImage").files[0];
@@ -3209,7 +3260,18 @@ if (devTabs.length) {
     };
 
     try {
-      if (file) {
+      // Switching to Drive clears the stored file, and vice versa - a listing
+      // is delivered one way or the other, never ambiguously both.
+      if (delivery === "drive") {
+        fields.drive_url = driveUrl;
+        fields.file_path = null;
+        fields.file_name = null;
+        fields.file_bytes = null;
+      } else {
+        fields.drive_url = null;
+      }
+
+      if (delivery === "file" && file) {
         const path =
           fields.slug + "/" + Date.now() + "-" + file.name.replace(/[^A-Za-z0-9._-]/g, "_");
         const up = await digicodeSupabase.storage

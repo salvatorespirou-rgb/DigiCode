@@ -4576,3 +4576,9 @@ body.script-modal-open { overflow: hidden; }
 @media (max-width: 620px) {
   .script-image-preview { width: 100%; }
 }
+
+/* Which delivery route a listing uses, in the portal's script list. */
+.script-route {
+  color: #8fd4ff;
+  font-weight: 600;
+}

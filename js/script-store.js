@@ -71,10 +71,15 @@
           return (
             '<div class="script-paid-row">' +
             "<div><strong>" + esc(r.name) + "</strong>" +
-            '<span class="script-paid-meta">' + esc(r.file_name || "") +
-            (r.file_bytes ? " · " + size(r.file_bytes) : "") + "</span></div>" +
+            '<span class="script-paid-meta">' +
+            (r.delivery === "drive"
+              ? "Hosted on Google Drive"
+              : esc(r.file_name || "") + (r.file_bytes ? " · " + size(r.file_bytes) : "")) +
+            "</span></div>" +
             '<button type="button" class="btn btn-primary btn-small-inline script-get" ' +
-            'data-token="' + esc(r.token) + '">Download</button>' +
+            'data-token="' + esc(r.token) + '">' +
+            (r.delivery === "drive" ? "Open in Drive" : "Download") +
+            "</button>" +
             "</div>"
           );
         })
@@ -105,6 +110,18 @@
       var data = await res.json();
 
       if (!res.ok || !data.url) throw new Error(data.error || "no url");
+
+      if (data.delivery === "drive") {
+        // Drive opens its own page rather than starting a download, so keep
+        // this tab where it is — the buyer still has their other files here.
+        window.open(data.url, "_blank", "noopener");
+        btn.textContent = "Opened in Drive";
+        setTimeout(function () {
+          btn.disabled = false;
+          btn.textContent = original;
+        }, 4000);
+        return;
+      }
 
       // The signed URL is short-lived, so send them straight to it.
       window.location.href = data.url;

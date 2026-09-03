@@ -61,9 +61,19 @@ Deno.serve(async (req) => {
     const rows = await res.json();
     const row = Array.isArray(rows) ? rows[0] : rows;
 
-    if (!row?.file_path) {
+    if (!row?.file_path && !row?.drive_url) {
       // Same answer for "never existed" and "not paid for" — no probing.
       return json({ error: "That download link isn't valid." }, 404);
+    }
+
+    // Delivered by Drive: hand over the link. Unlike a signed URL this cannot
+    // expire, which is the trade the seller accepted to ship files over 50MB.
+    if (!row.file_path && row.drive_url) {
+      return json({
+        url: row.drive_url,
+        fileName: row.file_name ?? "",
+        delivery: "drive",
+      });
     }
 
     const signRes = await fetch(
@@ -88,6 +98,7 @@ Deno.serve(async (req) => {
       url: `${SUPABASE_URL}/storage/v1${path}`,
       fileName: row.file_name ?? "script.zip",
       expiresIn: EXPIRES_IN,
+      delivery: "file",
     });
   } catch (err) {
     console.error(err);
