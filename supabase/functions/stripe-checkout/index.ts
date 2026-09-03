@@ -61,6 +61,8 @@ async function rpc(name: string, args: Record<string, unknown>) {
   return res.json();
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Stripe's API takes form encoding, including for nested fields. */
 function form(obj: Record<string, string | number | undefined>) {
   const p = new URLSearchParams();
@@ -80,6 +82,84 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
+
+    // ---- Paying a priced quote -------------------------------------------
+    //
+    // A different shape of purchase to a cart: there are no SKUs, because a
+    // lead developer wrote the lines by hand in the portal. The rule is
+    // unchanged though — the browser sends only the reference, and the amount
+    // is read out of the invoices table here. A caller who edits the number
+    // in dev tools is sending a field this branch never looks at.
+    const invoiceRef = typeof body?.invoice === "string" ? body.invoice.trim() : "";
+    if (invoiceRef) {
+      if (!UUID.test(invoiceRef)) return json({ error: "Invalid payment link." }, 400);
+      if (!STRIPE_KEY) return json({ error: "Payment is not configured yet." }, 503);
+
+      const rows = await rpc("invoice_for_payment", { p_reference: invoiceRef });
+      const inv = Array.isArray(rows) ? rows[0] : rows;
+
+      // Same answer for "no such invoice", "still a draft" and "cancelled" —
+      // a link that isn't payable gives nothing away about why.
+      if (!inv) return json({ error: "That payment link isn't valid." }, 404);
+      if (inv.status === "paid") {
+        return json({ error: "That invoice has already been paid.", paid: true }, 409);
+      }
+      if (!inv.total_cents || inv.total_cents < 50) {
+        return json({ error: "That invoice has no amount to pay." }, 400);
+      }
+
+      const ip = form({
+        mode: "payment",
+        success_url: `${SITE}/invoice.html?ref=${invoiceRef}&paid=1`,
+        cancel_url: `${SITE}/invoice.html?ref=${invoiceRef}`,
+        client_reference_id: invoiceRef,
+        "metadata[invoice_reference]": invoiceRef,
+        allow_promotion_codes: "false",
+      });
+
+      // Any discount is already inside total_cents, so it is spread across the
+      // lines the same way the cart does it — the customer is charged exactly
+      // the total the invoice showed them.
+      const ilines = Array.isArray(inv.lines) ? inv.lines : [];
+      const gross = Number(inv.subtotal_cents) || 0;
+      const factor = gross > 0 ? Number(inv.total_cents) / gross : 1;
+
+      let n = 0;
+      for (const l of ilines) {
+        const unit = Math.max(1, Math.round((Number(l.unit_cents) || 0) * factor));
+        ip.append(`line_items[${n}][quantity]`, String(Number(l.qty) || 1));
+        ip.append(`line_items[${n}][price_data][currency]`, inv.currency || "aud");
+        ip.append(`line_items[${n}][price_data][unit_amount]`, String(unit));
+        ip.append(
+          `line_items[${n}][price_data][product_data][name]`,
+          String(l.description || "Service").slice(0, 250),
+        );
+        n++;
+      }
+      if (!n) return json({ error: "That invoice has nothing on it." }, 400);
+
+      const ires = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${STRIPE_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: ip,
+      });
+
+      const isession = await ires.json();
+      if (!ires.ok) {
+        console.error("stripe error (invoice)", isession);
+        return json(
+          { error: isession?.error?.message ?? "Stripe rejected the request." },
+          502,
+        );
+      }
+
+      return json({ url: isession.url, reference: invoiceRef });
+    }
+
+    // ---- Paying for a cart ------------------------------------------------
     const items = Array.isArray(body?.items) ? body.items : [];
     const code = typeof body?.code === "string" ? body.code.slice(0, 60) : null;
     const email = typeof body?.email === "string" ? body.email.slice(0, 200) : null;

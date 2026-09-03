@@ -1839,6 +1839,7 @@ if (devTabs.length) {
     ["Manage Discount Codes", "Manage Discount Codes"],
     ["Delete Projects", "Delete Projects"],
     ["Manage Scripts", "List Scripts For Sale"],
+    ["Price Quotes", "Price & Send Quotes"],
   ];
   const DEV_RANKS = ["Junior Developer", "Developer", "Senior Developer", "Lead Developer"];
   const DEFAULT_NEW_DEV_PERMISSIONS = ["View Pending", "View Assigned", "View Finished"];
@@ -2602,6 +2603,7 @@ if (devTabs.length) {
 
   function renderAllPanels() {
     renderPendingPanel();
+    renderInvoicesPanel();
     renderDiscountsPanel();
     renderAssignedPanel();
     renderFinishedPanel();
@@ -2633,9 +2635,14 @@ if (devTabs.length) {
     const demoProject = projects[0];
 
     if (!demoProject) {
+      // An invoice can exist before there is a project — a quote priced for
+      // someone who hasn't bought anything yet. Still show it, or they have
+      // no way to pay from in here.
+      const invoicesOnly = clientInvoicesHtml();
       clientViewContainer.innerHTML = isRealClient
-        ? `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:developerteam@digi-code.com.au">developerteam@digi-code.com.au</a> and we'll sort it out.</p>
-           <div style="text-align: center; margin-top: 24px;"><button type="button" class="clear-cart-link" data-portal-logout>Log out</button></div>`
+        ? (invoicesOnly ||
+            `<p class="dev-empty">We don't have a project on file for this account yet. If you've just purchased a build or plan, make sure you checked out with this same email — otherwise email <a href="mailto:developerteam@digi-code.com.au">developerteam@digi-code.com.au</a> and we'll sort it out.</p>`) +
+           `<div style="text-align: center; margin-top: 24px;"><button type="button" class="clear-cart-link" data-portal-logout>Log out</button></div>`
         : `<p class="dev-empty">No projects exist yet to preview.</p>`;
       return;
     }
@@ -2774,6 +2781,7 @@ if (devTabs.length) {
       </div>
       ${healthHtml}
       ${reviewHtml}
+      ${clientInvoicesHtml()}
 
       <h2 class="dashboard-section-title" style="margin-top: 40px;">Message Your Developer</h2>
       <div class="chat-thread">
@@ -3394,6 +3402,650 @@ if (devTabs.length) {
   }
   // ---------------------------------------------------------------------
 
+
+  // ---------------------------------------------------------------------
+  // Invoices — putting a price on a quote
+  //
+  // A quote request arrives with no number on it. This is where someone
+  // permitted writes the lines, adds whatever extra services the job needs,
+  // and sends it. Sending turns the reference into a working pay link.
+  //
+  // Only the Lead Developer, or a dev granted "Price Quotes", sees any of
+  // this. can_price_quotes() in supabase/032 is the real gate — everything
+  // below only decides what to draw.
+  // ---------------------------------------------------------------------
+
+  let invoicesCache = [];
+  let invoiceDraft = null; // null = no form open
+
+  function canPriceQuotes() {
+    const email = (window.digicodePortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Price Quotes");
+  }
+
+  function money(cents) {
+    return "$" + ((Number(cents) || 0) / 100).toFixed(2);
+  }
+
+  // The form takes dollars because that is what people think in; everything
+  // past this point is cents, so rounding happens once, here.
+  function toCents(dollars) {
+    const n = Number(String(dollars).replace(/[^0-9.]/g, ""));
+    return isFinite(n) ? Math.round(n * 100) : 0;
+  }
+
+  function invoicePayUrl(ref) {
+    return location.origin + location.pathname.replace(/[^/]*$/, "") + "invoice.html?ref=" + ref;
+  }
+
+  async function loadInvoices() {
+    const { data, error } = await digicodeSupabase
+      .from("invoices")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error) invoicesCache = data || [];
+    return invoicesCache;
+  }
+
+  function blankDraft(project) {
+    return {
+      id: null,
+      projectId: project ? project.id : null,
+      clientName: project ? project.clientName || "" : "",
+      clientEmail: project ? project.clientEmail || "" : "",
+      title: project ? "Quote — " + (project.service || "Custom work") : "Quote",
+      lines: [{ description: project ? project.service || "" : "", qty: 1, dollars: "" }],
+      notes: "",
+      dueAt: "",
+      discount: "",
+    };
+  }
+
+  function draftFromInvoice(inv) {
+    return {
+      id: inv.id,
+      projectId: inv.project_id,
+      clientName: inv.client_name || "",
+      clientEmail: inv.client_email || "",
+      title: inv.title || "Quote",
+      lines: (inv.lines || []).map((l) => ({
+        description: l.description || "",
+        qty: Number(l.qty) || 1,
+        dollars: ((Number(l.unit_cents) || 0) / 100).toFixed(2),
+      })),
+      notes: inv.notes || "",
+      dueAt: inv.due_at || "",
+      discount: inv.discount_cents ? (inv.discount_cents / 100).toFixed(2) : "",
+    };
+  }
+
+  function draftTotals(d) {
+    const subtotal = d.lines.reduce(
+      (sum, l) => sum + toCents(l.dollars) * (Number(l.qty) || 1),
+      0
+    );
+    const discount = Math.min(subtotal, toCents(d.discount));
+    return { subtotal, discount, total: subtotal - discount };
+  }
+
+  function invoiceLineLabel(l) {
+    const cents = l.line_cents != null ? l.line_cents : (l.unit_cents || 0) * (l.qty || 1);
+    return money(cents);
+  }
+
+  function invoiceFormHtml(d) {
+    const t = draftTotals(d);
+    const lineRows = d.lines
+      .map(
+        (l, i) => `
+      <div class="invoice-line-row" data-i="${i}">
+        <input type="text" class="inv-desc" placeholder="What it's for" value="${escapeHtml(l.description)}" />
+        <input type="number" class="inv-qty" min="1" max="999" step="1" value="${Number(l.qty) || 1}" aria-label="Quantity" />
+        <div class="inv-price-wrap"><span>$</span><input type="text" class="inv-price" inputmode="decimal" placeholder="0.00" value="${escapeHtml(l.dollars)}" aria-label="Unit price" /></div>
+        <button type="button" class="inv-line-remove" data-i="${i}" aria-label="Remove line"${d.lines.length === 1 ? " disabled" : ""}>&times;</button>
+      </div>`
+      )
+      .join("");
+
+    return `
+      <form class="form-card invoice-builder" id="invoiceForm">
+        <h2>${d.id ? "Edit invoice" : "Price this quote"}</h2>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="ivTitle">Title</label>
+            <input type="text" id="ivTitle" value="${escapeHtml(d.title)}" placeholder="Quote — Business website" />
+          </div>
+          <div class="form-group">
+            <label for="ivDue">Due by <span class="form-optional">(optional)</span></label>
+            <input type="date" id="ivDue" value="${escapeHtml(d.dueAt)}" />
+          </div>
+          <div class="form-group">
+            <label for="ivName">Client name</label>
+            <input type="text" id="ivName" value="${escapeHtml(d.clientName)}" placeholder="Jane Smith" />
+          </div>
+          <div class="form-group">
+            <label for="ivEmail">Client email</label>
+            <input type="email" id="ivEmail" value="${escapeHtml(d.clientEmail)}" placeholder="jane@example.com" />
+          </div>
+        </div>
+
+        <h3 class="invoice-lines-head">What they're paying for</h3>
+        <div class="invoice-line-head">
+          <span>Description</span><span>Qty</span><span>Unit price</span><span></span>
+        </div>
+        <div id="invoiceLines">${lineRows}</div>
+        <button type="button" class="btn btn-ghost btn-small" id="ivAddLine">+ Add another service</button>
+
+        <div class="form-grid" style="margin-top: 22px;">
+          <div class="form-group">
+            <label for="ivDiscount">Discount <span class="form-optional">(optional, in dollars)</span></label>
+            <div class="inv-price-wrap"><span>$</span><input type="text" id="ivDiscount" inputmode="decimal" placeholder="0.00" value="${escapeHtml(d.discount)}" /></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ivNotes">Notes for the client <span class="form-optional">(optional)</span></label>
+          <textarea id="ivNotes" rows="3" placeholder="What's included, timeframes, anything they should know before paying.">${escapeHtml(d.notes)}</textarea>
+        </div>
+
+        <div class="invoice-builder-total">
+          <div><span>Subtotal</span><strong id="ivSubtotal">${money(t.subtotal)}</strong></div>
+          <div${t.discount ? "" : ' hidden id="ivDiscountRow"'}${t.discount ? ' id="ivDiscountRow"' : ""}><span>Discount</span><strong id="ivDiscountShown">−${money(t.discount)}</strong></div>
+          <div class="invoice-builder-grand"><span>Total</span><strong id="ivTotal">${money(t.total)}</strong></div>
+        </div>
+
+        <p class="portal-login-error" id="ivError" hidden></p>
+
+        <div class="invoice-builder-actions">
+          <button type="submit" class="btn btn-primary" id="ivSave">${d.id ? "Save changes" : "Save draft"}</button>
+          <button type="button" class="clear-cart-link" id="ivCancel">Cancel</button>
+        </div>
+        <p class="form-note">Saving keeps it as a draft — the client sees nothing until you send it.</p>
+      </form>`;
+  }
+
+  function invoiceStatusTag(inv) {
+    const map = {
+      draft: ["Draft", "tag-draft"],
+      sent: ["Sent", "tag-sent"],
+      paid: ["Paid", "tag-paid"],
+      void: ["Cancelled", "tag-void"],
+    };
+    const pair = map[inv.status] || ["—", ""];
+    return '<span class="invoice-tag ' + pair[1] + '">' + pair[0] + "</span>";
+  }
+
+  function invoiceRowHtml(inv) {
+    const sent = inv.status === "sent";
+    const paid = inv.status === "paid";
+    const voided = inv.status === "void";
+    const url = invoicePayUrl(inv.reference);
+
+    return `
+      <div class="project-card invoice-card${paid ? " is-paid" : voided ? " is-cancelled" : ""}">
+        <div class="project-card-head">
+          <div>
+            <span class="project-service">${escapeHtml(inv.title)}</span>
+            <span class="project-client">${escapeHtml(inv.client_name) || "No name"}${inv.client_email ? " · " + escapeHtml(inv.client_email) : ""}</span>
+          </div>
+          <span class="project-date">${money(inv.total_cents)}</span>
+        </div>
+
+        <div class="invoice-tag-row">
+          ${invoiceStatusTag(inv)}
+          ${inv.due_at && !paid ? `<span class="invoice-tag tag-due">Due ${formatDate(inv.due_at)}</span>` : ""}
+        </div>
+
+        <ul class="invoice-mini-lines">
+          ${(inv.lines || [])
+            .map(
+              (l) =>
+                `<li><span>${escapeHtml(l.description)}${Number(l.qty) > 1 ? " × " + Number(l.qty) : ""}</span><span>${invoiceLineLabel(l)}</span></li>`
+            )
+            .join("")}
+        </ul>
+
+        ${inv.notes ? `<p class="project-details">${escapeHtml(inv.notes)}</p>` : ""}
+
+        ${
+          paid
+            ? `<p class="project-assigned-to">Paid ${formatDate(inv.paid_at)}</p>`
+            : voided
+              ? `<p class="dev-empty">Cancelled — the pay link no longer works.</p>`
+              : sent
+                ? `<p class="project-assigned-to">Sent ${formatDate(inv.sent_at)}${inv.delivery ? " · by " + escapeHtml(inv.delivery === "both" ? "email and portal" : inv.delivery) : ""}</p>
+                   <div class="invoice-link-row">
+                     <input type="text" class="invoice-link" readonly value="${escapeHtml(url)}" aria-label="Payment link" />
+                     <button type="button" class="btn btn-ghost btn-small iv-copy" data-url="${escapeHtml(url)}">Copy link</button>
+                   </div>`
+                : `<p class="dev-empty">Not sent yet — the client can't see this.</p>`
+        }
+
+        <div class="project-actions invoice-actions-row">
+          ${
+            !paid && !voided
+              ? `<button type="button" class="btn btn-primary btn-small-inline iv-send" data-id="${inv.id}">${sent ? "Send again" : "Send"}</button>
+                 <button type="button" class="clear-cart-link iv-edit" data-id="${inv.id}">Edit</button>
+                 <button type="button" class="clear-cart-link iv-void" data-id="${inv.id}">Cancel invoice</button>`
+              : ""
+          }
+          ${paid ? `<button type="button" class="clear-cart-link iv-copy" data-url="${escapeHtml(url)}">Copy receipt link</button>` : ""}
+          ${!paid ? `<button type="button" class="clear-cart-link danger-link iv-delete" data-id="${inv.id}">Delete</button>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function renderInvoicesPanel() {
+    const panel = document.getElementById("invoicesPanel");
+    if (!panel) return;
+
+    if (!canPriceQuotes()) {
+      panel.innerHTML = `<p class="dev-empty">Pricing and sending quotes needs the Lead Developer rank or the "Price Quotes" permission.</p>`;
+      return;
+    }
+
+    const formHtml = invoiceDraft ? invoiceFormHtml(invoiceDraft) : "";
+
+    // Quotes still waiting on a number, so they can be priced straight from
+    // here rather than hunting through Pending Projects.
+    const invoiced = new Set(
+      invoicesCache.filter((i) => i.status !== "void").map((i) => i.project_id)
+    );
+    const waiting = getProjects().filter(
+      (p) => p.orderKind === "quote" && p.status !== "cancelled" && !invoiced.has(p.id)
+    );
+
+    const waitingHtml = waiting.length
+      ? `<div class="invoice-waiting">
+           <h3 class="cancelled-head">Quotes waiting on a price (${waiting.length})</h3>
+           ${waiting
+             .map(
+               (p) => `
+             <div class="project-card is-quote">
+               <div class="project-card-head">
+                 <div>
+                   <span class="project-service">${escapeHtml(p.service)}</span>
+                   <span class="project-client">${escapeHtml(p.clientName) || "No name provided"}${p.clientEmail ? " · " + escapeHtml(p.clientEmail) : ""}</span>
+                 </div>
+                 <span class="project-date">Asked ${formatDate(p.createdAt)}</span>
+               </div>
+               <p class="project-details">${escapeHtml(p.details) || "No details provided."}</p>
+               <button type="button" class="btn btn-primary btn-small-inline iv-price" data-project="${p.id}">Price this quote</button>
+             </div>`
+             )
+             .join("")}
+         </div>`
+      : "";
+
+    const listHtml = invoicesCache.length
+      ? invoicesCache.map(invoiceRowHtml).join("")
+      : `<p class="dev-empty">No invoices yet. Price a quote above, or start one from scratch.</p>`;
+
+    panel.innerHTML =
+      formHtml +
+      (invoiceDraft
+        ? ""
+        : `<button type="button" class="btn btn-ghost" id="ivNew" style="margin-bottom: 26px;">+ New invoice</button>`) +
+      waitingHtml +
+      `<h3 class="cancelled-head" style="margin-top: 30px;">All invoices (${invoicesCache.length})</h3>` +
+      listHtml;
+
+    wireInvoicePanel(panel);
+  }
+
+  function readDraftFromForm() {
+    if (!invoiceDraft) return null;
+    const d = invoiceDraft;
+    const val = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    };
+    if (!document.getElementById("invoiceForm")) return d;
+    d.title = val("ivTitle");
+    d.clientName = val("ivName");
+    d.clientEmail = val("ivEmail");
+    d.notes = val("ivNotes");
+    d.dueAt = val("ivDue");
+    d.discount = val("ivDiscount");
+    d.lines = [...document.querySelectorAll(".invoice-line-row")].map((row) => {
+      const pick = (sel) => {
+        const el = row.querySelector(sel);
+        return el ? el.value : "";
+      };
+      return {
+        description: pick(".inv-desc"),
+        qty: Number(pick(".inv-qty")) || 1,
+        dollars: pick(".inv-price"),
+      };
+    });
+    return d;
+  }
+
+  // Retotals in place. Re-rendering the whole panel on every keystroke would
+  // throw away the caret, so only the numbers change.
+  function refreshDraftTotals() {
+    if (!invoiceDraft) return;
+    readDraftFromForm();
+    const t = draftTotals(invoiceDraft);
+    const set = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    };
+    set("ivSubtotal", money(t.subtotal));
+    set("ivDiscountShown", "−" + money(t.discount));
+    set("ivTotal", money(t.total));
+    const row = document.getElementById("ivDiscountRow");
+    if (row) row.hidden = !t.discount;
+  }
+
+  function wireInvoicePanel(panel) {
+    const newBtn = panel.querySelector("#ivNew");
+    if (newBtn) {
+      newBtn.addEventListener("click", () => {
+        invoiceDraft = blankDraft(null);
+        renderInvoicesPanel();
+      });
+    }
+
+    panel.querySelectorAll(".iv-price").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const p = getProjects().find((x) => x.id === btn.dataset.project);
+        invoiceDraft = blankDraft(p);
+        renderInvoicesPanel();
+        const form = document.getElementById("invoiceForm");
+        if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    panel.querySelectorAll(".iv-edit").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const inv = invoicesCache.find((i) => String(i.id) === String(btn.dataset.id));
+        if (!inv) return;
+        invoiceDraft = draftFromInvoice(inv);
+        renderInvoicesPanel();
+        const form = document.getElementById("invoiceForm");
+        if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    panel.querySelectorAll(".iv-send").forEach((btn) => {
+      btn.addEventListener("click", () => sendInvoice(btn.dataset.id));
+    });
+    panel.querySelectorAll(".iv-void").forEach((btn) => {
+      btn.addEventListener("click", () => voidInvoice(btn.dataset.id));
+    });
+    panel.querySelectorAll(".iv-delete").forEach((btn) => {
+      btn.addEventListener("click", () => deleteInvoice(btn.dataset.id));
+    });
+    panel.querySelectorAll(".iv-copy").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.url);
+          const was = btn.textContent;
+          btn.textContent = "Copied";
+          setTimeout(() => {
+            btn.textContent = was;
+          }, 1600);
+        } catch (e) {
+          window.prompt("Copy this link:", btn.dataset.url);
+        }
+      });
+    });
+
+    const form = panel.querySelector("#invoiceForm");
+    if (!form) return;
+
+    form.addEventListener("input", refreshDraftTotals);
+
+    const addBtn = panel.querySelector("#ivAddLine");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        readDraftFromForm();
+        invoiceDraft.lines.push({ description: "", qty: 1, dollars: "" });
+        renderInvoicesPanel();
+      });
+    }
+
+    panel.querySelectorAll(".inv-line-remove").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        readDraftFromForm();
+        invoiceDraft.lines.splice(Number(btn.dataset.i), 1);
+        if (!invoiceDraft.lines.length) {
+          invoiceDraft.lines.push({ description: "", qty: 1, dollars: "" });
+        }
+        renderInvoicesPanel();
+      });
+    });
+
+    const cancelBtn = panel.querySelector("#ivCancel");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        invoiceDraft = null;
+        renderInvoicesPanel();
+      });
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await saveInvoice();
+    });
+  }
+
+  async function saveInvoice() {
+    const d = readDraftFromForm();
+    if (!d) return;
+    const err = document.getElementById("ivError");
+    const btn = document.getElementById("ivSave");
+    const show = (msg) => {
+      if (err) {
+        err.textContent = msg;
+        err.hidden = false;
+      }
+    };
+    if (err) err.hidden = true;
+
+    const lines = d.lines
+      .filter((l) => l.description.trim())
+      .map((l) => ({
+        description: l.description.trim(),
+        qty: Number(l.qty) || 1,
+        unit_cents: toCents(l.dollars),
+      }));
+
+    if (!lines.length) {
+      show("Add at least one line with a description.");
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Saving…";
+    }
+
+    const { data, error } = await digicodeSupabase.rpc("save_invoice", {
+      p_id: d.id,
+      p_project_id: d.projectId,
+      p_client_name: d.clientName,
+      p_client_email: d.clientEmail,
+      p_title: d.title,
+      p_lines: lines,
+      p_notes: d.notes,
+      p_due_at: d.dueAt || null,
+      p_discount_cents: toCents(d.discount),
+    });
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = d.id ? "Save changes" : "Save draft";
+    }
+
+    if (error) {
+      show(error.message || "Couldn't save that invoice.");
+      return;
+    }
+
+    invoiceDraft = null;
+    await loadInvoices();
+    renderInvoicesPanel();
+    return data;
+  }
+
+  // Sending is two separate things: the database records that it went out
+  // (which is what makes the pay link live), and — for email — the mail app
+  // opens with it already written. The portal copy always happens; the email
+  // is only offered when there is an address to send to.
+  async function sendInvoice(id) {
+    const inv = invoicesCache.find((i) => String(i.id) === String(id));
+    if (!inv) return;
+
+    const hasEmail = !!(inv.client_email || "").trim();
+    let delivery = "portal";
+
+    if (hasEmail) {
+      const byEmail = window.confirm(
+        'Send "' + inv.title + '" for ' + money(inv.total_cents) + " to " + inv.client_email + "?\n\n" +
+          "OK — open your mail app with the quote and pay link written out, and put it in their portal too.\n" +
+          "Cancel — put it in their client portal only."
+      );
+      delivery = byEmail ? "both" : "portal";
+    } else if (
+      !window.confirm(
+        "There's no email address on this invoice, so it can only go to the client portal. Send it there?"
+      )
+    ) {
+      return;
+    }
+
+    const { error } = await digicodeSupabase.rpc("send_invoice", {
+      p_id: inv.id,
+      p_delivery: delivery,
+    });
+
+    if (error) {
+      window.alert(error.message || "Couldn't send that invoice.");
+      return;
+    }
+
+    if (delivery === "both") {
+      const url = invoicePayUrl(inv.reference);
+      const itemLines = (inv.lines || [])
+        .map(
+          (l) =>
+            "  - " + l.description + (Number(l.qty) > 1 ? " x " + l.qty : "") +
+            " — " + invoiceLineLabel(l)
+        )
+        .join("\n");
+
+      const subject = "Your DigiCode quote — " + money(inv.total_cents);
+      const body =
+        "Hi " + (inv.client_name || "there") + ",\n\n" +
+        "Thanks for your patience — here's the quote for " + inv.title + ".\n\n" +
+        itemLines + "\n\n" +
+        (inv.discount_cents ? "  Discount — -" + money(inv.discount_cents) + "\n\n" : "") +
+        "Total: " + money(inv.total_cents) + " AUD\n" +
+        (inv.due_at ? "Due by: " + formatDate(inv.due_at) + "\n" : "") +
+        (inv.notes ? "\n" + inv.notes + "\n" : "") +
+        "\nYou can look it over and pay securely by card here:\n" + url + "\n\n" +
+        "Any questions at all, just reply to this email.\n\n" +
+        "Thanks,\nDigiCode\nhttps://www.digi-code.com.au";
+
+      window.location.href =
+        "mailto:" + encodeURIComponent(inv.client_email) +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(body);
+    }
+
+    await loadInvoices();
+    renderInvoicesPanel();
+  }
+
+  async function voidInvoice(id) {
+    const inv = invoicesCache.find((i) => String(i.id) === String(id));
+    if (!inv) return;
+    if (
+      !window.confirm(
+        'Cancel "' + inv.title + '"? The pay link stops working straight away.'
+      )
+    ) {
+      return;
+    }
+
+    const { error } = await digicodeSupabase.rpc("void_invoice", { p_id: inv.id });
+    if (error) {
+      window.alert(error.message || "Couldn't cancel that invoice.");
+      return;
+    }
+    await loadInvoices();
+    renderInvoicesPanel();
+  }
+
+  async function deleteInvoice(id) {
+    const inv = invoicesCache.find((i) => String(i.id) === String(id));
+    if (!inv) return;
+    if (!window.confirm('Delete "' + inv.title + '" completely? This can\'t be undone.')) return;
+
+    const { error } = await digicodeSupabase.from("invoices").delete().eq("id", inv.id);
+    if (error) {
+      window.alert("Couldn't delete that — your account may not have permission.");
+      return;
+    }
+    await loadInvoices();
+    renderInvoicesPanel();
+  }
+
+  // What the client sees: their own invoices, and a Pay Now that goes straight
+  // to Stripe. Drafts never reach here — the RLS policy in 032 filters them
+  // out before this code ever runs.
+  function clientInvoicesHtml() {
+    const mine = invoicesCache.filter((i) => i.status === "sent" || i.status === "paid");
+    if (!mine.length) return "";
+
+    return (
+      '<h2 class="dashboard-section-title" style="margin-top: 40px;">Invoices</h2>' +
+      '<div class="client-invoice-list">' +
+      mine
+        .map((inv) => {
+          const paid = inv.status === "paid";
+          return `
+        <div class="project-card invoice-card${paid ? " is-paid" : ""}">
+          <div class="project-card-head">
+            <div>
+              <span class="project-service">${escapeHtml(inv.title)}</span>
+              <span class="project-client">${paid ? "Paid " + formatDate(inv.paid_at) : "Sent " + formatDate(inv.sent_at)}</span>
+            </div>
+            <span class="project-date">${money(inv.total_cents)}</span>
+          </div>
+          <div class="invoice-tag-row">
+            ${invoiceStatusTag(inv)}
+            ${inv.due_at && !paid ? `<span class="invoice-tag tag-due">Due ${formatDate(inv.due_at)}</span>` : ""}
+          </div>
+          <ul class="invoice-mini-lines">
+            ${(inv.lines || [])
+              .map(
+                (l) =>
+                  `<li><span>${escapeHtml(l.description)}${Number(l.qty) > 1 ? " × " + Number(l.qty) : ""}</span><span>${invoiceLineLabel(l)}</span></li>`
+              )
+              .join("")}
+          </ul>
+          ${inv.notes ? `<p class="project-details">${escapeHtml(inv.notes)}</p>` : ""}
+          <div class="project-actions">
+            ${
+              paid
+                ? `<a class="clear-cart-link" href="invoice.html?ref=${escapeHtml(inv.reference)}">View receipt</a>`
+                : `<a class="btn btn-primary btn-small-inline" href="invoice.html?ref=${escapeHtml(inv.reference)}">Pay ${money(inv.total_cents)} Now</a>`
+            }
+          </div>
+        </div>`;
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+  // ---------------------------------------------------------------------
+
   let siteStats = null;
   let statsSnapshot = null;
 
@@ -3657,7 +4309,7 @@ if (devTabs.length) {
   if (statsRefreshBtn) statsRefreshBtn.addEventListener("click", refreshDashboard);
 
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices()]);
     renderAllPanels();
     applyPortalRole();
     subscribeToVisitorChat();

@@ -96,11 +96,20 @@ Deno.serve(async (req) => {
   }
 
   const session = event.data?.object ?? {};
-  const ref = session.client_reference_id ?? session.metadata?.order_reference;
+
+  // Two things can be paid for here, and they settle in different tables.
+  // A priced quote carries invoice_reference; a shop order carries
+  // order_reference. The metadata is set by stripe-checkout, so a session
+  // that has neither is not ours to act on.
+  const invoiceRef = session.metadata?.invoice_reference;
+  const orderRef = session.metadata?.order_reference ?? session.client_reference_id;
+
+  const fn = invoiceRef ? "mark_invoice_paid" : "mark_order_paid";
+  const ref = invoiceRef ?? orderRef;
   if (!ref) return new Response("no reference", { status: 200 });
 
-  // mark_order_paid is idempotent, so Stripe's retries are safe.
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/mark_order_paid`, {
+  // Both functions are idempotent, so Stripe's retries are safe.
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -111,7 +120,7 @@ Deno.serve(async (req) => {
   });
 
   if (!res.ok) {
-    console.error("mark_order_paid failed", res.status, await res.text());
+    console.error(`${fn} failed`, res.status, await res.text());
     // 500 tells Stripe to retry rather than silently losing the payment.
     return new Response("retry", { status: 500 });
   }
