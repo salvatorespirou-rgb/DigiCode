@@ -3223,7 +3223,7 @@ if (devTabs.length) {
     } else if (!existing && !file) {
       status.textContent = "Choose the script file to upload.";
       return;
-    } else if (existing && !existing.file_path && !file) {
+    } else if (existing && !existing.file_path && !existing.drive_url && !file) {
       status.textContent = "This listing has no file yet — choose one to upload.";
       return;
     }
@@ -3346,8 +3346,13 @@ if (devTabs.length) {
   async function toggleScript(id) {
     const s = scriptsCache.find((x) => String(x.id) === String(id));
     if (!s) return;
-    if (!s.file_path && !s.active) {
-      window.alert("Upload the script file before listing it for sale.");
+    // Either delivery route is enough to go on sale — a hosted file or a
+    // Drive link. This mirrors the script_has_a_delivery_route constraint in
+    // supabase/030, which is what actually enforces it.
+    if (!s.file_path && !s.drive_url && !s.active) {
+      window.alert(
+        "Add a script file or a Google Drive link before listing it for sale."
+      );
       return;
     }
     const { error } = await digicodeSupabase
