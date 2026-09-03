@@ -3034,7 +3034,7 @@ if (devTabs.length) {
           <p class="form-note" id="sfFileNote">${
             s && s.file_name
               ? "Currently: " + escapeHtml(s.file_name) + " · " + scriptSize(s.file_bytes) + ". Choose a file only to replace it."
-              : "Up to 200MB. This is what the buyer downloads."
+              : "Up to 50MB (the Supabase plan limit). This is what the buyer downloads."
           }</p>
         </div>
         <div class="form-group">
@@ -3174,6 +3174,22 @@ if (devTabs.length) {
     }
     if (!existing && !file) {
       status.textContent = "Choose the script file to upload.";
+      return;
+    }
+
+    // Supabase's Free plan refuses anything over 50MB before the bucket's own
+    // rules are even consulted, so say so here rather than letting the upload
+    // run and fail with a less obvious message.
+    const MAX_UPLOAD = 50 * 1024 * 1024;
+    if (file && file.size > MAX_UPLOAD) {
+      status.textContent =
+        `That file is ${(file.size / 1048576).toFixed(1)}MB. The plan caps uploads at 50MB — ` +
+        `split it, compress it harder, or upgrade Supabase to Pro.`;
+      return;
+    }
+    const imageCheck = document.getElementById("sfImage").files[0];
+    if (imageCheck && imageCheck.size > 5 * 1024 * 1024) {
+      status.textContent = "That image is over 5MB — use a smaller one.";
       return;
     }
 
