@@ -45,18 +45,30 @@ async function hmac(secret: string, payload: string) {
 /** Verify Stripe's `Stripe-Signature` header. */
 async function verify(body: string, header: string | null) {
   if (!header) return false;
-  const parts = Object.fromEntries(
-    header.split(",").map((s) => s.trim().split("=") as [string, string]),
-  );
-  const t = parts["t"];
-  const v1 = parts["v1"];
-  if (!t || !v1) return false;
+
+  // While a signing secret is being rolled, Stripe signs with both the old and
+  // the new one and sends several v1 values in the same header. Collecting
+  // them all — rather than keeping whichever happened to come last — is what
+  // stops payments being dropped during a rotation.
+  let t = "";
+  const signatures: string[] = [];
+  for (const part of header.split(",")) {
+    const idx = part.indexOf("=");
+    if (idx < 0) continue;
+    const k = part.slice(0, idx).trim();
+    const v = part.slice(idx + 1).trim();
+    if (k === "t") t = v;
+    else if (k === "v1") signatures.push(v);
+  }
+
+  if (!t || !signatures.length) return false;
 
   // Reject replays of an old signed payload.
   const age = Math.abs(Date.now() / 1000 - Number(t));
   if (!Number.isFinite(age) || age > 300) return false;
 
-  return safeEqual(await hmac(WEBHOOK_SECRET, `${t}.${body}`), v1);
+  const expected = await hmac(WEBHOOK_SECRET, `${t}.${body}`);
+  return signatures.some((sig) => safeEqual(expected, sig));
 }
 
 Deno.serve(async (req) => {
