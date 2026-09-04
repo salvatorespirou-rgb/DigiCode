@@ -3605,6 +3605,17 @@ if (devTabs.length) {
   function orderRowHtml(o) {
     const stuck = isStuck(o);
     const paid = o.status === "paid";
+    const actions = [
+      !paid
+        ? `<button type="button" class="btn btn-primary btn-small-inline order-confirm" data-ref="${escapeHtml(o.reference)}">Check with Stripe</button>`
+        : "",
+      canRemoveProjects()
+        ? `<button type="button" class="clear-cart-link danger-link order-delete"
+              data-ref="${escapeHtml(o.reference)}"
+              data-paid="${paid ? "1" : ""}"
+              data-label="${orderItemsSummary(o)}">Delete</button>`
+        : "",
+    ].filter(Boolean);
     return `
       <div class="project-card${paid ? " is-paid" : stuck ? " is-cancelled" : ""}">
         <div class="project-card-head">
@@ -3629,13 +3640,7 @@ if (devTabs.length) {
         <p class="script-row-meta">Reference: ${escapeHtml(o.reference)}${
           o.paid_at ? " · paid " + formatDate(o.paid_at) : ""
         }</p>
-        ${
-          !paid
-            ? `<div class="project-actions">
-                 <button type="button" class="btn btn-primary btn-small-inline order-confirm" data-ref="${escapeHtml(o.reference)}">Check with Stripe</button>
-               </div>`
-            : ""
-        }
+        ${actions.length ? `<div class="project-actions">${actions.join("")}</div>` : ""}
       </div>`;
   }
 
@@ -3673,6 +3678,58 @@ if (devTabs.length) {
     panel.querySelectorAll(".order-confirm").forEach((btn) => {
       btn.addEventListener("click", () => confirmOrderFromPortal(btn));
     });
+    panel.querySelectorAll(".order-delete").forEach((btn) => {
+      btn.addEventListener("click", () => deleteOrderFromPortal(btn));
+    });
+  }
+
+  // Abandoned checkouts and test runs pile up in here, and they bury the one
+  // thing this tab exists to surface: a real payment that never confirmed. So
+  // they can be thrown away — with a much louder warning on a paid one, since
+  // that row is a customer's money trail and, if they bought a script, the
+  // record their download link is issued against.
+  async function deleteOrderFromPortal(btn) {
+    const ref = btn.dataset.ref;
+    const paid = !!btn.dataset.paid;
+    const label = btn.dataset.label || "this order";
+
+    const warning = paid
+      ? `Delete the PAID order for "${label}"?\n\n` +
+        "This is a real payment. Removing it deletes the portal's record of it, and if " +
+        "the customer bought a script it also deletes the purchase their download link " +
+        "is issued against — they will not be able to recover it.\n\n" +
+        "Stripe keeps its own record either way. This can't be undone."
+      : `Delete the unpaid order for "${label}"?\n\nThis can't be undone.`;
+
+    if (!window.confirm(warning)) return;
+
+    btn.disabled = true;
+    const { data, error } = await digicodeSupabase.rpc("delete_order", {
+      p_reference: ref,
+      p_force: paid,
+    });
+
+    if (error) {
+      btn.disabled = false;
+      window.alert(
+        "Couldn't delete that order — your account may not have permission, or " +
+          "supabase/039_delete_orders.sql hasn't been run yet."
+      );
+      return;
+    }
+
+    if (data && data.purchases_removed > 0) {
+      window.alert(
+        "Order deleted, along with " +
+          data.purchases_removed +
+          (data.purchases_removed === 1 ? " script purchase" : " script purchases") +
+          " that belonged to it."
+      );
+    }
+
+    await Promise.all([loadOrders(), loadScriptSales()]);
+    renderOrdersPanel();
+    renderScriptSalesPanel();
   }
 
   async function confirmOrderFromPortal(btn) {
