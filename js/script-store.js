@@ -41,6 +41,47 @@
       : Math.round(bytes / 1024) + " KB";
   }
 
+  // A summary or description clamps to a fixed number of lines so every card
+  // in the grid stays the same height (see .script-desc in style.css) — but
+  // that leaves no way to read past the cut-off point. Each clamped field
+  // gets a "Read more" trigger right after it, as a sibling rather than
+  // something nested inside it, so the popover it opens isn't clipped by the
+  // field's own overflow:hidden. wireClampTriggers() below decides, after
+  // layout, which of these triggers a card actually needs.
+  function clampField(text, cls) {
+    if (!text) return "";
+    var full = esc(text);
+    return (
+      '<p class="' + cls + '">' + full + "</p>" +
+      '<button type="button" class="script-clamp-more">Read more' +
+      '<span class="script-clamp-panel">' + full + "</span>" +
+      "</button>"
+    );
+  }
+
+  // Only shows the trigger where the text is actually cut off — comparing
+  // scrollHeight to clientHeight after the real layout, rather than guessing
+  // from character count, which would be wrong the moment the font, card
+  // width, or line-clamp value changes.
+  function wireClampTriggers(container) {
+    container.querySelectorAll(".script-clamp-more").forEach(function (btn) {
+      var field = btn.previousElementSibling;
+      if (!field || field.scrollHeight <= field.clientHeight + 1) {
+        btn.remove();
+        return;
+      }
+      btn.classList.add("is-shown");
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var wasOpen = btn.classList.contains("is-open");
+        container.querySelectorAll(".script-clamp-more.is-open").forEach(function (b) {
+          b.classList.remove("is-open");
+        });
+        if (!wasOpen) btn.classList.add("is-open");
+      });
+    });
+  }
+
   // ----- After payment: show the downloads for this order -------------------
 
   async function showDownloads(ref) {
@@ -192,10 +233,8 @@
           (s.version ? '<span class="script-version">v' + esc(s.version) + "</span>" : "") +
         "</div>" +
         "<h3>" + esc(s.name) + "</h3>" +
-        (s.summary ? "<p class=\"script-summary\">" + esc(s.summary) + "</p>" : "") +
-        (s.description
-          ? '<p class="script-desc">' + esc(s.description) + "</p>"
-          : "") +
+        clampField(s.summary, "script-summary") +
+        clampField(s.description, "script-desc") +
         '<div class="script-card-foot">' +
           '<span class="script-price">' + esc(money(s.price_cents)) + "</span>" +
           '<button type="button" class="btn btn-primary script-buy" data-slug="' +
@@ -258,10 +297,8 @@
           (s.platform ? '<span class="script-version">' + esc(s.platform) + "</span>" : "") +
         "</div>" +
         "<h3>" + esc(s.name) + "</h3>" +
-        (s.summary ? "<p class=\"script-summary\">" + esc(s.summary) + "</p>" : "") +
-        (s.description
-          ? '<p class="script-desc">' + esc(s.description) + "</p>"
-          : "") +
+        clampField(s.summary, "script-summary") +
+        clampField(s.description, "script-desc") +
         '<div class="script-card-foot">' +
           '<span class="script-price">' + esc(money(s.price_cents)) + "</span>" +
           '<button type="button" class="btn btn-primary cfx-script-buy" data-slug="' +
@@ -405,6 +442,7 @@
       list.querySelectorAll(".script-buy").forEach(function (btn) {
         btn.addEventListener("click", function () { buy(btn); });
       });
+      wireClampTriggers(list);
     }
 
     if (cfxSection && cfxList) {
@@ -416,11 +454,21 @@
             openCfxModal(btn.dataset.slug, btn.dataset.name, btn.dataset.price);
           });
         });
+        wireClampTriggers(cfxList);
       } else {
         cfxSection.hidden = true;
       }
     }
   }
+
+  // Tapping a "Read more" trigger opens its panel without this firing (it
+  // stops propagation there); tapping anywhere else closes whichever one is
+  // open — the only way to close it on a touch device, which has no hover.
+  document.addEventListener("click", function () {
+    document.querySelectorAll(".script-clamp-more.is-open").forEach(function (b) {
+      b.classList.remove("is-open");
+    });
+  });
 
   var ref = new URLSearchParams(location.search).get("ref");
   if (ref && new URLSearchParams(location.search).get("paid") === "1") {

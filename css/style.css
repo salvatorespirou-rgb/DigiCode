@@ -4487,6 +4487,56 @@ body.script-modal-open { overflow: hidden; }
   line-clamp: 3; overflow: hidden;
 }
 
+/* The summary and description clamp to a fixed number of lines so every card
+   in the grid stays the same height — but that leaves no way to read the
+   rest. This trigger sits as a SIBLING of the clamped paragraph, not inside
+   it, so its popover isn't clipped by the paragraph's own overflow:hidden.
+   Hidden by default; JS reveals it only on the cards where the text actually
+   overflows, after checking scrollHeight against clientHeight. */
+.script-clamp-more {
+  display: none;
+  margin: 4px 0 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #8fd4ff;
+  cursor: pointer;
+  position: relative;
+}
+
+.script-clamp-more.is-shown { display: inline-block; }
+
+.script-clamp-panel {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: 260px;
+  max-width: min(70vw, 300px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-line;
+  text-align: left;
+  cursor: text;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  z-index: 30;
+}
+
+.script-clamp-more:hover .script-clamp-panel,
+.script-clamp-more:focus-visible .script-clamp-panel,
+.script-clamp-more.is-open .script-clamp-panel {
+  display: block;
+}
+
 .script-card-foot {
   display: flex; align-items: center; justify-content: space-between;
   gap: 14px; margin-top: auto; padding-top: 14px;
