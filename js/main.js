@@ -3005,8 +3005,13 @@ if (devTabs.length) {
       .slice(0, 60);
   }
 
+  const SCRIPT_CATEGORIES = ["Cars", "Custom Build Scripts", "CFX Scripts", "MLOs"];
+  const CFX_CATEGORIES = ["CFX Scripts", "MLOs"];
+
   function scriptFormHtml(s) {
     const v = (k, d) => escapeHtml(s && s[k] != null ? s[k] : d || "");
+    const category = (s && s.category) || "Custom Build Scripts";
+    const isCfx = CFX_CATEGORIES.includes(category);
     return `
       <form class="form-card script-form" id="scriptForm">
         <h2>${s ? "Edit script" : "List a new script"}</h2>
@@ -3014,6 +3019,14 @@ if (devTabs.length) {
           <div class="form-group">
             <label for="sfName">Name</label>
             <input type="text" id="sfName" value="${v("name")}" placeholder="Advanced Garage System" required />
+          </div>
+          <div class="form-group">
+            <label for="sfCategory">Category</label>
+            <select id="sfCategory">
+              ${SCRIPT_CATEGORIES.map(
+                (c) => `<option value="${escapeHtml(c)}"${c === category ? " selected" : ""}>${escapeHtml(c)}</option>`
+              ).join("")}
+            </select>
           </div>
           <div class="form-group">
             <label for="sfPlatform">Platform</label>
@@ -3036,7 +3049,7 @@ if (devTabs.length) {
           <label for="sfDesc">Full description</label>
           <textarea id="sfDesc" rows="5" placeholder="What it does, what it needs to run, what's included. Buyers read this before they read the price.">${v("description")}</textarea>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="sfDeliveryChoiceGroup" ${isCfx ? "hidden" : ""}>
           <span class="form-label">How is it delivered?</span>
           <div class="radio-row">
             <label class="radio-option">
@@ -3050,7 +3063,7 @@ if (devTabs.length) {
           </div>
         </div>
 
-        <div class="form-group" id="sfFileGroup">
+        <div class="form-group" id="sfFileGroup" ${isCfx ? "hidden" : ""}>
           <span class="form-label">Script file (.zip)</span>
           <input type="file" id="sfFile" accept=".zip,.rar,.7z" />
           <p class="form-note" id="sfFileNote">${
@@ -3060,7 +3073,7 @@ if (devTabs.length) {
           }</p>
         </div>
 
-        <div class="form-group" id="sfDriveGroup" ${s && s.drive_url ? "" : "hidden"}>
+        <div class="form-group" id="sfDriveGroup" ${isCfx || !(s && s.drive_url) ? "hidden" : ""}>
           <label for="sfDrive">Google Drive link</label>
           <input type="url" id="sfDrive" value="${escapeHtml((s && s.drive_url) || "")}"
                  placeholder="https://drive.google.com/file/d/..." />
@@ -3068,6 +3081,18 @@ if (devTabs.length) {
             Set the file's sharing to <strong>Anyone with the link</strong> in Drive, or buyers
             won't be able to open it. Revealed only after payment — but unlike an uploaded file,
             a Drive link can't expire, so anyone a buyer passes it to can download it too.
+          </p>
+        </div>
+
+        <div class="form-group cfx-listing-group" id="sfCfxGroup" ${isCfx ? "" : "hidden"}>
+          <label for="sfCfxDetails">Which cfx.re asset is this?</label>
+          <textarea id="sfCfxDetails" rows="2" placeholder="e.g. asset name or link on your cfx.re Keymaster/assets page — for your own reference when it sells">${v("cfx_details")}</textarea>
+          <p class="form-note">
+            Not shown to buyers — just enough for you to find the right asset when it's time to
+            transfer it. There's no file or Drive link for this category: a buyer gives their
+            cfx.re account name at checkout, and you complete the transfer yourself in cfx.re.
+            This is a <strong>one-off</strong> — the listing comes off the store the moment it
+            sells, since there's only one licence to give away.
           </p>
         </div>
         <div class="form-group">
@@ -3131,20 +3156,22 @@ if (devTabs.length) {
                   : ""
               }
               <div>
-                <span class="project-service">${escapeHtml(s.platform || "Script")}${s.version ? " · v" + escapeHtml(s.version) : ""}</span>
+                <span class="project-service">${escapeHtml(s.category || "Custom Build Scripts")}${s.platform ? " · " + escapeHtml(s.platform) : ""}${s.version ? " · v" + escapeHtml(s.version) : ""}</span>
                 <span class="project-client">${escapeHtml(s.name)}</span>
               </div>
             </div>
             <span class="project-date">$${(s.price_cents / 100).toFixed(2)}</span>
           </div>
-          <div class="order-flag ${s.active ? "flag-paid" : "flag-enquiry"}">
-            ${s.active ? "Live on the store" : "Draft — not listed"}
+          <div class="order-flag ${s.sold_at ? "flag-quote" : s.active ? "flag-paid" : "flag-enquiry"}">
+            ${s.sold_at ? "Sold " + formatDate(s.sold_at) : s.active ? "Live on the store" : "Draft — not listed"}
           </div>
           ${s.summary ? `<p class="project-details">${escapeHtml(s.summary)}</p>` : ""}
           <p class="script-row-meta">${
-            s.drive_url
-              ? `<span class="script-route">Google Drive</span> · link revealed on purchase`
-              : `${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)}`
+            CFX_CATEGORIES.includes(s.category)
+              ? `<span class="script-route">cfx.re transfer</span> · ${escapeHtml(s.cfx_details || "no asset noted")}`
+              : s.drive_url
+                ? `<span class="script-route">Google Drive</span> · link revealed on purchase`
+                : `${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)}`
           } · ${s.sales_count} sold</p>
           <div class="project-actions">
             <button type="button" class="clear-cart-link script-edit" data-id="${s.id}">Edit</button>
@@ -3186,6 +3213,24 @@ if (devTabs.length) {
         panel.querySelector("#sfDriveGroup").hidden = !drive;
       });
     });
+
+    // Switching category between "delivered by us" and "delivered via cfx"
+    // swaps which fields make sense — a cfx listing has no file or Drive
+    // link, and the other two categories have no cfx reference field.
+    panel.querySelector("#sfCategory")?.addEventListener("change", (e) => {
+      const isCfx = CFX_CATEGORIES.includes(e.target.value);
+      panel.querySelector("#sfCfxGroup").hidden = !isCfx;
+      panel.querySelector("#sfDeliveryChoiceGroup").hidden = isCfx;
+      if (isCfx) {
+        panel.querySelector("#sfFileGroup").hidden = true;
+        panel.querySelector("#sfDriveGroup").hidden = true;
+      } else {
+        const drive = panel.querySelector('input[name="sfDelivery"]:checked')?.value === "drive";
+        panel.querySelector("#sfFileGroup").hidden = drive;
+        panel.querySelector("#sfDriveGroup").hidden = !drive;
+      }
+    });
+
     panel.querySelector("#sfCancel")?.addEventListener("click", () => {
       editingScriptId = null;
       renderScriptsPanel();
@@ -3218,11 +3263,20 @@ if (devTabs.length) {
       status.textContent = "That price doesn't look right.";
       return;
     }
+    const category = document.getElementById("sfCategory")?.value || "Custom Build Scripts";
+    const isCfx = CFX_CATEGORIES.includes(category);
+    const cfxDetails = (document.getElementById("sfCfxDetails")?.value || "").trim();
     const delivery =
       document.querySelector('input[name="sfDelivery"]:checked')?.value || "file";
     const driveUrl = (document.getElementById("sfDrive")?.value || "").trim();
 
-    if (delivery === "drive") {
+    if (isCfx) {
+      if (!cfxDetails) {
+        status.textContent =
+          "Note which cfx.re asset this is — you'll need it to complete the transfer once it sells.";
+        return;
+      }
+    } else if (delivery === "drive") {
       if (!/^https:\/\/(drive|docs)\.google\.com\//i.test(driveUrl)) {
         status.textContent =
           "That doesn't look like a Google Drive link — it should start with https://drive.google.com/";
@@ -3240,7 +3294,7 @@ if (devTabs.length) {
     // rules are even consulted, so say so here rather than letting the upload
     // run and fail with a less obvious message.
     const MAX_UPLOAD = 50 * 1024 * 1024;
-    if (delivery === "file" && file && file.size > MAX_UPLOAD) {
+    if (!isCfx && delivery === "file" && file && file.size > MAX_UPLOAD) {
       status.textContent =
         `That file is ${(file.size / 1048576).toFixed(1)}MB. The plan caps uploads at 50MB — ` +
         `split it, or switch to a Google Drive link above.`;
@@ -3263,14 +3317,23 @@ if (devTabs.length) {
       summary: document.getElementById("sfSummary").value.trim() || null,
       description: document.getElementById("sfDesc").value.trim() || null,
       price_cents: cents,
+      category,
+      cfx_details: isCfx ? cfxDetails : null,
       active: document.getElementById("sfActive").checked,
       updated_at: new Date().toISOString(),
     };
 
     try {
-      // Switching to Drive clears the stored file, and vice versa - a listing
-      // is delivered one way or the other, never ambiguously both.
-      if (delivery === "drive") {
+      if (isCfx) {
+        // Delivered by hand through cfx.re, not hosted here — clear whichever
+        // route a listing might have had before its category changed.
+        fields.drive_url = null;
+        fields.file_path = null;
+        fields.file_name = null;
+        fields.file_bytes = null;
+      } else if (delivery === "drive") {
+        // Switching to Drive clears the stored file, and vice versa - a
+        // listing is delivered one way or the other, never ambiguously both.
         fields.drive_url = driveUrl;
         fields.file_path = null;
         fields.file_name = null;
@@ -3279,7 +3342,7 @@ if (devTabs.length) {
         fields.drive_url = null;
       }
 
-      if (delivery === "file" && file) {
+      if (!isCfx && delivery === "file" && file) {
         const path =
           fields.slug + "/" + Date.now() + "-" + file.name.replace(/[^A-Za-z0-9._-]/g, "_");
         const up = await digicodeSupabase.storage
@@ -3354,12 +3417,17 @@ if (devTabs.length) {
   async function toggleScript(id) {
     const s = scriptsCache.find((x) => String(x.id) === String(id));
     if (!s) return;
-    // Either delivery route is enough to go on sale — a hosted file or a
-    // Drive link. This mirrors the script_has_a_delivery_route constraint in
-    // supabase/030, which is what actually enforces it.
-    if (!s.file_path && !s.drive_url && !s.active) {
+    // Three delivery routes are enough to go on sale: a hosted file, a Drive
+    // link, or — for CFX Scripts / MLOs — a cfx reference note. This mirrors
+    // the script_has_a_delivery_route constraint in supabase/033, which is
+    // what actually enforces it.
+    const isCfx = CFX_CATEGORIES.includes(s.category);
+    const hasCfxNote = isCfx && (s.cfx_details || "").trim();
+    if (!s.file_path && !s.drive_url && !hasCfxNote && !s.active) {
       window.alert(
-        "Add a script file or a Google Drive link before listing it for sale."
+        isCfx
+          ? "Add which cfx.re asset this is before listing it for sale."
+          : "Add a script file or a Google Drive link before listing it for sale."
       );
       return;
     }

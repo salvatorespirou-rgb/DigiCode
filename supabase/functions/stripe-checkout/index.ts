@@ -164,6 +164,10 @@ Deno.serve(async (req) => {
     const code = typeof body?.code === "string" ? body.code.slice(0, 60) : null;
     const email = typeof body?.email === "string" ? body.email.slice(0, 200) : null;
     const name = typeof body?.name === "string" ? body.name.slice(0, 120) : null;
+    // Extra context a buyer gave beyond name/email — right now that's only a
+    // cfx.re account name for a CFX Scripts / MLOs purchase, but it's kept
+    // generic since any future one-off item needs the same shape.
+    const note = typeof body?.note === "string" ? body.note.slice(0, 500) : null;
 
     if (!items.length) return json({ error: "Your cart is empty." }, 400);
 
@@ -174,6 +178,7 @@ Deno.serve(async (req) => {
       p_code: code,
       p_email: email,
       p_name: name,
+      p_note: note,
     });
     const ref = Array.isArray(order) ? order[0]?.reference : order?.reference;
     if (!ref) throw new Error("could not record the order");

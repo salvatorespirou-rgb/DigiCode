@@ -4778,3 +4778,75 @@ body.script-modal-open { overflow: hidden; }
   .invoice-line-head { display: none; }
   .invoice-line-row { grid-template-columns: 1fr 60px 100px 34px; gap: 7px; }
 }
+
+/* ---------- CFX Marketplace Scripts ----------
+   A second shelf on the store: licences sold off the owner's own cfx.re
+   assets account. Same card grid as the regular store, different badge,
+   different buy flow (a form before payment, not straight to cart). */
+
+.cfx-script-section { margin-top: 48px; padding-top: 40px; border-top: 1px solid var(--border); }
+
+.cfx-script-section-head { max-width: 640px; margin-bottom: 24px; }
+.cfx-script-section-head h2 { font-family: var(--font-heading); font-size: 1.5rem; margin: 0 0 8px; }
+.cfx-script-section-head p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+.cfx-badge {
+  color: #ffb37a !important;
+  background: rgba(255, 152, 78, 0.1) !important;
+  border-color: rgba(255, 152, 78, 0.3) !important;
+}
+
+.cfx-one-off { color: #ffb37a; }
+
+/* ---- The pre-payment form ---- */
+
+.cfx-buy-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 7, 14, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.cfx-buy-overlay.is-shown { display: flex; }
+
+.cfx-buy-inner {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px 32px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.cfx-buy-inner strong { display: block; font-family: var(--font-heading); font-size: 1.15rem; }
+.cfx-buy-price { font-family: var(--font-heading); font-size: 1.4rem; color: #ffb37a; margin: 4px 0 14px; }
+.cfx-buy-inner > p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; margin: 0 0 18px; }
+
+.cfx-buy-disclaimer {
+  font-size: 0.8rem !important;
+  color: #ffb37a !important;
+  background: rgba(255, 152, 78, 0.08);
+  border: 1px solid rgba(255, 152, 78, 0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 16px 0 !important;
+  line-height: 1.5 !important;
+}
+
+.cfx-buy-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+
+@media (max-width: 480px) {
+  .cfx-buy-inner { padding: 24px 20px; }
+}
+
+/* ---- Portal: the cfx reference field on the listing form ---- */
+
+.cfx-listing-group textarea {
+  min-height: 60px;
+}
