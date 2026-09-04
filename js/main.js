@@ -3008,10 +3008,22 @@ if (devTabs.length) {
   const SCRIPT_CATEGORIES = ["Cars", "Custom Build Scripts", "CFX Scripts", "MLOs"];
   const CFX_CATEGORIES = ["CFX Scripts", "MLOs"];
 
+  // Delivery is how a listing actually reaches a buyer — a file, a Drive
+  // link, or a manual cfx.re transfer — and it's picked separately from the
+  // category. A "CFX Scripts" listing isn't always a cfx.re transfer: the
+  // owner might already hold the file and just be filing it under that
+  // category for browsing, same as any of the other three.
+  function currentDelivery(s) {
+    if (!s) return "file";
+    if (s.drive_url) return "drive";
+    if (!s.file_path && (s.cfx_details || "").trim()) return "cfx";
+    return "file";
+  }
+
   function scriptFormHtml(s) {
     const v = (k, d) => escapeHtml(s && s[k] != null ? s[k] : d || "");
     const category = (s && s.category) || "Custom Build Scripts";
-    const isCfx = CFX_CATEGORIES.includes(category);
+    const delivery = currentDelivery(s);
     return `
       <form class="form-card script-form" id="scriptForm">
         <h2>${s ? "Edit script" : "List a new script"}</h2>
@@ -3049,21 +3061,25 @@ if (devTabs.length) {
           <label for="sfDesc">Full description</label>
           <textarea id="sfDesc" rows="5" placeholder="What it does, what it needs to run, what's included. Buyers read this before they read the price.">${v("description")}</textarea>
         </div>
-        <div class="form-group" id="sfDeliveryChoiceGroup" ${isCfx ? "hidden" : ""}>
+        <div class="form-group">
           <span class="form-label">How is it delivered?</span>
           <div class="radio-row">
             <label class="radio-option">
-              <input type="radio" name="sfDelivery" value="file" ${s && s.drive_url ? "" : "checked"} />
-              Upload the file (up to 50MB)
+              <input type="radio" name="sfDelivery" value="file" ${delivery === "file" ? "checked" : ""} />
+              Upload the file (up to 50MB) — instant download
             </label>
             <label class="radio-option">
-              <input type="radio" name="sfDelivery" value="drive" ${s && s.drive_url ? "checked" : ""} />
-              Google Drive link (for bigger files)
+              <input type="radio" name="sfDelivery" value="drive" ${delivery === "drive" ? "checked" : ""} />
+              Google Drive link — instant download
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="sfDelivery" value="cfx" ${delivery === "cfx" ? "checked" : ""} />
+              CFX transfer — you send it by hand via cfx.re
             </label>
           </div>
         </div>
 
-        <div class="form-group" id="sfFileGroup" ${isCfx ? "hidden" : ""}>
+        <div class="form-group" id="sfFileGroup" ${delivery === "file" ? "" : "hidden"}>
           <span class="form-label">Script file (.zip)</span>
           <input type="file" id="sfFile" accept=".zip,.rar,.7z" />
           <p class="form-note" id="sfFileNote">${
@@ -3073,7 +3089,7 @@ if (devTabs.length) {
           }</p>
         </div>
 
-        <div class="form-group" id="sfDriveGroup" ${isCfx || !(s && s.drive_url) ? "hidden" : ""}>
+        <div class="form-group" id="sfDriveGroup" ${delivery === "drive" ? "" : "hidden"}>
           <label for="sfDrive">Google Drive link</label>
           <input type="url" id="sfDrive" value="${escapeHtml((s && s.drive_url) || "")}"
                  placeholder="https://drive.google.com/file/d/..." />
@@ -3084,15 +3100,15 @@ if (devTabs.length) {
           </p>
         </div>
 
-        <div class="form-group cfx-listing-group" id="sfCfxGroup" ${isCfx ? "" : "hidden"}>
+        <div class="form-group cfx-listing-group" id="sfCfxGroup" ${delivery === "cfx" ? "" : "hidden"}>
           <label for="sfCfxDetails">Which cfx.re asset is this?</label>
           <textarea id="sfCfxDetails" rows="2" placeholder="e.g. asset name or link on your cfx.re Keymaster/assets page — for your own reference when it sells">${v("cfx_details")}</textarea>
           <p class="form-note">
             Not shown to buyers — just enough for you to find the right asset when it's time to
-            transfer it. There's no file or Drive link for this category: a buyer gives their
-            cfx.re account name at checkout, and you complete the transfer yourself in cfx.re.
-            This is a <strong>one-off</strong> — the listing comes off the store the moment it
-            sells, since there's only one licence to give away.
+            transfer it. No file or Drive link for this route: a buyer gives their cfx.re account
+            name at checkout, and you complete the transfer yourself in cfx.re. This is a
+            <strong>one-off</strong> — the listing comes off the store the moment it sells, since
+            there's only one licence to give away.
           </p>
         </div>
         <div class="form-group">
@@ -3167,11 +3183,11 @@ if (devTabs.length) {
           </div>
           ${s.summary ? `<p class="project-details">${escapeHtml(s.summary)}</p>` : ""}
           <p class="script-row-meta">${
-            CFX_CATEGORIES.includes(s.category)
-              ? `<span class="script-route">cfx.re transfer</span> · ${escapeHtml(s.cfx_details || "no asset noted")}`
-              : s.drive_url
-                ? `<span class="script-route">Google Drive</span> · link revealed on purchase`
-                : `${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)}`
+            s.drive_url
+              ? `<span class="script-route">Google Drive</span> · link revealed on purchase`
+              : s.file_path
+                ? `${escapeHtml(s.file_name || "no file uploaded")} · ${scriptSize(s.file_bytes)}`
+                : `<span class="script-route">cfx.re transfer</span> · ${escapeHtml(s.cfx_details || "no asset noted")}`
           } · ${s.sales_count} sold</p>
           <div class="project-actions">
             <button type="button" class="clear-cart-link script-edit" data-id="${s.id}">Edit</button>
@@ -3205,30 +3221,32 @@ if (devTabs.length) {
       clearScriptImage(editing);
     });
 
-    // Only ever show the field for the route actually chosen.
+    // Delivery is independent of category — a "CFX Scripts" listing might
+    // still be a file the owner already holds, and a "Cars" listing could in
+    // principle be a cfx.re transfer. Only ever show the field group for the
+    // route actually chosen.
+    function applyDeliveryVisibility(value) {
+      panel.querySelector("#sfFileGroup").hidden = value !== "file";
+      panel.querySelector("#sfDriveGroup").hidden = value !== "drive";
+      panel.querySelector("#sfCfxGroup").hidden = value !== "cfx";
+    }
     panel.querySelectorAll('input[name="sfDelivery"]').forEach((r) => {
       r.addEventListener("change", () => {
-        const drive = r.value === "drive" && r.checked;
-        panel.querySelector("#sfFileGroup").hidden = drive;
-        panel.querySelector("#sfDriveGroup").hidden = !drive;
+        if (r.checked) applyDeliveryVisibility(r.value);
       });
     });
 
-    // Switching category between "delivered by us" and "delivered via cfx"
-    // swaps which fields make sense — a cfx listing has no file or Drive
-    // link, and the other two categories have no cfx reference field.
+    // A light default, not a lock: picking CFX Scripts / MLOs on a brand new
+    // listing suggests the CFX delivery route, since that's the common case
+    // — but only for a listing that isn't already something else, and it
+    // never touches an existing listing's own delivery choice.
     panel.querySelector("#sfCategory")?.addEventListener("change", (e) => {
-      const isCfx = CFX_CATEGORIES.includes(e.target.value);
-      panel.querySelector("#sfCfxGroup").hidden = !isCfx;
-      panel.querySelector("#sfDeliveryChoiceGroup").hidden = isCfx;
-      if (isCfx) {
-        panel.querySelector("#sfFileGroup").hidden = true;
-        panel.querySelector("#sfDriveGroup").hidden = true;
-      } else {
-        const drive = panel.querySelector('input[name="sfDelivery"]:checked')?.value === "drive";
-        panel.querySelector("#sfFileGroup").hidden = drive;
-        panel.querySelector("#sfDriveGroup").hidden = !drive;
-      }
+      if (editing) return;
+      if (!CFX_CATEGORIES.includes(e.target.value)) return;
+      const cfxRadio = panel.querySelector('input[name="sfDelivery"][value="cfx"]');
+      if (!cfxRadio) return;
+      cfxRadio.checked = true;
+      applyDeliveryVisibility("cfx");
     });
 
     panel.querySelector("#sfCancel")?.addEventListener("click", () => {
@@ -3264,13 +3282,12 @@ if (devTabs.length) {
       return;
     }
     const category = document.getElementById("sfCategory")?.value || "Custom Build Scripts";
-    const isCfx = CFX_CATEGORIES.includes(category);
     const cfxDetails = (document.getElementById("sfCfxDetails")?.value || "").trim();
     const delivery =
       document.querySelector('input[name="sfDelivery"]:checked')?.value || "file";
     const driveUrl = (document.getElementById("sfDrive")?.value || "").trim();
 
-    if (isCfx) {
+    if (delivery === "cfx") {
       if (!cfxDetails) {
         status.textContent =
           "Note which cfx.re asset this is — you'll need it to complete the transfer once it sells.";
@@ -3294,7 +3311,7 @@ if (devTabs.length) {
     // rules are even consulted, so say so here rather than letting the upload
     // run and fail with a less obvious message.
     const MAX_UPLOAD = 50 * 1024 * 1024;
-    if (!isCfx && delivery === "file" && file && file.size > MAX_UPLOAD) {
+    if (delivery === "file" && file && file.size > MAX_UPLOAD) {
       status.textContent =
         `That file is ${(file.size / 1048576).toFixed(1)}MB. The plan caps uploads at 50MB — ` +
         `split it, or switch to a Google Drive link above.`;
@@ -3318,15 +3335,15 @@ if (devTabs.length) {
       description: document.getElementById("sfDesc").value.trim() || null,
       price_cents: cents,
       category,
-      cfx_details: isCfx ? cfxDetails : null,
+      cfx_details: delivery === "cfx" ? cfxDetails : null,
       active: document.getElementById("sfActive").checked,
       updated_at: new Date().toISOString(),
     };
 
     try {
-      if (isCfx) {
+      if (delivery === "cfx") {
         // Delivered by hand through cfx.re, not hosted here — clear whichever
-        // route a listing might have had before its category changed.
+        // route a listing might have had before switching to this one.
         fields.drive_url = null;
         fields.file_path = null;
         fields.file_name = null;
@@ -3342,7 +3359,7 @@ if (devTabs.length) {
         fields.drive_url = null;
       }
 
-      if (!isCfx && delivery === "file" && file) {
+      if (delivery === "file" && file) {
         const path =
           fields.slug + "/" + Date.now() + "-" + file.name.replace(/[^A-Za-z0-9._-]/g, "_");
         const up = await digicodeSupabase.storage
@@ -3418,16 +3435,13 @@ if (devTabs.length) {
     const s = scriptsCache.find((x) => String(x.id) === String(id));
     if (!s) return;
     // Three delivery routes are enough to go on sale: a hosted file, a Drive
-    // link, or — for CFX Scripts / MLOs — a cfx reference note. This mirrors
-    // the script_has_a_delivery_route constraint in supabase/033, which is
-    // what actually enforces it.
-    const isCfx = CFX_CATEGORIES.includes(s.category);
-    const hasCfxNote = isCfx && (s.cfx_details || "").trim();
+    // link, or a cfx.re reference note — independent of category. This
+    // mirrors the script_has_a_delivery_route constraint in supabase/035,
+    // which is what actually enforces it.
+    const hasCfxNote = (s.cfx_details || "").trim();
     if (!s.file_path && !s.drive_url && !hasCfxNote && !s.active) {
       window.alert(
-        isCfx
-          ? "Add which cfx.re asset this is before listing it for sale."
-          : "Add a script file or a Google Drive link before listing it for sale."
+        "Add a script file, a Google Drive link, or which cfx.re asset this is before listing it for sale."
       );
       return;
     }

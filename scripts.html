@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=38" />
+  <link rel="stylesheet" href="css/style.css?v=39" />
 </head>
 <body>
 
@@ -78,21 +78,48 @@
       <div class="container">
         <div class="script-store-note">
           <span class="script-store-dot"></span>
-          Buy once, download straight away. The source comes with it — edit it, extend it, run it on as many of your own servers as you like.
+          Every listing shows its own delivery on the card — instant download, or a personal cfx.re transfer.
         </div>
 
-        <div id="scriptList" class="script-store-grid">
-          <p class="dev-empty">Loading scripts…</p>
-        </div>
+        <p class="dev-empty" id="scriptLoading">Loading scripts…</p>
+        <p class="dev-empty" id="scriptEmptyState" hidden>
+          No scripts listed yet — the first ones are on their way. In the meantime we build to
+          order: <a href="digicode-gaming.html#script-request">tell us what you need</a>.
+        </p>
+        <p class="dev-empty" id="scriptErrorState" hidden>
+          Couldn't load the scripts just now. Refresh, or use the live chat and we'll help.
+        </p>
 
-        <section id="cfxScriptSection" class="cfx-script-section" hidden>
-          <div class="cfx-script-section-head">
-            <h2>CFX Marketplace Scripts</h2>
-            <p>Sold straight off our own cfx.re assets account. Each of these is a single licence —
-              once it's bought, it's gone. Delivered by a personal transfer through cfx.re rather
-              than an instant download, so allow up to 30 minutes after payment.</p>
+        <section class="script-category-section" id="scriptSectionCars" hidden>
+          <div class="script-category-head">
+            <h2>Cars</h2>
+            <p>Vehicles ready to drop straight into your server.</p>
           </div>
-          <div id="cfxScriptList" class="script-store-grid"></div>
+          <div class="script-store-grid" id="scriptListCars"></div>
+        </section>
+
+        <section class="script-category-section" id="scriptSectionCustom" hidden>
+          <div class="script-category-head">
+            <h2>Custom Build Scripts</h2>
+            <p>Built and packaged by us, ready to buy.</p>
+          </div>
+          <div class="script-store-grid" id="scriptListCustom"></div>
+        </section>
+
+        <section class="script-category-section" id="scriptSectionCfx" hidden>
+          <div class="script-category-head">
+            <h2>CFX Scripts</h2>
+            <p>Sourced from our own cfx.re assets account.</p>
+          </div>
+          <div class="script-store-grid" id="scriptListCfx"></div>
+        </section>
+
+        <section class="script-category-section" id="scriptSectionMlos" hidden>
+          <div class="script-category-head">
+            <h2>MLOs</h2>
+            <p>Custom interiors and map objects.</p>
+          </div>
+          <div class="script-store-grid" id="scriptListMlos"></div>
         </section>
 
         <div class="info-cta" style="margin-top: 46px;">
@@ -111,9 +138,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabase-client.js"></script>
-  <script src="js/main.js?v=32"></script>
+  <script src="js/main.js?v=33"></script>
   <script src="js/live-chat.js?v=4"></script>
-  <script src="js/script-store.js?v=5"></script>
+  <script src="js/script-store.js?v=6"></script>
   <script src="js/analytics.js?v=1"></script>
 </body>
 </html>

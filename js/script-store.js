@@ -1,28 +1,42 @@
 /* DigiCode — the script store.
  *
  * Three jobs: list what's for sale, hand over the file after someone has
- * paid, and — for a CFX Scripts / MLOs listing — take an email and cfx.re
+ * paid, and — for a cfx.re-delivered listing — take an email and cfx.re
  * account name before sending them to pay, since that purchase is fulfilled
- * by hand rather than downloaded. Prices come from list_scripts() and the
- * cart only ever sends "script:<slug>" — quote_cart() decides what that
- * costs, same rule as everything else, so editing this file buys nothing
- * cheaply.
+ * by hand rather than downloaded.
+ *
+ * Category (Cars, Custom Build Scripts, CFX Scripts, MLOs) and delivery
+ * (file, Drive link, or cfx.re transfer) are independent: category only ever
+ * decides which section of the page a listing appears in, delivery decides
+ * how buying it behaves. A "CFX Scripts" listing the owner already holds as
+ * a file is bought the same way as anything else; an "MLOs" listing that is
+ * genuinely a cfx.re transfer gets the buy-form. Prices come from
+ * list_scripts() and the cart only ever sends "script:<slug>" —
+ * quote_cart() decides what that costs, same rule as everything else, so
+ * editing this file buys nothing cheaply.
  */
 (function () {
   "use strict";
 
-  var list = document.getElementById("scriptList");
-  if (!list || typeof digicodeSupabase === "undefined") return;
+  var loading = document.getElementById("scriptLoading");
+  if (!loading || typeof digicodeSupabase === "undefined") return;
 
-  var cfxSection = document.getElementById("cfxScriptSection");
-  var cfxList = document.getElementById("cfxScriptList");
+  var emptyState = document.getElementById("scriptEmptyState");
+  var errorState = document.getElementById("scriptErrorState");
+
+  // Category -> the section/grid it renders into. Order here is display
+  // order on the page.
+  var CATEGORY_SECTIONS = [
+    { category: "Cars", section: "scriptSectionCars", list: "scriptListCars" },
+    { category: "Custom Build Scripts", section: "scriptSectionCustom", list: "scriptListCustom" },
+    { category: "CFX Scripts", section: "scriptSectionCfx", list: "scriptListCfx" },
+    { category: "MLOs", section: "scriptSectionMlos", list: "scriptListMlos" },
+  ];
 
   var DOWNLOAD_FN =
     "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/script-download";
   var CHECKOUT_FN =
     "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/stripe-checkout";
-
-  var CFX_CATEGORIES = ["CFX Scripts", "MLOs"];
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -74,7 +88,7 @@
       btn.addEventListener("click", function (e) {
         e.stopPropagation();
         var wasOpen = btn.classList.contains("is-open");
-        container.querySelectorAll(".script-clamp-more.is-open").forEach(function (b) {
+        document.querySelectorAll(".script-clamp-more.is-open").forEach(function (b) {
           b.classList.remove("is-open");
         });
         if (!wasOpen) btn.classList.add("is-open");
@@ -88,7 +102,7 @@
     var box = document.createElement("div");
     box.className = "script-paid";
     box.innerHTML = '<p class="dev-empty">Fetching your order…</p>';
-    list.parentNode.insertBefore(box, list);
+    loading.parentNode.insertBefore(box, loading);
     box.scrollIntoView({ behavior: "smooth", block: "start" });
 
     var rows = [];
@@ -216,19 +230,31 @@
     }
   }
 
-  // ----- The regular storefront ----------------------------------------------
+  // ----- Cards ----------------------------------------------------------------
 
   var IMAGE_BASE =
     "https://phlmnlildwkkichlbtoy.supabase.co/storage/v1/object/public/script-images/";
 
+  // What a card says about how it's delivered — shown on every card,
+  // regardless of which category section it's in, so an MLO delivered by
+  // Drive never reads as though it needs a manual cfx.re transfer, and vice
+  // versa.
+  function deliveryBadge(s) {
+    return s.delivery === "cfx"
+      ? '<span class="script-delivery-badge is-cfx">cfx.re transfer</span>'
+      : '<span class="script-delivery-badge">Instant download</span>';
+  }
+
   function card(s) {
+    var isCfx = s.delivery === "cfx";
     return (
-      '<article class="script-card">' +
+      '<article class="script-card' + (isCfx ? " cfx-script-card" : "") + '">' +
         (s.image_path
           ? '<div class="script-thumb"><img src="' + esc(IMAGE_BASE + s.image_path) +
             '" alt="' + esc(s.name) + '" loading="lazy" /></div>'
           : "") +
         '<div class="script-card-top">' +
+          deliveryBadge(s) +
           (s.platform ? '<span class="script-platform">' + esc(s.platform) + "</span>" : "") +
           (s.version ? '<span class="script-version">v' + esc(s.version) + "</span>" : "") +
         "</div>" +
@@ -237,16 +263,23 @@
         clampField(s.description, "script-desc") +
         '<div class="script-card-foot">' +
           '<span class="script-price">' + esc(money(s.price_cents)) + "</span>" +
-          '<button type="button" class="btn btn-primary script-buy" data-slug="' +
-            esc(s.slug) + '">Buy &amp; Download</button>' +
+          (isCfx
+            ? '<button type="button" class="btn btn-primary cfx-script-buy" data-slug="' +
+              esc(s.slug) + '" data-name="' + esc(s.name) + '" data-price="' + esc(money(s.price_cents)) + '">' +
+              "Buy — via cfx.re</button>"
+            : '<button type="button" class="btn btn-primary script-buy" data-slug="' +
+              esc(s.slug) + '">Buy &amp; Download</button>') +
         "</div>" +
-        (s.file_bytes || s.sales_count
-          ? '<div class="script-card-meta">' +
-              (s.file_bytes ? esc(size(s.file_bytes)) : "") +
-              (s.file_bytes && s.sales_count ? " · " : "") +
-              (s.sales_count ? esc(s.sales_count) + " sold" : "") +
-            "</div>"
-          : "") +
+        (isCfx
+          ? '<div class="script-card-meta cfx-one-off">Only one licence — gone once it sells' +
+              (s.sales_count ? " · " + esc(s.sales_count) + " sold" : "") + "</div>"
+          : s.file_bytes || s.sales_count
+            ? '<div class="script-card-meta">' +
+                (s.file_bytes ? esc(size(s.file_bytes)) : "") +
+                (s.file_bytes && s.sales_count ? " · " : "") +
+                (s.sales_count ? esc(s.sales_count) + " sold" : "") +
+              "</div>"
+            : "") +
       "</article>"
     );
   }
@@ -276,7 +309,7 @@
     window.location.href = "cart.html";
   }
 
-  // ----- CFX-sourced scripts: sold once, transferred by hand ------------------
+  // ----- cfx.re-delivered listings: sold once, transferred by hand -----------
   //
   // These aren't files this site holds — they're licences on the store
   // owner's own cfx.re assets account, handed over there after payment. So
@@ -284,32 +317,6 @@
   // name before paying, it goes straight to Stripe rather than through the
   // cart (a cfx purchase is always exactly one item), and once it's paid for
   // the listing is gone — list_scripts() will not return it again.
-
-  function cfxCard(s) {
-    return (
-      '<article class="script-card cfx-script-card">' +
-        (s.image_path
-          ? '<div class="script-thumb"><img src="' + esc(IMAGE_BASE + s.image_path) +
-            '" alt="' + esc(s.name) + '" loading="lazy" /></div>'
-          : "") +
-        '<div class="script-card-top">' +
-          '<span class="script-platform cfx-badge">' + esc(s.category) + "</span>" +
-          (s.platform ? '<span class="script-version">' + esc(s.platform) + "</span>" : "") +
-        "</div>" +
-        "<h3>" + esc(s.name) + "</h3>" +
-        clampField(s.summary, "script-summary") +
-        clampField(s.description, "script-desc") +
-        '<div class="script-card-foot">' +
-          '<span class="script-price">' + esc(money(s.price_cents)) + "</span>" +
-          '<button type="button" class="btn btn-primary cfx-script-buy" data-slug="' +
-            esc(s.slug) + '" data-name="' + esc(s.name) + '" data-price="' + esc(money(s.price_cents)) + '">' +
-            "Buy — via cfx.re</button>" +
-        "</div>" +
-        '<div class="script-card-meta cfx-one-off">Only one licence — gone once it sells' +
-          (s.sales_count ? " · " + esc(s.sales_count) + " sold" : "") + "</div>" +
-      "</article>"
-    );
-  }
 
   function cfxModalHtml(name, price) {
     return (
@@ -410,7 +417,19 @@
     });
   }
 
-  // ----- Loading and rendering both grids -------------------------------------
+  // ----- Loading and rendering every category section -------------------------
+
+  function wireCardButtons(container) {
+    container.querySelectorAll(".script-buy").forEach(function (btn) {
+      btn.addEventListener("click", function () { buy(btn); });
+    });
+    container.querySelectorAll(".cfx-script-buy").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        openCfxModal(btn.dataset.slug, btn.dataset.name, btn.dataset.price);
+      });
+    });
+    wireClampTriggers(container);
+  }
 
   async function render() {
     var rows = [];
@@ -419,56 +438,30 @@
       if (res.error) throw res.error;
       rows = res.data || [];
     } catch (e) {
-      list.innerHTML =
-        '<p class="dev-empty">Couldn\'t load the scripts just now. ' +
-        "Refresh, or use the live chat and we'll help.</p>";
+      loading.hidden = true;
+      errorState.hidden = false;
       return;
     }
 
-    var normalRows = rows.filter(function (r) {
-      return CFX_CATEGORIES.indexOf(r.category) === -1;
-    });
-    var cfxRows = rows.filter(function (r) {
-      return CFX_CATEGORIES.indexOf(r.category) !== -1;
-    });
+    loading.hidden = true;
+    emptyState.hidden = rows.length !== 0;
 
-    if (!normalRows.length) {
-      list.innerHTML =
-        '<p class="dev-empty">No scripts listed yet — the first ones are on ' +
-        "their way. In the meantime we build to order: " +
-        '<a href="digicode-gaming.html#script-request">tell us what you need</a>.</p>';
-    } else {
-      list.innerHTML = normalRows.map(card).join("");
-      list.querySelectorAll(".script-buy").forEach(function (btn) {
-        btn.addEventListener("click", function () { buy(btn); });
-      });
-      wireClampTriggers(list);
-    }
+    CATEGORY_SECTIONS.forEach(function (c) {
+      var sectionEl = document.getElementById(c.section);
+      var listEl = document.getElementById(c.list);
+      if (!sectionEl || !listEl) return;
 
-    if (cfxSection && cfxList) {
-      if (cfxRows.length) {
-        cfxSection.hidden = false;
-        cfxList.innerHTML = cfxRows.map(cfxCard).join("");
-        cfxList.querySelectorAll(".cfx-script-buy").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            openCfxModal(btn.dataset.slug, btn.dataset.name, btn.dataset.price);
-          });
-        });
-        wireClampTriggers(cfxList);
-      } else {
-        cfxSection.hidden = true;
+      var items = rows.filter(function (r) { return r.category === c.category; });
+      if (!items.length) {
+        sectionEl.hidden = true;
+        return;
       }
-    }
-  }
 
-  // Tapping a "Read more" trigger opens its panel without this firing (it
-  // stops propagation there); tapping anywhere else closes whichever one is
-  // open — the only way to close it on a touch device, which has no hover.
-  document.addEventListener("click", function () {
-    document.querySelectorAll(".script-clamp-more.is-open").forEach(function (b) {
-      b.classList.remove("is-open");
+      sectionEl.hidden = false;
+      listEl.innerHTML = items.map(card).join("");
+      wireCardButtons(listEl);
     });
-  });
+  }
 
   var ref = new URLSearchParams(location.search).get("ref");
   if (ref && new URLSearchParams(location.search).get("paid") === "1") {
