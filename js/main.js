@@ -2668,6 +2668,7 @@ if (devTabs.length) {
     renderChatPanel();
     renderScriptsPanel();
     renderScriptSalesPanel();
+    renderOrdersPanel();
     renderStatGrid();
     renderRankList();
     renderPerfGrid();
@@ -3539,6 +3540,180 @@ if (devTabs.length) {
     }
     await loadScripts();
     renderScriptsPanel();
+  }
+  // ---------------------------------------------------------------------
+
+
+  // ---------------------------------------------------------------------
+  // Orders — every checkout, paid or not
+  //
+  // This exists because of what happened without it: the Stripe webhook's
+  // signature check was failing, every order sat 'pending' forever, and
+  // there was nowhere in the portal that would have shown it. A customer
+  // paid, got nothing, and the first anyone knew was when they complained.
+  //
+  // So: every order, newest first, with anything stuck pending pushed to
+  // the top and counted on the tab itself. A pending order that is only
+  // seconds old is normal — someone is on the Stripe page right now. One
+  // that is still pending after STUCK_MINUTES has almost certainly been
+  // paid without the webhook landing, and can be settled from here.
+  // ---------------------------------------------------------------------
+
+  const CONFIRM_ORDER_FN =
+    "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/confirm-order";
+  const STUCK_MINUTES = 10;
+
+  let ordersCache = [];
+
+  async function loadOrders() {
+    const { data, error } = await digicodeSupabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (!error) ordersCache = data || [];
+    return ordersCache;
+  }
+
+  function minutesSince(ts) {
+    if (!ts) return 0;
+    return Math.max(0, Math.round((Date.now() - new Date(ts).getTime()) / 60000));
+  }
+
+  function ageLabel(ts) {
+    const mins = minutesSince(ts);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + " min ago";
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return hours + (hours === 1 ? " hour ago" : " hours ago");
+    const days = Math.round(hours / 24);
+    return days + (days === 1 ? " day ago" : " days ago");
+  }
+
+  function isStuck(o) {
+    return o.status === "pending" && minutesSince(o.created_at) >= STUCK_MINUTES;
+  }
+
+  function orderItemsSummary(o) {
+    const items = Array.isArray(o.items) ? o.items : [];
+    if (!items.length) return "—";
+    return items
+      .map((l) => escapeHtml(l.name || l.sku || "item") + (Number(l.qty) > 1 ? " ×" + Number(l.qty) : ""))
+      .join(" · ");
+  }
+
+  function orderRowHtml(o) {
+    const stuck = isStuck(o);
+    const paid = o.status === "paid";
+    return `
+      <div class="project-card${paid ? " is-paid" : stuck ? " is-cancelled" : ""}">
+        <div class="project-card-head">
+          <div>
+            <span class="project-service">${orderItemsSummary(o)}</span>
+            <span class="project-client">${escapeHtml(o.customer_email) || "no email given"}</span>
+          </div>
+          <span class="project-date">${money(o.total_cents)}</span>
+        </div>
+        <div class="invoice-tag-row">
+          <span class="invoice-tag ${paid ? "tag-paid" : stuck ? "tag-void" : "tag-sent"}">${
+            paid ? "Paid" : stuck ? "Stuck — not confirmed" : "Awaiting payment"
+          }</span>
+          <span class="invoice-tag tag-due">${ageLabel(o.created_at)}</span>
+        </div>
+        ${
+          stuck
+            ? `<p class="project-details">This has been waiting ${minutesSince(o.created_at)} minutes.
+                 If the customer did pay, Stripe knows — check and settle it here.</p>`
+            : ""
+        }
+        <p class="script-row-meta">Reference: ${escapeHtml(o.reference)}${
+          o.paid_at ? " · paid " + formatDate(o.paid_at) : ""
+        }</p>
+        ${
+          !paid
+            ? `<div class="project-actions">
+                 <button type="button" class="btn btn-primary btn-small-inline order-confirm" data-ref="${escapeHtml(o.reference)}">Check with Stripe</button>
+               </div>`
+            : ""
+        }
+      </div>`;
+  }
+
+  function renderOrdersPanel() {
+    const panel = document.getElementById("ordersPanel");
+    if (!panel) return;
+
+    const stuck = ordersCache.filter(isStuck);
+    const alertEl = document.getElementById("ordersTabAlert");
+    if (alertEl) {
+      alertEl.hidden = stuck.length === 0;
+      alertEl.textContent = stuck.length ? String(stuck.length) : "";
+    }
+
+    if (!ordersCache.length) {
+      panel.innerHTML = `<p class="dev-empty">No orders yet.</p>`;
+      return;
+    }
+
+    const rest = ordersCache.filter((o) => !isStuck(o));
+
+    panel.innerHTML =
+      (stuck.length
+        ? `<div class="orders-alert">
+             <strong>${stuck.length} order${stuck.length > 1 ? "s" : ""} stuck unconfirmed.</strong>
+             A payment that went through but never reached us leaves the customer with nothing.
+             Press "Check with Stripe" to settle one — it only completes if Stripe says the money
+             actually arrived.
+           </div>` +
+          stuck.map(orderRowHtml).join("") +
+          `<h3 class="cancelled-head" style="margin-top: 30px;">Everything else (${rest.length})</h3>`
+        : "") +
+      rest.map(orderRowHtml).join("");
+
+    panel.querySelectorAll(".order-confirm").forEach((btn) => {
+      btn.addEventListener("click", () => confirmOrderFromPortal(btn));
+    });
+  }
+
+  async function confirmOrderFromPortal(btn) {
+    const ref = btn.dataset.ref;
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Checking…";
+
+    let paid = false;
+    try {
+      const res = await fetch(CONFIRM_ORDER_FN, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ reference: ref }),
+      });
+      const data = await res.json().catch(() => ({}));
+      paid = !!data.paid;
+    } catch (e) {
+      /* handled below */
+    }
+
+    if (!paid) {
+      btn.disabled = false;
+      btn.textContent = original;
+      window.alert(
+        "Stripe doesn't show a completed payment for that order.\n\n" +
+          "That usually means the customer never finished checkout — which is normal, and " +
+          "nothing needs doing. If you can see the payment in Stripe yourself, send me the " +
+          "reference and it can be settled by hand."
+      );
+      return;
+    }
+
+    await Promise.all([loadOrders(), loadScriptSales(), loadProjects()]);
+    renderOrdersPanel();
+    renderScriptSalesPanel();
+    renderPendingPanel();
   }
   // ---------------------------------------------------------------------
 
@@ -4595,7 +4770,7 @@ if (devTabs.length) {
   if (statsRefreshBtn) statsRefreshBtn.addEventListener("click", refreshDashboard);
 
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices(), loadScriptSales()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices(), loadScriptSales(), loadOrders()]);
     renderAllPanels();
     applyPortalRole();
     subscribeToVisitorChat();

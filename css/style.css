@@ -4913,3 +4913,37 @@ body.script-modal-open { overflow: hidden; }
 .cfx-listing-group textarea {
   min-height: 60px;
 }
+
+/* ---------- Orders: making a stuck payment impossible to miss ----------
+   A payment that went through but never reached us leaves the customer with
+   nothing and the seller unaware. The count sits on the tab itself so it is
+   visible without opening the panel. */
+
+.tab-alert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 7px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.orders-alert {
+  background: rgba(229, 72, 77, 0.09);
+  border: 1px solid rgba(229, 72, 77, 0.35);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 22px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.orders-alert strong { display: block; margin-bottom: 4px; color: #ff9a8f; }
