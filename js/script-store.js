@@ -37,6 +37,8 @@
     "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/script-download";
   var CHECKOUT_FN =
     "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/stripe-checkout";
+  var CONFIRM_FN =
+    "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/confirm-order";
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -98,6 +100,40 @@
 
   // ----- After payment: show the downloads for this order -------------------
 
+  // The webhook is the primary path, but it is not a guarantee — when its
+  // signing secret drifted, every order stayed 'pending' and buyers got
+  // nothing, silently. So before deciding an order isn't ready, ask the
+  // server to check it against Stripe directly. confirm-order only marks an
+  // order paid if Stripe itself says the session settled, so this is a
+  // safety net, not a shortcut around payment.
+  async function confirmOrder(ref) {
+    try {
+      var res = await fetch(CONFIRM_FN, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ reference: ref }),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      return !!data.paid;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function fetchDownloads(ref) {
+    try {
+      var res = await digicodeSupabase.rpc("downloads_for_order", { p_reference: ref });
+      if (res.error) throw res.error;
+      return res.data || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   async function showDownloads(ref) {
     var box = document.createElement("div");
     box.className = "script-paid";
@@ -105,17 +141,17 @@
     loading.parentNode.insertBefore(box, loading);
     box.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    var rows = [];
-    try {
-      var res = await digicodeSupabase.rpc("downloads_for_order", { p_reference: ref });
-      if (res.error) throw res.error;
-      rows = res.data || [];
-    } catch (e) {
-      rows = [];
+    var rows = await fetchDownloads(ref);
+
+    // Nothing yet: either the webhook is a second behind, or it never
+    // arrived at all. Confirm against Stripe and look again.
+    if (!rows.length) {
+      box.innerHTML = '<p class="dev-empty">Confirming your payment…</p>';
+      var paid = await confirmOrder(ref);
+      if (paid) rows = await fetchDownloads(ref);
     }
 
     if (!rows.length) {
-      // Stripe's webhook can land a second or two after the redirect.
       box.innerHTML =
         '<h2>Thanks — payment received.</h2>' +
         "<p>Your order is still being prepared. Refresh in a few seconds, " +

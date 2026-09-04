@@ -261,6 +261,27 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Stamp the session onto the order now, while it is still pending. This
+    // is what lets confirm-order ask Stripe "was this ever actually paid?"
+    // about an order the webhook never got to — without it, a webhook
+    // failure leaves an order with no way back to the payment that settled
+    // it. Best-effort: a failure here must not cost the customer a checkout
+    // they are already on their way to.
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/orders?reference=eq.${ref}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SERVICE_KEY,
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({ checkout_session_id: session.id }),
+      });
+    } catch (err) {
+      console.error("could not stamp checkout_session_id", err);
+    }
+
     return json({ url: session.url, reference: ref });
   } catch (err) {
     console.error(err);

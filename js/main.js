@@ -956,6 +956,63 @@ if (cartItemsEl) {
 
   renderCart();
 
+  // Coming back from Stripe after paying for a build or a plan. Without this
+  // the buyer landed back on a cart still full of the things they had just
+  // paid for, with no acknowledgement at all — indistinguishable from a
+  // failed payment. Scripts have their own success handling in
+  // script-store.js; this is everything else.
+  (async function handleCartReturn() {
+    const params = new URLSearchParams(location.search);
+    const ref = (params.get("ref") || "").trim();
+    if (params.get("paid") !== "1" || !ref) return;
+
+    const box = document.createElement("div");
+    box.className = "script-paid";
+    box.innerHTML = '<p class="dev-empty">Confirming your payment…</p>';
+    const anchor = cartEmptyEl || cartItemsEl;
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(box, anchor);
+
+    // The webhook is the primary path, but it is not a guarantee — this asks
+    // the server to check the order against Stripe itself and settle it if
+    // the webhook never arrived.
+    let paid = false;
+    try {
+      const res = await fetch(
+        "https://phlmnlildwkkichlbtoy.supabase.co/functions/v1/confirm-order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ reference: ref }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      paid = !!data.paid;
+    } catch (e) {
+      /* fall through to the generic message below */
+    }
+
+    // Paying for it means it is no longer in the basket.
+    saveCartItems([]);
+    setDiscount(null);
+    updateCartBadge();
+    renderCart();
+
+    box.innerHTML = paid
+      ? "<h2>Thanks — payment received.</h2>" +
+        "<p>Your order is in and our team can see it. We'll be in touch at the " +
+        "email address you gave Stripe. Keep this reference in case you need it.</p>" +
+        '<p class="script-ref">Reference: ' + escapeHtml(ref) + "</p>"
+      : "<h2>Thanks — payment received.</h2>" +
+        "<p>We're still finalising your order. If you don't hear from us shortly, " +
+        'email <a href="mailto:developerteam@digi-code.com.au">developerteam@digi-code.com.au</a> ' +
+        "with the reference below and we'll sort it out straight away.</p>" +
+        '<p class="script-ref">Reference: ' + escapeHtml(ref) + "</p>";
+  })();
+
   const clearCartBtn = document.getElementById("clearCartBtn");
   clearCartBtn?.addEventListener("click", () => {
     saveCartItems([]);
