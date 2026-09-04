@@ -2610,6 +2610,7 @@ if (devTabs.length) {
     renderDevelopersPanel();
     renderChatPanel();
     renderScriptsPanel();
+    renderScriptSalesPanel();
     renderStatGrid();
     renderRankList();
     renderPerfGrid();
@@ -3484,6 +3485,112 @@ if (devTabs.length) {
   }
   // ---------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------
+  // Sold Scripts — every script sale in one place, so a cfx.re transfer
+  // doesn't have to be dug out of the free text on a Pending Projects card.
+  //
+  // Same gate as the Scripts tab: Lead Developer, anyone granted "Manage
+  // Scripts", or the owner account that isn't on the roster.
+  // list_script_sales() enforces the same rule server-side — this only
+  // decides what to render.
+  // ---------------------------------------------------------------------
+
+  let scriptSalesCache = [];
+
+  async function loadScriptSales() {
+    const { data, error } = await digicodeSupabase.rpc("list_script_sales");
+    if (!error) scriptSalesCache = data || [];
+    return scriptSalesCache;
+  }
+
+  function scriptSaleRowHtml(sale) {
+    const isCfx = sale.delivery === "cfx";
+    const done = !!sale.fulfilled_at;
+    return `
+      <div class="project-card${done ? " is-paid" : isCfx ? " is-quote" : ""}">
+        <div class="project-card-head">
+          <div>
+            <span class="project-service">${escapeHtml(sale.category || "Script")}</span>
+            <span class="project-client">${escapeHtml(sale.script_name)}</span>
+          </div>
+          <span class="project-date">${money(sale.price_cents)}</span>
+        </div>
+        <div class="invoice-tag-row">
+          <span class="invoice-tag ${isCfx ? "tag-due" : "tag-paid"}">${isCfx ? "cfx.re transfer" : "Instant download"}</span>
+          ${
+            isCfx
+              ? done
+                ? `<span class="invoice-tag tag-paid">Sent ${formatDate(sale.fulfilled_at)}</span>`
+                : `<span class="invoice-tag tag-sent">Owed</span>`
+              : ""
+          }
+        </div>
+        <dl class="project-contact">
+          <div><dt>Buyer</dt><dd>${escapeHtml(sale.buyer_email) || "—"}</dd></div>
+          ${
+            isCfx
+              ? `<div><dt>cfx.re account</dt><dd>${escapeHtml((sale.cfx_account || "").replace(/^cfx\.re account:\s*/i, "")) || "not given"}</dd></div>`
+              : `<div><dt>Downloads</dt><dd>${escapeHtml(sale.downloads)}</dd></div>`
+          }
+        </dl>
+        ${
+          isCfx
+            ? `<p class="project-details">${sale.cfx_details ? "Send: " + escapeHtml(sale.cfx_details) : "No cfx.re asset noted on this listing."}</p>`
+            : ""
+        }
+        <p class="script-row-meta">Sold ${formatDate(sale.purchased_at)}</p>
+        ${
+          isCfx && !done
+            ? `<div class="project-actions">
+                 <button type="button" class="btn btn-primary btn-small-inline script-sale-fulfil" data-id="${sale.purchase_id}">Mark as sent</button>
+               </div>`
+            : ""
+        }
+      </div>`;
+  }
+
+  function renderScriptSalesPanel() {
+    const panel = document.getElementById("scriptSalesPanel");
+    if (!panel) return;
+
+    if (!canManageScripts()) {
+      panel.innerHTML = `<p class="dev-empty">Only the Lead Developer can see script sales.</p>`;
+      return;
+    }
+
+    if (!scriptSalesCache.length) {
+      panel.innerHTML = `<p class="dev-empty">No scripts sold yet.</p>`;
+      return;
+    }
+
+    const owed = scriptSalesCache.filter((s) => s.delivery === "cfx" && !s.fulfilled_at);
+    const rest = scriptSalesCache.filter((s) => !(s.delivery === "cfx" && !s.fulfilled_at));
+
+    panel.innerHTML =
+      (owed.length
+        ? `<h3 class="cancelled-head">cfx.re transfers owed (${owed.length})</h3>` +
+          owed.map(scriptSaleRowHtml).join("") +
+          `<h3 class="cancelled-head" style="margin-top: 30px;">All sales (${scriptSalesCache.length})</h3>`
+        : `<h3 class="cancelled-head">All sales (${scriptSalesCache.length})</h3>`) +
+      rest.map(scriptSaleRowHtml).join("");
+
+    panel.querySelectorAll(".script-sale-fulfil").forEach((btn) => {
+      btn.addEventListener("click", () => markScriptSaleFulfilled(btn.dataset.id));
+    });
+  }
+
+  async function markScriptSaleFulfilled(purchaseId) {
+    const { error } = await digicodeSupabase.rpc("mark_script_sale_fulfilled", {
+      p_purchase_id: Number(purchaseId),
+    });
+    if (error) {
+      window.alert(error.message || "Couldn't update that — your account may not have permission.");
+      return;
+    }
+    await loadScriptSales();
+    renderScriptSalesPanel();
+  }
+  // ---------------------------------------------------------------------
 
   // ---------------------------------------------------------------------
   // Invoices — putting a price on a quote
@@ -4431,7 +4538,7 @@ if (devTabs.length) {
   if (statsRefreshBtn) statsRefreshBtn.addEventListener("click", refreshDashboard);
 
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices(), loadScriptSales()]);
     renderAllPanels();
     applyPortalRole();
     subscribeToVisitorChat();
