@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Recover Your Download — DigiCode</title>
+  <meta name="description" content="Lost your script download link? Get a fresh copy sent to your email." />
+  <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=39" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#work">Management</a></li>
+          <li><a href="own-your-platform.html">Own Your Platform</a></li>
+          <li><a href="digicode-gaming.html">DigiCode Gaming</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#team">The Team</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="header-icons">
+      <a href="signin.html" class="profile-icon-link" aria-label="Sign in">
+        <svg class="profile-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </a>
+      <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="cart-badge" hidden>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <a href="index.html" class="page-hero-logo-link" aria-label="DigiCode home">
+          <img src="assets/images/digicode-logo-768.png" alt="DigiCode" class="page-hero-logo" width="768" height="768" decoding="async" />
+        </a>
+        <p class="eyebrow">Game Scripts</p>
+        <h1>Lost Your <span class="gradient-text">Download Link?</span></h1>
+        <p class="hero-sub">Enter the email you paid with and we'll send a fresh copy of any Google Drive links tied to it.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section">
+      <div class="container invoice-container">
+        <form class="form-card" id="recoverForm">
+          <h2>Recover your link</h2>
+          <div class="form-group">
+            <label for="recoverEmail">Your email</label>
+            <input type="email" id="recoverEmail" placeholder="you@example.com" required />
+          </div>
+          <p class="portal-login-error" id="recoverError" hidden></p>
+          <p class="form-note" id="recoverStatus" hidden></p>
+          <div class="form-actions" style="padding:0;">
+            <button type="submit" class="btn btn-primary" id="recoverSubmit">Send my link</button>
+          </div>
+        </form>
+        <p class="form-note" style="text-align:center; margin-top: 18px;">
+          Only works for scripts delivered by Google Drive link. Bought something delivered by
+          cfx.re transfer, or need any other help? Email
+          <a href="mailto:developerteam@digi-code.com.au">developerteam@digi-code.com.au</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> DigiCode. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+      <p class="footer-areas">Serving <a href="web-design-australia.html">all of Australia</a> &mdash; <span class="footer-state">NSW</span> <a href="web-design-sydney.html">Sydney</a>, <a href="web-design-parramatta.html">Parramatta</a>, <a href="web-design-western-sydney.html">Western Sydney</a> &mdash; <span class="footer-state">QLD</span> Brisbane, Gold Coast, Sunshine Coast &mdash; <span class="footer-state">WA</span> Perth, Mandurah, Bunbury</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js?v=35"></script>
+  <script src="js/recover-scripts.js?v=1"></script>
+  <script src="js/live-chat.js?v=4"></script>
+  <script src="js/analytics.js?v=1"></script>
+</body>
+</html>
