@@ -260,6 +260,13 @@ grant execute on function public.quote_cart(jsonb, text) to anon, authenticated;
 alter table public.orders
   add column if not exists buyer_note text;
 
+-- "create or replace" only replaces a function with an identical parameter
+-- list — adding p_note below as a new trailing parameter makes this a
+-- different signature, which would otherwise leave 023's original
+-- create_pending_order(jsonb, text, text, text) sitting alongside it as a
+-- second, stale overload. Drop it explicitly so there is only ever one.
+drop function if exists public.create_pending_order(jsonb, text, text, text);
+
 create or replace function public.create_pending_order(
   p_items jsonb,
   p_code  text,
