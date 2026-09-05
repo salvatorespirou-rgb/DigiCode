@@ -998,7 +998,7 @@ a { color: inherit; }
 
 .dish-photo {
   position: relative;
-  height: 172px;
+  height: clamp(200px, 22vw, 240px);
   margin: -2.4rem -2rem 1.8rem;
   overflow: hidden;
   background-color: var(--ink-3);
@@ -1011,10 +1011,19 @@ a { color: inherit; }
   content: "";
   position: absolute;
   inset: 0;
+  /* Was 0.15 -> 0.96, which read as a blend on a bright monitor and as mud on
+     a phone. Held back to roughly half that through the middle so the food is
+     actually legible, while the bottom still lands on the card colour. */
   background: linear-gradient(180deg,
-    rgba(11, 8, 7, 0.15) 0%,
-    rgba(11, 8, 7, 0.55) 55%,
-    rgba(20, 16, 16, 0.96) 100%);
+    rgba(11, 8, 7, 0.02) 0%,
+    rgba(11, 8, 7, 0.22) 58%,
+    rgba(20, 16, 16, 0.88) 100%);
+}
+
+/* Their kitchen photography is mostly shot indoors under warm light and runs
+   dark. Lifted here rather than in the files so it stays tunable. */
+.dish-photo .photo {
+  filter: saturate(1.14) contrast(1.04) brightness(1.18);
 }
 
 .dish-card:hover .dish-photo .photo {
@@ -1371,6 +1380,16 @@ a { color: inherit; }
   color: var(--cream-dim);
   margin: 0 0 1.3rem;
   flex: 1;
+  /* Cards in a flex row all stretch to the tallest, so the single longest
+     review was setting the height of all fourteen — 594px on a phone, which
+     left the short ones as almost entirely empty black boxes. Clamping the
+     body keeps every card to a readable size; the full text of each is one
+     tap away on Read More Reviews, which goes to the Google listing. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 11;
+  line-clamp: 11;
+  overflow: hidden;
 }
 
 .rev-name {
