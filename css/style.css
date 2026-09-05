@@ -1209,6 +1209,198 @@ section { padding: 100px 0; }
   box-shadow: 0 0 20px rgba(109, 78, 232, 0.65), 0 0 42px rgba(46, 159, 230, 0.4);
 }
 
+
+/* =====================================================================
+   Neon plasma burst buttons (cb-17)
+   Component from codefronts.com, adapted for the hero quick-links row.
+
+   Two changes were needed to drop it in:
+
+   1. The original ships as a standalone demo — .cb-17 carried
+      min-height:100vh and a full-page background, and .cb-17__stage was a
+      100vh grid used to centre one button on an empty page. Both are
+      dropped here; .cb-17 is only the row, which is already a flex
+      container, and the stage element isn't used at all.
+
+   2. These are navigation links, not buttons. They stay as <a href> so
+      middle-click, open-in-new-tab and crawlers keep working — which means
+      supplying the centring a <button> would have given for free.
+   ===================================================================== */
+
+@property --cb-17-a {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.quick-links-row.cb-17 {
+  --shell: #0b0d16;
+  --tube: #22d3ee;
+  --c1: #22d3ee;
+  --c2: #a855f7;
+  --c3: #f472b6;
+  --cb-radius: 0.6rem;
+  font-family: "Chakra Petch", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@supports (color: oklch(50% 0 0)) {
+  .quick-links-row.cb-17 {
+    --tube: oklch(82% 0.14 200);
+    --c1: oklch(82% 0.14 200);
+    --c2: oklch(64% 0.24 305);
+    --c3: oklch(74% 0.17 349);
+  }
+}
+
+.cb-17 .cb-17__btn,
+.cb-17 .cb-17__btn::before,
+.cb-17 .cb-17__btn::after { box-sizing: border-box; }
+
+.cb-17__btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  /* inline-flex, not the block a <button> would give: an anchor won't centre
+     its own label against a min-height. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  min-height: 3.5rem;
+  padding: 0 2.1rem;
+  border: 0;
+  border-radius: var(--cb-radius);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--tube);
+  background: var(--shell);
+  text-shadow:
+    0 0 4px color-mix(in oklab, var(--tube) 90%, transparent),
+    0 0 12px color-mix(in oklab, var(--tube) 55%, transparent),
+    0 0 34px color-mix(in oklab, var(--tube) 30%, transparent);
+  box-shadow:
+    inset 0 0 14px color-mix(in oklab, var(--tube) 20%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--tube) 50%, transparent),
+    0 0 30px -8px color-mix(in oklab, var(--tube) 40%, transparent);
+  transition: box-shadow 0.35s ease, color 0.3s ease, scale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: cb-17-flicker 6s ease-in-out infinite;
+}
+
+.cb-17__label {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes cb-17-flicker {
+  0%, 100% { opacity: 1; }
+  48%      { opacity: 0.94; }
+  50%      { opacity: 0.82; }
+  52%      { opacity: 0.97; }
+}
+
+.cb-17__plasma {
+  position: absolute;
+  inset: -40%;
+  z-index: 1;
+  opacity: 0.3;
+  pointer-events: none;
+  background: conic-gradient(from var(--cb-17-a), var(--c1), var(--c2), var(--c3), var(--c1));
+  filter: blur(16px) saturate(1.5);
+  animation: cb-17-spin 7s linear infinite;
+  transition: opacity 0.4s ease;
+}
+
+@keyframes cb-17-spin {
+  to { --cb-17-a: 360deg; }
+}
+
+.cb-17__btn:is(:hover, :focus-visible) {
+  color: #f4feff;
+  box-shadow:
+    inset 0 0 22px color-mix(in oklab, var(--tube) 32%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--tube) 80%, transparent),
+    0 0 46px -6px color-mix(in oklab, var(--c2) 60%, transparent);
+}
+
+.cb-17__btn:is(:hover, :focus-visible) .cb-17__plasma {
+  opacity: 0.62;
+  animation-duration: 3.2s;
+}
+
+.cb-17__btn:focus-visible {
+  outline: 2px solid var(--c1);
+  outline-offset: 5px;
+}
+
+.cb-17__btn:active { scale: 0.97; }
+
+.cb-17__burst {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: 6rem;
+  height: 6rem;
+  margin: -3rem 0 0 -3rem;
+  border-radius: 50%;
+  border: 2px solid var(--c1);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cb-17__btn:active .cb-17__burst {
+  animation: cb-17-burst 0.62s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cb-17-burst {
+  0%   { opacity: 0.9; scale: 0.15; }
+  100% { opacity: 0;   scale: 3; }
+}
+
+/* Own Your Platform keeps the emphasis it had before the swap — the tube
+   runs violet instead of cyan rather than getting a different shape. */
+.cb-17__btn--feature {
+  --tube: var(--c2);
+}
+
+/* The row was sized for pill buttons; these are taller and wider. */
+.quick-links-row.cb-17 {
+  gap: 14px;
+  margin-top: 40px;
+}
+
+@media (max-width: 620px) {
+  .cb-17__btn {
+    min-height: 3rem;
+    padding: 0 1.35rem;
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+  }
+  .quick-links-row.cb-17 { gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-17__btn { animation: none; transition: none; }
+  .cb-17__plasma { animation: none; }
+  .cb-17__burst { display: none; }
+}
+
+@media (forced-colors: active) {
+  .cb-17__btn {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  .cb-17__plasma,
+  .cb-17__burst { display: none; }
+}
+
 /* ---------- Custom cursor (desktop with a mouse, motion allowed, marketing pages only) ---------- */
 /* cursor:none only applies once JS confirms it has a live mouse position — see
    main.js. This way the native cursor is always the fallback, never a gap. */
