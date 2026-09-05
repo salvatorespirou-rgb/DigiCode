@@ -1410,7 +1410,51 @@ a.v:hover { color: var(--gold); }
 }
 .foot a { color: var(--cream-dim); text-decoration: none; }
 .foot a:hover { color: var(--gold); }
-.socials { display: flex; gap: 1.4rem; }
+.socials { display: flex; align-items: center; gap: 1.4rem; }
+
+/* The marks sit optically level with the text links beside them, and the hit
+   area is padded out to a proper target rather than the 19px glyph. */
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin: -9px -9px -9px -10px;
+  border-radius: 50%;
+  color: var(--cream-dim);
+  transition: color 0.35s var(--ease), background 0.35s var(--ease),
+              transform 0.35s var(--ease);
+}
+.social-icon:hover {
+  color: var(--gold);
+  background: rgba(217, 164, 65, 0.10);
+  transform: translateY(-2px);
+}
+.social-icon:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.social-icon + .social-icon { margin-left: -0.4rem; }
+
+/* Footer keyword lines — small, quiet, and deliberately readable. */
+.foot-keywords {
+  margin: 1.6rem 0 0;
+  font-size: 0.7rem;
+  line-height: 1.85;
+  color: rgba(162, 144, 127, 0.72);
+  letter-spacing: 0.02em;
+  max-width: 78ch;
+}
+.foot-keywords + .foot-keywords { margin-top: 0.5rem; }
+
+.foot-region {
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  margin-right: 0.15rem;
+}
 
 /* The pitch stamp — makes it unmistakable this is a DigiCode proposal. */
 .pitch-stamp {
