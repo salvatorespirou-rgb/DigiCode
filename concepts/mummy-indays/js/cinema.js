@@ -295,6 +295,81 @@
   }
 
   /* ----------------------------------------------------------------------
+     Gallery drag
+     The rail is an overflow-x scroller with its scrollbar hidden, which on a
+     mouse leaves no way at all to move it — nothing to grab and no drag. A
+     trackpad swipe worked; everything else did nothing while the caption
+     underneath said "Drag sideways".
+
+     Three ways in, so nobody is stuck: press and drag, wheel over it, or tab
+     to it and use the arrow keys (the rail carries tabindex="0", and a native
+     scroller handles arrows once focused).
+     ---------------------------------------------------------------------- */
+
+  function wireRailDrag() {
+    if (!rail) return;
+
+    var dragging = false;
+    var startX = 0;
+    var startLeft = 0;
+    var travelled = 0;
+
+    rail.addEventListener("pointerdown", function (e) {
+      // Touch already scrolls this natively, and hijacking it there would
+      // only make it worse than the browser's own momentum.
+      if (e.pointerType === "touch") return;
+      if (e.button !== 0) return;
+
+      dragging = true;
+      travelled = 0;
+      startX = e.clientX;
+      startLeft = rail.scrollLeft;
+      rail.classList.add("is-dragging");
+      try { rail.setPointerCapture(e.pointerId); } catch (err) { /* not fatal */ }
+    });
+
+    rail.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      travelled = Math.max(travelled, Math.abs(dx));
+      rail.scrollLeft = startLeft - dx;
+      e.preventDefault();
+    });
+
+    function release(e) {
+      if (!dragging) return;
+      dragging = false;
+      rail.classList.remove("is-dragging");
+      if (e && e.pointerId != null) {
+        try { rail.releasePointerCapture(e.pointerId); } catch (err) { /* already gone */ }
+      }
+      onScroll();
+    }
+
+    rail.addEventListener("pointerup", release);
+    rail.addEventListener("pointercancel", release);
+    window.addEventListener("blur", release);
+
+    // A drag that ends on top of a card would otherwise fire a click. Caught
+    // in the capture phase so it never reaches the card at all.
+    rail.addEventListener("click", function (e) {
+      if (travelled > 6) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    // A plain wheel over the strip should move it sideways. Left alone when
+    // the gesture is already horizontal, which is what a trackpad sends.
+    rail.addEventListener("wheel", function (e) {
+      if (e.deltaX !== 0) return;
+      if (rail.scrollWidth <= rail.clientWidth) return;
+      rail.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  /* ----------------------------------------------------------------------
      Year
      ---------------------------------------------------------------------- */
 
@@ -311,6 +386,7 @@
     makeGrain();
     wireReveals();
     wireTilt();
+    wireRailDrag();
     wireNav();
     wirePhotos();
     wireYear();

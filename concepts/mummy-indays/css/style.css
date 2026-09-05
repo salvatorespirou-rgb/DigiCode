@@ -1196,6 +1196,24 @@ a { color: inherit; }
 }
 .rail::-webkit-scrollbar { display: none; }
 
+/* The scrollbar is hidden by design, so the cursor is the only affordance
+   there is — without it a mouse user has no way to know this moves, and no
+   way to move it. */
+.rail { cursor: grab; }
+
+.rail.is-dragging {
+  cursor: grabbing;
+  /* Mandatory snap fights a free drag: every pointermove gets yanked back to
+     the nearest card. Suspended while dragging and restored on release, so
+     the drag is loose and the settle still snaps. */
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  user-select: none;
+}
+/* Stops a drag across the strip selecting captions, and stops the pointer
+   being stolen mid-drag by a child. */
+.rail.is-dragging .rail-card { pointer-events: none; }
+
 .rail-card {
   flex: 0 0 clamp(220px, 26vw, 330px);
   scroll-snap-align: center;
