@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concept Builds — DigiCode</title>
+  <meta name="description" content="Speculative site concepts built by DigiCode — full working designs, not mockups." />
+  <!-- Concept builds are speculative and often carry a prospective client's
+       own material, so this page stays out of search. robots.txt also
+       disallows /concepts/. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=41" />
+</head>
+<body>
+
+  <img src="assets/images/digicode-logo-768.png" alt="" class="page-watermark" aria-hidden="true" />
+
+  <header class="site-header">
+    <div class="nav-left">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#work">Management</a></li>
+          <li><a href="own-your-platform.html">Own Your Platform</a></li>
+          <li><a href="digicode-gaming.html">DigiCode Gaming</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#team">The Team</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="header-icons">
+      <a href="signin.html" class="profile-icon-link" aria-label="Sign in">
+        <svg class="profile-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+          <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </a>
+      <a href="cart.html" class="cart-icon-link" aria-label="View cart">
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 8h12l-1 12H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="cart-badge" hidden>0</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <a href="index.html" class="page-hero-logo-link" aria-label="DigiCode home">
+          <img src="assets/images/digicode-logo-768.png" alt="DigiCode" class="page-hero-logo" width="768" height="768" decoding="async" />
+        </a>
+        <p class="eyebrow">Concept Builds</p>
+        <h1>Ideas built <span class="gradient-text">all the way.</span></h1>
+        <p class="hero-sub">Not mockups — full working sites, built to show what a business could have rather than describe it.</p>
+      </div>
+    </section>
+
+    <section class="request-form-section" style="padding-top: 0;">
+      <div class="container">
+        <p class="dev-empty" id="conceptLoading">Loading&hellip;</p>
+        <p class="dev-empty" id="conceptEmpty" hidden>
+          Nothing published here just yet. If you'd like to see what we'd do with your site,
+          <a href="index.html#contact">tell us about it</a>.
+        </p>
+        <p class="dev-empty" id="conceptError" hidden>
+          Couldn't load these just now &mdash; refresh, or use the live chat and we'll help.
+        </p>
+
+        <div class="script-store-grid" id="conceptList"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year"></span> DigiCode. All rights reserved. · <a href="privacy-policy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/main.js?v=39"></script>
+  <script src="js/concepts.js?v=1"></script>
+</body>
+</html>

@@ -7,3 +7,11 @@ node_modules/
 # The README documenting this folder's purpose is explicitly kept.
 data/emails/*
 !data/emails/README.md
+
+# Working copies of client pitch builds. The deployable copy lives in
+# concepts/ and is tracked; this is the scratch area.
+clients/
+
+# Ungraded photographic originals kept beside each concept build so a grade
+# can be redialled. Local only — they are large and never served.
+concepts/*/assets/img/src/

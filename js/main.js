@@ -2658,6 +2658,207 @@ if (devTabs.length) {
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Concept Builds
+  //
+  // Speculative site designs made to win an account. They live as static
+  // folders under /concepts/<slug>/ and, before this, nothing recorded that
+  // they existed — the only way back to one was remembering the URL.
+  //
+  // One thing this tab is careful to be honest about: hiding a build removes
+  // it from the public concepts page and from search, but the site is static,
+  // so anyone holding the direct link can still open it. Hidden means
+  // UNLISTED, not private. The panel says so rather than implying a lock that
+  // isn't there.
+  // ---------------------------------------------------------------------
+
+  let conceptsCache = [];
+
+  async function loadConcepts() {
+    const { data, error } = await digicodeSupabase
+      .from("concept_builds")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error) conceptsCache = data || [];
+    return conceptsCache;
+  }
+
+  // Mirrors public.can_manage_concepts() in supabase/040. The database is the
+  // real gate; this only decides whether the controls are worth showing.
+  function canManageConcepts() {
+    const email = (window.digicodePortalEmail || "").toLowerCase();
+    const me = getTeam().find((d) => (d.email || "").toLowerCase() === email);
+    if (!me) return true; // owner account, not on the roster
+    return me.rank === "Lead Developer" || (me.permissions || []).includes("Manage Concepts");
+  }
+
+  function conceptRowHtml(c) {
+    const listed = c.status === "listed";
+    const href = c.url || "concepts/" + c.slug + "/index.html";
+    const manage = canManageConcepts();
+    return `
+      <div class="project-card${listed ? " is-paid" : ""}">
+        <div class="project-card-head">
+          <div>
+            <span class="project-service">${escapeHtml(c.name)}</span>
+            <span class="project-client">${escapeHtml(c.client) || "No client recorded"}</span>
+          </div>
+          <span class="project-date">${formatDate(c.created_at)}</span>
+        </div>
+        <div class="invoice-tag-row">
+          <span class="invoice-tag ${listed ? "tag-paid" : "tag-void"}">${listed ? "Listed publicly" : "Hidden"}</span>
+          <span class="invoice-tag tag-due">/${escapeHtml(c.slug)}</span>
+        </div>
+        ${c.summary ? `<p class="project-details">${escapeHtml(c.summary)}</p>` : ""}
+        <p class="script-row-meta">${escapeHtml(href)}</p>
+        <div class="project-actions">
+          <a class="btn btn-primary btn-small-inline" href="${escapeHtml(href)}" target="_blank" rel="noopener">Open</a>
+          ${
+            manage
+              ? `<button type="button" class="clear-cart-link concept-toggle" data-id="${c.id}" data-to="${listed ? "hidden" : "listed"}">${listed ? "Hide from site" : "List on site"}</button>
+                 <button type="button" class="clear-cart-link concept-edit" data-id="${c.id}">Edit</button>
+                 <button type="button" class="clear-cart-link danger-link concept-delete" data-id="${c.id}" data-name="${escapeHtml(c.name)}">Delete</button>`
+              : ""
+          }
+        </div>
+      </div>`;
+  }
+
+  function conceptFormHtml(c) {
+    const e = c || {};
+    return `
+      <form class="concept-form" data-id="${e.id || ""}">
+        <h3 class="cancelled-head" style="margin-top:0;">${e.id ? "Edit concept build" : "Add a concept build"}</h3>
+        <div class="concept-grid">
+          <label>Name<input type="text" name="name" value="${escapeHtml(e.name) || ""}" required placeholder="Client or project name" /></label>
+          <label>Client<input type="text" name="client" value="${escapeHtml(e.client) || ""}" placeholder="Business name" /></label>
+          <label>Folder slug<input type="text" name="slug" value="${escapeHtml(e.slug) || ""}" required placeholder="mummy-indays" /></label>
+          <label>URL<input type="text" name="url" value="${escapeHtml(e.url) || ""}" placeholder="concepts/mummy-indays/index.html" /></label>
+        </div>
+        <label class="concept-wide">Summary<textarea name="summary" rows="2" placeholder="One line on what it is and anything to watch.">${escapeHtml(e.summary) || ""}</textarea></label>
+        <label class="concept-wide">Status
+          <select name="status">
+            <option value="hidden"${e.status !== "listed" ? " selected" : ""}>Hidden — not on the public page</option>
+            <option value="listed"${e.status === "listed" ? " selected" : ""}>Listed — shown as work</option>
+          </select>
+        </label>
+        <div class="project-actions">
+          <button type="submit" class="btn btn-primary btn-small-inline">${e.id ? "Save changes" : "Add build"}</button>
+          ${e.id ? `<button type="button" class="clear-cart-link concept-cancel">Cancel</button>` : ""}
+        </div>
+      </form>`;
+  }
+
+  let conceptEditingId = null;
+
+  function renderConceptsPanel() {
+    const panel = document.getElementById("conceptsPanel");
+    if (!panel) return;
+
+    const manage = canManageConcepts();
+    const editing = conceptEditingId
+      ? conceptsCache.find((c) => c.id === conceptEditingId)
+      : null;
+
+    panel.innerHTML =
+      `<div class="orders-alert concepts-note">
+         <strong>Hidden means unlisted, not private.</strong>
+         A hidden build is kept off the public concepts page and out of search,
+         but the site is static &mdash; anyone with the direct link can still open it.
+         Deleting removes it from this register only; the folder stays in the repo
+         until it is removed there too.
+       </div>` +
+      (manage ? conceptFormHtml(editing) : "") +
+      (conceptsCache.length
+        ? conceptsCache.map(conceptRowHtml).join("")
+        : `<p class="dev-empty">No concept builds registered yet.</p>`);
+
+    panel.querySelectorAll(".concept-toggle").forEach((b) => {
+      b.addEventListener("click", () => setConceptStatus(Number(b.dataset.id), b.dataset.to));
+    });
+    panel.querySelectorAll(".concept-edit").forEach((b) => {
+      b.addEventListener("click", () => {
+        conceptEditingId = Number(b.dataset.id);
+        renderConceptsPanel();
+        const f = panel.querySelector(".concept-form");
+        if (f) f.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+    panel.querySelectorAll(".concept-delete").forEach((b) => {
+      b.addEventListener("click", () => deleteConcept(Number(b.dataset.id), b.dataset.name));
+    });
+    const cancel = panel.querySelector(".concept-cancel");
+    if (cancel) {
+      cancel.addEventListener("click", () => {
+        conceptEditingId = null;
+        renderConceptsPanel();
+      });
+    }
+    const form = panel.querySelector(".concept-form");
+    if (form) form.addEventListener("submit", saveConcept);
+  }
+
+  async function saveConcept(e) {
+    e.preventDefault();
+    const f = e.currentTarget;
+    const btn = f.querySelector('button[type="submit"]');
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+
+    const { error } = await digicodeSupabase.rpc("save_concept_build", {
+      p_id: f.dataset.id ? Number(f.dataset.id) : null,
+      p_name: f.name.value,
+      p_client: f.client.value,
+      p_slug: f.slug.value,
+      p_url: f.url.value,
+      p_summary: f.summary.value,
+      p_status: f.status.value,
+    });
+
+    btn.disabled = false;
+    btn.textContent = original;
+
+    if (error) {
+      window.alert(
+        "Couldn't save that — the slug may already be taken, your account may not " +
+          "have permission, or supabase/040_concept_builds.sql hasn't been run yet."
+      );
+      return;
+    }
+
+    conceptEditingId = null;
+    await loadConcepts();
+    renderConceptsPanel();
+  }
+
+  async function setConceptStatus(id, to) {
+    const { error } = await digicodeSupabase.rpc("set_concept_status", { p_id: id, p_status: to });
+    if (error) {
+      window.alert("Couldn't change that — your account may not have permission.");
+      return;
+    }
+    await loadConcepts();
+    renderConceptsPanel();
+  }
+
+  async function deleteConcept(id, name) {
+    const warning =
+      'Remove "' + name + '" from the concept register?\n\n' +
+      "This deletes the entry here only. The build's folder stays in the repo " +
+      "and its URL keeps working until it is deleted there too.\n\nThis can't be undone.";
+    if (!window.confirm(warning)) return;
+
+    const { error } = await digicodeSupabase.rpc("delete_concept_build", { p_id: id });
+    if (error) {
+      window.alert("Couldn't delete that — your account may not have permission.");
+      return;
+    }
+    await loadConcepts();
+    renderConceptsPanel();
+  }
+  // ---------------------------------------------------------------------
+
   function renderAllPanels() {
     renderPendingPanel();
     renderInvoicesPanel();
@@ -2669,6 +2870,7 @@ if (devTabs.length) {
     renderScriptsPanel();
     renderScriptSalesPanel();
     renderOrdersPanel();
+    renderConceptsPanel();
     renderStatGrid();
     renderRankList();
     renderPerfGrid();
@@ -4827,7 +5029,7 @@ if (devTabs.length) {
   if (statsRefreshBtn) statsRefreshBtn.addEventListener("click", refreshDashboard);
 
   (async () => {
-    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices(), loadScriptSales(), loadOrders()]);
+    await Promise.all([waitForAuthReady(), loadProjects(), loadTeam(), loadChats(), loadVisitorChats(), loadSiteStats(), loadStatsSnapshot(), loadScripts(), loadInvoices(), loadScriptSales(), loadOrders(), loadConcepts()]);
     renderAllPanels();
     applyPortalRole();
     subscribeToVisitorChat();

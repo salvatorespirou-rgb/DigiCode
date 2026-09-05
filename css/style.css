@@ -4947,3 +4947,63 @@ body.script-modal-open { overflow: hidden; }
 }
 
 .orders-alert strong { display: block; margin-bottom: 4px; color: #ff9a8f; }
+
+/* --- Concept Builds -------------------------------------------------------
+   The register of speculative pitch builds. The note at the top is
+   informational rather than an alarm, so it drops the red of .orders-alert
+   and takes the neutral surface instead. */
+
+.concepts-note {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.concepts-note strong { color: var(--accent); }
+
+.concept-form {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.concept-form label,
+.concept-wide {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.concept-form input,
+.concept-form textarea,
+.concept-form select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.concept-form textarea { resize: vertical; }
+
+.concept-form input:focus,
+.concept-form textarea:focus,
+.concept-form select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+

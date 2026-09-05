@@ -15,3 +15,8 @@ Sitemap: https://www.digi-code.com.au/sitemap.xml
 
 # Internal sales assets, not site content.
 Disallow: /email-templates/
+
+# Speculative pitch builds. They carry the prospective client's own
+# photography and are not approved for publication, so they stay out of
+# search whatever their listing status in the portal.
+Disallow: /concepts/

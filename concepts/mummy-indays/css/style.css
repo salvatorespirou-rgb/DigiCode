@@ -1,0 +1,1499 @@
+/* ==========================================================================
+   Mummy Inday's Catering — cinematic pitch build
+   DigiCode, 2026. Spec proposal; not affiliated with the live site.
+
+   The whole page is one long dolly shot. Everything moves on the Z axis:
+   sections arrive from depth, photographs drift against the page, the
+   plates settle. Motion is driven from js/cinema.js, which writes normalised
+   progress values (0 → 1) onto elements as custom properties, so the CSS
+   below stays declarative and the JS never touches a style string.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* A dark, warm room with a fire in it — charcoal, lechon gold, banana
+     leaf, and the annatto red that colours half the menu. */
+  --ink:        #0b0807;
+  --ink-2:      #141010;
+  --ink-3:      #1e1817;
+  --char:       #2a2220;
+
+  --cream:      #f7f0e4;
+  --cream-dim:  #d9cdbc;
+  --muted:      #a2907f;
+
+  --gold:       #d9a441;
+  --gold-lt:    #f2cd82;
+  --gold-deep:  #a97a26;
+  --ember:      #b8502a;
+  --leaf:       #55704f;
+
+  --line:       rgba(247, 240, 228, 0.12);
+  --line-soft:  rgba(247, 240, 228, 0.06);
+
+  --display: "Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif;
+  --body:    "Jost", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --shell: min(1220px, 92vw);
+  --ease:  cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Written by cinema.js. Declared here so the first paint is never a jump. */
+  --scroll: 0;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  /* The 3D scenes below rely on the viewport being the perspective origin. */
+  background: var(--ink);
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--body);
+  font-weight: 300;
+  font-size: 17px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { max-width: 100%; display: block; }
+
+::selection { background: var(--gold); color: var(--ink); }
+
+/* --------------------------------------------------------------------------
+   Type
+   -------------------------------------------------------------------------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  font-weight: 300;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+h1 { font-size: clamp(3.2rem, 11vw, 8.5rem); }
+h2 { font-size: clamp(2.4rem, 6vw, 4.6rem); }
+h3 { font-size: clamp(1.5rem, 2.6vw, 2.1rem); }
+
+em, .italic {
+  font-style: italic;
+  font-family: var(--display);
+}
+
+p { margin: 0 0 1.15em; }
+p:last-child { margin-bottom: 0; }
+
+a { color: inherit; }
+
+.eyebrow {
+  font-family: var(--body);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 1.4rem;
+}
+
+.eyebrow--muted { color: var(--muted); }
+
+.lede {
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 2.3vw, 1.7rem);
+  line-height: 1.5;
+  color: var(--cream-dim);
+  font-weight: 300;
+}
+
+.shell {
+  width: var(--shell);
+  margin-inline: auto;
+}
+
+/* A hairline rule with a diamond in it — used between movements. */
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--gold);
+  opacity: 0.55;
+}
+.rule::before,
+.rule::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+}
+.rule span {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   Grain + vignette
+   The whole film sits under a static grain plate. Cheap, and it stops the
+   large flat darks from banding on a bad monitor.
+   -------------------------------------------------------------------------- */
+
+.film-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+}
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 8999;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 42%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* --------------------------------------------------------------------------
+   Navigation
+   -------------------------------------------------------------------------- */
+
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem clamp(1.2rem, 4vw, 3rem);
+  transition: background 0.5s var(--ease), backdrop-filter 0.5s var(--ease), padding 0.5s var(--ease);
+}
+
+.nav.is-stuck {
+  background: rgba(11, 8, 7, 0.82);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid var(--line-soft);
+  padding-block: 1rem;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  text-decoration: none;
+}
+.brand b {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.brand small {
+  font-size: 0.52rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 0.35rem;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: clamp(1.2rem, 2.6vw, 2.4rem);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-links a {
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  position: relative;
+  padding-block: 0.3rem;
+  transition: color 0.3s var(--ease);
+}
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 1px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease);
+}
+.nav-links a:hover { color: var(--cream); }
+.nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.72rem 1.5rem;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  text-decoration: none;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  border-radius: 100px;
+  transition: background 0.4s var(--ease), color 0.4s var(--ease);
+}
+.nav-cta:hover { background: var(--gold); color: var(--ink); }
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 0;
+  color: var(--cream);
+  cursor: pointer;
+  padding: 0.5rem;
+}
+.nav-toggle span {
+  display: block;
+  width: 26px; height: 1px;
+  background: currentColor;
+  margin: 6px 0;
+  transition: transform 0.4s var(--ease), opacity 0.3s;
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* --------------------------------------------------------------------------
+   Hero — the establishing shot
+   Four plates at different depths. cinema.js writes --scroll; each layer
+   translates on Z by a different multiple, so the camera appears to push
+   through them.
+   -------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  perspective: 1000px;
+  perspective-origin: 50% 45%;
+}
+
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.hero-layer {
+  position: absolute;
+  inset: -10%;
+  background-size: cover;
+  background-position: center;
+  will-change: transform, opacity;
+}
+
+/* Depth 0: the slideshow, furthest back and moving least — the way a far
+   wall barely shifts when you walk past it. Four graded stills crossfading
+   on one 32s cycle, 8s each, with a slow push in on every frame. The wrapper
+   carries the scroll parallax so the Ken Burns scale on each slide composes
+   with it rather than fighting it. */
+.hero-slides {
+  position: absolute;
+  inset: -10%;
+  overflow: hidden;
+  transform: translate3d(0, calc(var(--scroll) * 6vh), 0) scale(calc(1.02 + var(--scroll) * 0.10));
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 45%;
+  opacity: 0;
+  filter: saturate(0.95) contrast(1.02);
+  animation: heroCycle 32s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: opacity, transform;
+}
+.hero-slide:nth-child(1) { animation-delay: 0s; }
+.hero-slide:nth-child(2) { animation-delay: 8s; }
+.hero-slide:nth-child(3) { animation-delay: 16s; }
+.hero-slide:nth-child(4) { animation-delay: 24s; }
+
+/* Held at 0.46 rather than 1 — the type sits on top of this and has to win.
+   The push-in keeps running to 30% so the frame is still moving through the
+   whole crossfade, which is what stops the change reading as a hard cut. */
+@keyframes heroCycle {
+  0%   { opacity: 0;    transform: scale(1.04); }
+  3%   { opacity: 0.46; }
+  22%  { opacity: 0.46; }
+  27%  { opacity: 0;    }
+  30%  { transform: scale(1.15); }
+  100% { opacity: 0;    transform: scale(1.15); }
+}
+
+.hero-layer--scrim {
+  background:
+    linear-gradient(180deg, rgba(11, 8, 7, 0.72) 0%, rgba(11, 8, 7, 0.45) 40%,
+                    rgba(11, 8, 7, 0.82) 100%),
+    radial-gradient(65% 55% at 50% 45%, transparent 10%, rgba(11, 8, 7, 0.75) 100%);
+}
+
+/* Depth 1: the far wall — a warm ember glow. */
+.hero-layer--glow {
+  background:
+    radial-gradient(58% 48% at 50% 62%, rgba(217, 164, 65, 0.30), transparent 68%),
+    radial-gradient(40% 34% at 22% 30%, rgba(184, 80, 42, 0.24), transparent 70%),
+    radial-gradient(46% 40% at 82% 38%, rgba(85, 112, 79, 0.20), transparent 72%);
+  transform: translate3d(0, calc(var(--scroll) * 12vh), 0) scale(1.05);
+}
+
+/* Depth 2: banana leaf ribs, drawn rather than photographed so the pitch
+   carries no third-party imagery. */
+.hero-layer--leaf {
+  opacity: 0.30;
+  background-image:
+    repeating-linear-gradient(102deg,
+      rgba(85, 112, 79, 0.55) 0px,
+      rgba(85, 112, 79, 0.55) 1px,
+      transparent 1px,
+      transparent 22px);
+  mask-image: radial-gradient(70% 60% at 50% 55%, #000 20%, transparent 78%);
+  transform: translate3d(0, calc(var(--scroll) * 26vh), 0) rotate(-2deg);
+}
+
+/* Depth 3: drifting steam. */
+.hero-layer--steam {
+  opacity: 0.5;
+  background:
+    radial-gradient(30% 22% at 30% 70%, rgba(247, 240, 228, 0.10), transparent 70%),
+    radial-gradient(26% 20% at 68% 62%, rgba(247, 240, 228, 0.08), transparent 72%);
+  filter: blur(18px);
+  animation: drift 18s ease-in-out infinite alternate;
+  transform: translate3d(0, calc(var(--scroll) * 42vh), 0);
+}
+
+@keyframes drift {
+  from { transform: translate3d(-2%, 0, 0) scale(1); }
+  to   { transform: translate3d(3%, -4%, 0) scale(1.12); }
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  padding: 8rem 1.5rem 6rem;
+  transform: translate3d(0, calc(var(--scroll) * -14vh), 0);
+  opacity: calc(1 - var(--scroll) * 1.5);
+  will-change: transform, opacity;
+}
+
+.hero h1 {
+  margin: 0.4rem 0 0;
+}
+.hero h1 .line {
+  display: block;
+  overflow: hidden;
+}
+.hero h1 .line > span {
+  display: block;
+  transform: translateY(102%);
+  animation: riseIn 1.25s var(--ease) forwards;
+}
+.hero h1 .line:nth-child(2) > span { animation-delay: 0.12s; }
+.hero h1 .line:nth-child(3) > span { animation-delay: 0.24s; }
+
+@keyframes riseIn { to { transform: translateY(0); } }
+
+.hero h1 .gold {
+  color: var(--gold);
+  font-style: italic;
+}
+
+.hero-sub {
+  max-width: 46ch;
+  margin: 2rem auto 0;
+  color: var(--cream-dim);
+  opacity: 0;
+  animation: fadeUp 1s var(--ease) 0.55s forwards;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 2.2rem;
+  margin-top: 2.6rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  animation: fadeUp 1s var(--ease) 0.7s forwards;
+}
+.hero-meta span { display: inline-flex; align-items: center; gap: 0.6rem; }
+.hero-meta span::before {
+  content: "";
+  width: 4px; height: 4px;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2.8rem;
+  opacity: 0;
+  animation: fadeUp 1s var(--ease) 0.85s forwards;
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 2.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: calc(1 - var(--scroll) * 2.4);
+}
+.scroll-cue i {
+  display: block;
+  width: 1px; height: 54px;
+  background: linear-gradient(var(--gold), transparent);
+  animation: cue 2.4s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes cue {
+  0%, 100% { transform: scaleY(0.3); opacity: 0.4; }
+  50%      { transform: scaleY(1);   opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.05rem 2.3rem;
+  font-family: var(--body);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease),
+              background 0.4s var(--ease), color 0.4s var(--ease);
+}
+
+.btn--gold {
+  background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+  color: var(--ink);
+  box-shadow: 0 12px 40px -14px rgba(217, 164, 65, 0.7);
+}
+.btn--gold:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 52px -14px rgba(217, 164, 65, 0.85);
+}
+
+.btn--ghost {
+  border-color: var(--line);
+  color: var(--cream);
+}
+.btn--ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: translateY(-3px);
+}
+
+/* --------------------------------------------------------------------------
+   Section chrome
+   -------------------------------------------------------------------------- */
+
+.act {
+  position: relative;
+  padding: clamp(6rem, 14vh, 11rem) 0;
+}
+
+.act-head {
+  max-width: 62ch;
+  margin-bottom: clamp(3rem, 7vh, 5rem);
+}
+.act-head--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* Reveal: elements start pushed back in Z and rise as they enter. */
+[data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 44px, -120px) rotateX(6deg);
+  transition:
+    opacity 1s var(--ease),
+    transform 1.15s var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0);
+}
+
+/* --------------------------------------------------------------------------
+   Act I — the story
+   A card that turns toward the camera as it enters the frame.
+   -------------------------------------------------------------------------- */
+
+.story {
+  perspective: 1400px;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: center;
+}
+
+.story-panel {
+  transform-style: preserve-3d;
+  transform: rotateY(calc((0.5 - var(--enter, 0.5)) * 16deg));
+  transition: transform 0.9s var(--ease);
+}
+
+.story-plate {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow:
+    0 60px 120px -50px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(217, 164, 65, 0.08) inset;
+}
+
+.story-quote {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+  line-height: 1.45;
+  color: var(--gold-lt);
+  border-left: 1px solid var(--gold);
+  padding-left: 1.6rem;
+  margin: 2.4rem 0 0;
+}
+.story-quote cite {
+  display: block;
+  margin-top: 1rem;
+  font-family: var(--body);
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Photo slots
+   Every image on the page is a .photo. Until the client signs off on their
+   own photography, each one renders as a composed warm gradient with the
+   dish name set in it — so the layout reads as finished rather than broken.
+   Dropping real files into assets/img/ replaces them with no markup change.
+   -------------------------------------------------------------------------- */
+
+.photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: var(--ink-3);
+  background-image: var(--src, none);
+  background-size: cover;
+  background-position: center;
+  isolation: isolate;
+}
+
+/* The drawn stand-in, painted behind whatever image loads on top. */
+.photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(80% 70% at 30% 25%, rgba(217, 164, 65, 0.28), transparent 70%),
+    radial-gradient(70% 60% at 75% 80%, rgba(184, 80, 42, 0.26), transparent 72%),
+    repeating-linear-gradient(58deg,
+      rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 9px),
+    linear-gradient(160deg, var(--char), var(--ink-2));
+}
+
+/* The label only shows through when no real photo covers it. */
+.photo::after {
+  content: attr(data-label);
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: -1;
+  padding: 1.4rem;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: rgba(247, 240, 228, 0.6);
+}
+
+/* Once a real photograph is in, the stand-in must go.
+   A negative-z-index pseudo-element does NOT paint behind its own element's
+   background — within a stacking context the order is: element background,
+   then negative-z-index children, then content. So ::before and ::after were
+   painting straight over the photograph and burying it. */
+.photo.has-photo::before,
+.photo.has-photo::after { content: none; }
+
+.photo--tall  { aspect-ratio: 3 / 4; }
+.photo--wide  { aspect-ratio: 16 / 10; }
+.photo--sq    { aspect-ratio: 1; }
+
+/* --------------------------------------------------------------------------
+   Act II — the menu
+   Cards begin far back in Z, blurred and small, and fly toward the camera
+   as the section scrolls. --z is written per card by cinema.js.
+   -------------------------------------------------------------------------- */
+
+.menu {
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: clamp(1.2rem, 2.4vw, 2rem);
+  transform-style: preserve-3d;
+}
+
+.dish-card {
+  position: relative;
+  padding: 2.4rem 2rem 2.2rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  background:
+    linear-gradient(165deg, rgba(42, 34, 32, 0.9), rgba(20, 16, 16, 0.92));
+  transform-style: preserve-3d;
+  transform: translate3d(0, 0, calc(var(--z, 0) * 1px));
+  transition: border-color 0.5s var(--ease), box-shadow 0.6s var(--ease),
+              transform 0.15s linear;
+  overflow: hidden;
+}
+
+/* A thin gold seam that lights along the top edge on approach. */
+.dish-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.25;
+  transition: opacity 0.5s var(--ease);
+}
+
+.dish-card:hover {
+  border-color: rgba(217, 164, 65, 0.4);
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.95);
+}
+.dish-card:hover::before { opacity: 1; }
+
+.dish-card h3 {
+  color: var(--cream);
+  margin-bottom: 0.4rem;
+}
+
+.dish-card .price-band {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.6rem;
+  display: block;
+}
+
+.dish-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dish-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.62rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 0.95rem;
+  color: var(--cream-dim);
+}
+.dish-list li:last-child { border-bottom: 0; }
+.dish-list .dot {
+  flex: 1;
+  height: 1px;
+  background: repeating-linear-gradient(90deg,
+    var(--line) 0 2px, transparent 2px 6px);
+  transform: translateY(-3px);
+}
+.dish-list .amt {
+  color: var(--gold-lt);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dish-list .note {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+   Act III — the lechon
+   The signature moment. One photograph blended into the dark, drifting
+   against the scroll. --p is written by cinema.js.
+   -------------------------------------------------------------------------- */
+
+.lechon {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 60% at 50% 50%, rgba(184, 80, 42, 0.16), transparent 72%),
+    var(--ink);
+}
+
+.lechon-grid {
+  display: grid;
+  justify-content: end;
+  position: relative;
+  z-index: 1;
+}
+
+/* The photograph IS the set. It sits behind the whole act, oversized so the
+   parallax never drags an edge into frame, and is blended into the dark
+   rather than pasted on top of it: `screen` lets the near-black ground eat
+   the shadows, so the crackling glows out of the section instead of sitting
+   in a box on it. The mask feathers all four sides to nothing, which is what
+   stops it reading as a rectangle. */
+.lechon-bg {
+  position: absolute;
+  inset: -18% -6%;
+  z-index: 0;
+  /* The file itself is set by cinema.js from data-bg, so it is fetched
+     only as the section approaches rather than on first paint. */
+  background-size: cover;
+  background-position: center 45%;
+  opacity: 0.55;
+  filter: saturate(0.95) contrast(1.08) brightness(0.85);
+  mix-blend-mode: screen;
+  transform: translate3d(0, calc(var(--p, 0.5) * 20vh - 10vh), 0) scale(1.12);
+  will-change: transform;
+
+  -webkit-mask-image:
+    radial-gradient(72% 62% at 38% 50%, #000 12%, transparent 74%);
+  mask-image:
+    radial-gradient(72% 62% at 38% 50%, #000 12%, transparent 74%);
+}
+
+/* Holds the right-hand side down so the pricing stays legible over the
+   brightest part of the photograph. */
+.lechon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(11, 8, 7, 0.35) 42%, rgba(11, 8, 7, 0.86) 72%);
+}
+
+.lechon-copy {
+  max-width: 33rem;
+  position: relative;
+  z-index: 1;
+}
+
+.weight-list {
+  list-style: none;
+  margin: 2.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line-soft);
+  border: 1px solid var(--line-soft);
+}
+.weight-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.15rem 1.4rem;
+  background: var(--ink-2);
+}
+.weight-list b {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 400;
+}
+.weight-list .amt {
+  color: var(--gold-lt);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.weight-list small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.freebie {
+  margin-top: 1.6rem;
+  padding: 1rem 1.3rem;
+  border: 1px dashed rgba(217, 164, 65, 0.35);
+  border-radius: 3px;
+  font-size: 0.85rem;
+  color: var(--gold-lt);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   Interludes — the cuts between acts
+   A full-bleed photograph that scrolls at a different rate to the page, with
+   a single line of type over it. These are the beats that let the film
+   breathe between one dense section and the next.
+   -------------------------------------------------------------------------- */
+
+.interlude {
+  position: relative;
+  height: clamp(60vh, 78vh, 90vh);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.interlude-img {
+  position: absolute;
+  inset: -22% 0;
+  background-size: cover;
+  background-position: center;
+  /* Overscrolls its own frame, so the parallax never exposes an edge. */
+  transform: translate3d(0, calc(var(--p, 0.5) * 26vh - 13vh), 0) scale(1.18);
+  will-change: transform;
+  z-index: -2;
+}
+
+/* Held down hard: these sit under type, and the food still has to read. */
+.interlude::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, var(--ink) 0%, rgba(11, 8, 7, 0.42) 32%,
+                    rgba(11, 8, 7, 0.55) 68%, var(--ink) 100%),
+    radial-gradient(70% 60% at 50% 50%, transparent 20%, rgba(11, 8, 7, 0.6) 100%);
+}
+
+.interlude-copy {
+  text-align: center;
+  padding: 2rem;
+  /* NOT ch: that unit resolves against this container's own font-size
+     (~17px), not the 2-4rem heading inside it, so a "22ch" box computes to
+     about 190px and breaks the headline one word per line. Sized in rem
+     against the viewport instead. */
+  max-width: min(92vw, 40rem);
+  margin-inline: auto;
+}
+.interlude-copy h2 {
+  font-size: clamp(1.9rem, 5.4vw, 4rem);
+  text-wrap: balance;
+  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.8);
+}
+.interlude-copy p {
+  margin-top: 1.2rem;
+  color: var(--cream-dim);
+  font-size: clamp(0.62rem, 1.6vw, 0.78rem);
+  letter-spacing: clamp(0.14em, 0.5vw, 0.28em);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   Menu card photography
+   A band across the top of each category card. It sits inside the card's own
+   3D transform, so it flies in from depth with everything else.
+   -------------------------------------------------------------------------- */
+
+.dish-photo {
+  position: relative;
+  height: 172px;
+  margin: -2.4rem -2rem 1.8rem;
+  overflow: hidden;
+  background-color: var(--ink-3);
+}
+.dish-photo .photo { position: absolute; inset: 0; }
+
+/* Fades the photograph into the card rather than cutting it with a hard
+   edge — the card should read as one object, not a picture glued to a box. */
+.dish-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(11, 8, 7, 0.15) 0%,
+    rgba(11, 8, 7, 0.55) 55%,
+    rgba(20, 16, 16, 0.96) 100%);
+}
+
+.dish-card:hover .dish-photo .photo {
+  transform: scale(1.06);
+}
+.dish-photo .photo {
+  transition: transform 1.2s var(--ease);
+}
+
+/* --------------------------------------------------------------------------
+   Act IV — full catering packages
+   Tilt cards. --mx/--my are the pointer position, written on hover.
+   -------------------------------------------------------------------------- */
+
+.packages { perspective: 1500px; }
+
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  transform-style: preserve-3d;
+}
+
+.pkg {
+  position: relative;
+  padding: 2.2rem 1.7rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  background: linear-gradient(170deg, rgba(42, 34, 32, 0.85), rgba(14, 11, 11, 0.9));
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(var(--my, 0) * -7deg))
+    rotateY(calc(var(--mx, 0) * 7deg))
+    translateZ(0);
+  transition: transform 0.5s var(--ease), border-color 0.5s var(--ease);
+}
+.pkg:hover { border-color: rgba(217, 164, 65, 0.45); }
+
+.pkg--feature {
+  border-color: rgba(217, 164, 65, 0.42);
+  background: linear-gradient(170deg, rgba(60, 45, 30, 0.85), rgba(18, 13, 11, 0.94));
+}
+.pkg--feature::after {
+  content: "Most booked";
+  position: absolute;
+  top: -1px; right: 1.4rem;
+  padding: 0.35rem 0.8rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 0.55rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.pkg-name {
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pkg-price {
+  font-family: var(--display);
+  font-size: 3.1rem;
+  line-height: 1;
+  margin: 0.7rem 0 0.2rem;
+  color: var(--cream);
+  transform: translateZ(30px);
+}
+.pkg-price sup {
+  font-size: 1.1rem;
+  vertical-align: super;
+  color: var(--gold);
+}
+.pkg-per {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.6rem;
+}
+.pkg ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.pkg li {
+  font-size: 0.88rem;
+  color: var(--cream-dim);
+  display: flex;
+  gap: 0.7rem;
+  align-items: baseline;
+}
+.pkg li::before {
+  content: "";
+  width: 4px; height: 4px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.inclusions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--line-soft);
+  border: 1px solid var(--line-soft);
+  margin-top: 3rem;
+}
+.inclusions div {
+  background: var(--ink-2);
+  padding: 1.5rem 1.3rem;
+  font-size: 0.85rem;
+  color: var(--cream-dim);
+}
+.inclusions b {
+  display: block;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  color: var(--gold-lt);
+  margin-bottom: 0.3rem;
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Meet the Family
+   Three plates hung at three depths. Each carries the same --p (they share a
+   parent) but its own --depth, so the cluster opens and closes as it crosses
+   the viewport rather than sliding as one flat slab. A negative --depth sends
+   a plate the other way, which is what keeps the arrangement from feeling
+   mechanical.
+   -------------------------------------------------------------------------- */
+
+.family { perspective: 1400px; }
+
+.family-grid {
+  display: grid;
+  grid-template-columns: 1fr 0.92fr;
+  gap: clamp(2.5rem, 6vw, 5.5rem);
+  align-items: center;
+}
+
+.family-copy { max-width: 46ch; }
+
+.family-sign {
+  margin-top: 2.2rem;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--gold-lt);
+}
+
+.family-stack {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  transform-style: preserve-3d;
+}
+
+.family-shot {
+  position: absolute;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  border: 1px solid var(--line-soft);
+  box-shadow: 0 50px 100px -45px rgba(0, 0, 0, 0.95);
+  transform: translate3d(0, calc((var(--p, 0.5) - 0.5) * var(--depth, 1) * 16vh), 0);
+  will-change: transform;
+}
+
+/* 4/3 rather than a wider crop: the photograph is 909x759 with a person on
+   each edge, so it may lose a little top and bottom but must never lose its
+   sides. `cover` into a 4/3 box trims height only. */
+.photo--family { aspect-ratio: 4 / 3; }
+
+.family-shot--lead { inset: 0; width: 100%; }
+
+/* Seven links, a wordmark and a CTA is a lot of bar. Between the desktop
+   layout and the mobile sheet there's a band where it all still fits, but
+   only if the tracking comes in — without this the bar silently wraps to two
+   lines on a 1100px laptop. */
+@media (max-width: 1200px) {
+  .nav { padding-inline: clamp(1rem, 2.5vw, 1.8rem); }
+  .nav-links { gap: 1.05rem; }
+  .nav-links a { font-size: 0.65rem; letter-spacing: 0.11em; }
+  .nav-cta { padding: 0.6rem 1.05rem; font-size: 0.6rem; letter-spacing: 0.13em; }
+  .brand b { font-size: 1.25rem; }
+  .brand small { letter-spacing: 0.24em; }
+}
+
+@media (max-width: 900px) {
+  .family-grid { grid-template-columns: 1fr; }
+  .family-stack { margin-top: 2.5rem; }
+}
+
+/* --------------------------------------------------------------------------
+   Act V — gallery rail
+   Horizontal 3D coverflow. Cards rotate toward the centre of the viewport.
+   -------------------------------------------------------------------------- */
+
+.gallery { overflow: hidden; }
+
+.rail {
+  display: flex;
+  gap: 1.4rem;
+  padding: 2rem clamp(1.2rem, 6vw, 6rem) 3rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  perspective: 1300px;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+
+.rail-card {
+  flex: 0 0 clamp(220px, 26vw, 330px);
+  scroll-snap-align: center;
+  transform-style: preserve-3d;
+  transform:
+    rotateY(calc(var(--off, 0) * -22deg))
+    translateZ(calc(var(--off, 0) * var(--off, 0) * -140px));
+  transition: transform 0.25s linear;
+  border: 1px solid var(--line-soft);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rail-hint {
+  text-align: center;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Act VI — reviews
+   -------------------------------------------------------------------------- */
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+}
+
+.review {
+  padding: 2rem 1.8rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  background: linear-gradient(170deg, rgba(30, 24, 23, 0.8), rgba(14, 11, 11, 0.86));
+}
+.stars {
+  color: var(--gold);
+  letter-spacing: 0.3em;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+.review p {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--cream-dim);
+}
+.review cite {
+  display: block;
+  margin-top: 1.2rem;
+  font-style: normal;
+  font-size: 0.66rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Review banner
+   Two identical tracks side by side, the pair translated left by exactly one
+   track width. At the moment the animation resets, track two is sitting
+   precisely where track one began — so the loop has no seam and no jump.
+   -------------------------------------------------------------------------- */
+
+.review-banner {
+  padding: clamp(5rem, 11vh, 8rem) 0 clamp(4rem, 9vh, 6rem);
+  border-top: 1px solid var(--line-soft);
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgba(217, 164, 65, 0.10), transparent 70%),
+    var(--ink);
+  overflow: hidden;
+}
+
+.marquee {
+  display: flex;
+  width: max-content;
+  /* Feathered at both ends so cards arrive and leave rather than being
+     chopped off at the viewport edge. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 1.4rem;
+  padding-right: 1.4rem;
+  animation: marquee 95s linear infinite;
+}
+
+/* Reading a moving quote is annoying; hovering stops it. */
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-100%, 0, 0); }
+}
+
+.rev {
+  flex: 0 0 clamp(270px, 25vw, 355px);
+  display: flex;
+  flex-direction: column;
+  padding: 1.9rem 1.7rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  background: linear-gradient(170deg, rgba(30, 24, 23, 0.9), rgba(14, 11, 11, 0.9));
+}
+
+.rev-stars {
+  color: var(--gold);
+  letter-spacing: 0.26em;
+  font-size: 0.82rem;
+  margin: 0 0 1rem;
+}
+
+.rev-text {
+  font-family: var(--display);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--cream-dim);
+  margin: 0 0 1.3rem;
+  flex: 1;
+}
+
+.rev-name {
+  margin: 0;
+  font-size: 0.64rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--gold-lt);
+}
+.rev-name::before { content: "— "; color: var(--muted); }
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: clamp(2.5rem, 5vh, 3.5rem);
+}
+
+/* --------------------------------------------------------------------------
+   Act VII — booking / contact
+   -------------------------------------------------------------------------- */
+
+.book {
+  position: relative;
+  background:
+    radial-gradient(60% 60% at 50% 0%, rgba(217, 164, 65, 0.14), transparent 70%),
+    var(--ink-2);
+  border-top: 1px solid var(--line-soft);
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(2.5rem, 6vw, 5rem);
+}
+
+.contact-list {
+  list-style: none;
+  margin: 2.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.6rem;
+}
+.contact-list dt,
+.contact-list .k {
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+.contact-list .v {
+  font-family: var(--display);
+  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+  color: var(--cream);
+  text-decoration: none;
+  transition: color 0.35s var(--ease);
+}
+a.v:hover { color: var(--gold); }
+
+.notice {
+  margin-top: 2.4rem;
+  padding: 1.5rem 1.6rem;
+  border-left: 2px solid var(--gold);
+  background: rgba(217, 164, 65, 0.06);
+  font-size: 0.9rem;
+  color: var(--cream-dim);
+}
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+
+.foot {
+  padding: 3.5rem 0 4rem;
+  border-top: 1px solid var(--line-soft);
+  background: var(--ink);
+}
+.foot-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.foot a { color: var(--cream-dim); text-decoration: none; }
+.foot a:hover { color: var(--gold); }
+.socials { display: flex; gap: 1.4rem; }
+
+/* The pitch stamp — makes it unmistakable this is a DigiCode proposal. */
+.pitch-stamp {
+  margin-top: 2.5rem;
+  padding: 1.2rem 1.4rem;
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+  font-size: 0.74rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.pitch-stamp b { color: var(--gold); font-weight: 400; }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .story-grid,
+  .lechon-grid,
+  .book-grid { grid-template-columns: 1fr; }
+
+  .story-panel { transform: none; }
+
+  .nav-links,
+  .nav-cta { display: none; }
+  .nav-toggle { display: block; }
+
+  .nav.is-open .nav-links {
+    display: flex;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(11, 8, 7, 0.97);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line-soft);
+    padding: 1rem 0 1.5rem;
+  }
+  .nav.is-open .nav-links a {
+    display: block;
+    padding: 1rem clamp(1.2rem, 4vw, 3rem);
+  }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .act { padding: 5rem 0; }
+  .dish-card { padding: 1.9rem 1.5rem; }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — the whole conceit is movement, so this matters. Every
+   scroll-driven transform collapses to its resting state and the reveals
+   become instant.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  [data-reveal] { opacity: 1; transform: none; }
+  .hero-copy,
+  .hero-layer { transform: none; opacity: 1; }
+  .dish-card { transform: none; }
+  .rail-card { transform: none; }
+  .interlude-img,
+  .lechon-bg { transform: scale(1.05); }
+  .family-shot { transform: none; }
+  .hero-slides { transform: scale(1.05); }
+  /* Freeze on the first frame and let the banner be scrolled by hand. */
+  .hero-slide { animation: none; opacity: 0; }
+  .hero-slide:nth-child(1) { opacity: 0.46; }
+  .marquee-track { animation: none; }
+  .marquee { overflow-x: auto; width: 100%; }
+  .marquee-track:last-child { display: none; }
+  .hero h1 .line > span { transform: none; }
+  .hero-sub, .hero-meta, .hero-actions { opacity: 1; }
+}
