@@ -964,16 +964,22 @@ a { color: inherit; }
   letter-spacing: 0.05em;
 }
 
+/* Two lines now — the chop-up fee and what comes with every lechon — so it
+   stacks rather than sitting on one row. */
 .freebie {
   margin-top: 1.6rem;
-  padding: 1rem 1.3rem;
+  padding: 1.1rem 1.3rem;
   border: 1px dashed rgba(122, 83, 51, 0.35);
   border-radius: 3px;
-  font-size: 0.85rem;
-  color: var(--brown-lt);
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.freebie p { margin: 0; }
+.freebie p + p { margin-top: 0.35rem; }
+.freebie b {
+  color: var(--brown);
+  font-weight: 500;
 }
 
 /* --------------------------------------------------------------------------
