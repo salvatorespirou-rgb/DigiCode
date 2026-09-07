@@ -131,18 +131,24 @@ Three photographs cross-fading in the space beside the headline, held 3.8
 seconds each with a 1.1s fade. Files in `assets/img/hero/`, originals in
 `assets/img/hero/src/`.
 
-**It is a band rather than a full-bleed background, and that is a resolution
-decision before it is a design one.** Two of the three are small — 756x440 and
-536x312 after cropping — and run behind the whole hero they would be upscaled
-two to three times over. At band size neither is enlarged much at all, and the
-third is scaled down.
+It fills the full height of the hero on the right, clear from its left edge
+and dissolving away toward the right, so the picture lets go of the page rather
+than stopping at a border.
 
-All three are cropped to the same 1.72:1 so `cover` never crops one of them
-somewhere unexpected. The two daylight shots were graded down (saturation 0.72,
-brightness 0.58): dropping a bright forest photograph onto this black hero
-would have fought the headline for attention and lost the page its composure.
-The Pirelli frame arrived near-black already and was left alone — it is the
-strongest of the three here, because it was shot to dissolve into black.
+**Be aware of the resolution ceiling before enlarging anything further.** The
+supplied files are small: 756x550 and 536x360. Both are re-cropped from those
+originals to a 0.7:1 portrait and exported at 620x886, which is a 1.6x upscale
+on the Tacoma and 2.5x on the UTV before the browser scales them again to fill
+the panel. They hold up here because both crops are tight on a wheel, and
+coarse tread hides softness that a face or fine detail would not. Enlarge the
+panel much beyond this, or crop wider, and the UTV frame will start to show.
+The Pirelli file is 1920x823 and has room to spare.
+
+The two daylight shots are graded to saturation 0.92, brightness 0.82,
+contrast 1.12. An earlier pass at brightness 0.58 was too heavy and read as
+dull. The Pirelli frame arrived near-black already and is barely touched — it
+is the strongest of the three here, because it was shot to dissolve into black
+in the first place.
 
 **On a narrow screen it moves rather than hides.** Beside the headline there is
 no space on a phone, and the band ran behind the buttons and read as clutter.
@@ -150,6 +156,14 @@ It sits after the copy in the markup for exactly this reason: wide screens lift
 it out and position it absolutely, narrow screens leave it in the flow as a
 full-width band under the facts. Hiding it on mobile was the other option and
 the worse one — that is the device the pitch will most often be shown on.
+
+**The headline carries a text-shadow because of this.** Its last line runs
+across the reel, and the Tacoma frame puts a silver bonnet directly beneath
+white caps — measured, the brightest pixels there drop white text to a
+contrast ratio of 1.8. A soft dark spread on the type fixes that without
+laying a scrim over the photograph, and on the black either side of the reel
+it cannot be seen at all. Mean contrast across the overlap measures 6.4, 10.1
+and 13.7 for the three slides.
 
 The first slide carries `is-on` from the markup, so there is no first paint to
 schedule and no empty band without JavaScript. It stops in a background tab and
