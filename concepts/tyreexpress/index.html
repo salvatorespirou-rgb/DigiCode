@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tyre Express — Tyres, Wheel Alignment &amp; Mechanical, South Granville</title>
+  <meta name="description" content="Tyres, wheel alignment, brakes, suspension and mechanical repairs in South Granville. Licensed vehicle repairer and front end specialist. 60 Wellington Rd, cnr Clyde St. Open 7 days." />
+  <!-- Pitch build. Not the live site, and not to be indexed. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="assets/img/shopfront.jpg" fetchpriority="high" />
+  <link rel="stylesheet" href="css/style.css?v=1" />
+</head>
+<body>
+
+  <!-- ===================================================================
+       Navigation
+       =================================================================== -->
+  <header class="nav" id="nav">
+    <a href="#top" class="brand" aria-label="Tyre Express home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">Tyre<em>Express</em></span>
+    </a>
+
+    <nav>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#brands">Brands</a></li>
+        <li><a href="#sizes">Tyre Size</a></li>
+        <li><a href="#workshop">Workshop</a></li>
+        <li><a href="#find">Find Us</a></li>
+      </ul>
+    </nav>
+
+    <a href="tel:+61298923587" class="nav-cta">
+      <span aria-hidden="true">&#9742;</span> (02) 9892 3587
+    </a>
+
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <main id="top">
+
+    <!-- =================================================================
+         Hero
+         The wheel is built in CSS rather than dropped in as a picture, so
+         it is sharp at any size and can be driven by the scroll. A wheel
+         that actually turns is the one piece of motion a tyre shop has
+         earned.
+         ================================================================= -->
+    <section class="hero">
+      <div class="hero-grid">
+
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span>South Granville &middot; Open 7 Days</p>
+
+          <h1>
+            <span class="line"><span>Tyres on.</span></span>
+            <span class="line"><span>Wheels straight.</span></span>
+            <span class="line"><span><em>Same day.</em></span></span>
+          </h1>
+
+          <p class="hero-sub">
+            Tyres, wheel alignment, brakes, suspension and full mechanical work —
+            under one roof on the corner of Wellington Road and Clyde Street.
+          </p>
+
+          <div class="hero-actions">
+            <a href="tel:+61298923587" class="btn btn--orange">Call (02) 9892 3587</a>
+            <a href="#sizes" class="btn btn--ghost">Find your tyre size</a>
+          </div>
+
+          <ul class="hero-facts">
+            <li><b>7</b><span>Days a week</span></li>
+            <li><b>7<i>am</i></b><span>Doors open</span></li>
+            <li><b>15</b><span>Services on site</span></li>
+          </ul>
+        </div>
+
+        <div class="hero-stage" aria-hidden="true">
+          <!-- Spins up on load, then tracks the scroll. -->
+          <div class="wheel" id="wheel">
+            <div class="wheel-tyre">
+              <div class="wheel-rim">
+                <div class="wheel-spokes"></div>
+                <div class="wheel-hub"></div>
+              </div>
+            </div>
+          </div>
+          <div class="wheel-glow"></div>
+        </div>
+
+      </div>
+
+      <figure class="hero-shot" data-reveal>
+        <div class="hero-shot-frame">
+          <img src="assets/img/shopfront.jpg" width="1000" height="692"
+               alt="The Tyre Express shopfront on Wellington Road, South Granville" />
+        </div>
+        <figcaption>60 Wellington Rd, cnr Clyde St &middot; South Granville NSW 2142</figcaption>
+      </figure>
+    </section>
+
+    <!-- =================================================================
+         Services
+         ================================================================= -->
+    <section class="act" id="services">
+      <div class="shell">
+        <header class="act-head" data-reveal>
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span>What We Do</p>
+          <h2>More than a tyre shop.</h2>
+          <p class="lede">
+            Fifteen jobs handled on site, so the car goes up on the hoist once
+            instead of being sent somewhere else for the next thing.
+          </p>
+        </header>
+
+        <ul class="svc-grid">
+          <li class="svc" data-reveal="stagger"><span class="svc-n">01</span><h3>Tyre Supply &amp; Fitting</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">02</span><h3>Wheel Alignments</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">03</span><h3>Wheel Balancing</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">04</span><h3>Puncture Repairs</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">05</span><h3>Brake Repairs</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">06</span><h3>Suspension</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">07</span><h3>Mechanical Repairs</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">08</span><h3>Logbook Service</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">09</span><h3>Rego Checks</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">10</span><h3>Auto Electrical</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">11</span><h3>Air Conditioning</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">12</span><h3>Exhaust Systems</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">13</span><h3>Clutch &amp; Transmission</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">14</span><h3>Batteries</h3></li>
+          <li class="svc" data-reveal="stagger"><span class="svc-n">15</span><h3>Windscreens</h3></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         Brands
+         ================================================================= -->
+    <section class="act act--dark" id="brands">
+      <div class="shell">
+        <header class="act-head act-head--center" data-reveal>
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Brands</p>
+          <h2>Names you already know.</h2>
+          <p class="lede">
+            Premium, mid-range and budget on the same rack — so the
+            recommendation can fit the car and the wallet.
+          </p>
+        </header>
+
+        <div class="brand-row" data-reveal>
+          <span class="brand-chip">Bridgestone</span>
+          <span class="brand-chip">Pirelli</span>
+          <span class="brand-chip">Goodyear</span>
+          <span class="brand-chip">Falken</span>
+          <span class="brand-chip">Maxxis</span>
+        </div>
+
+        <p class="brand-note" data-reveal>
+          Not seeing yours? Most sizes and makes can be ordered in — ring the shop
+          and ask.
+        </p>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         Tyre size guide
+         The diagram is drawn as SVG rather than used as a picture: it stays
+         sharp at any size, the callouts are real text a screen reader can
+         read, and it can be recoloured to the brand.
+         ================================================================= -->
+    <section class="act" id="sizes">
+      <div class="shell">
+        <header class="act-head" data-reveal>
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Tyre Size</p>
+          <h2>Reading the numbers on your tyre.</h2>
+          <p class="lede">
+            It is printed on the sidewall of every tyre on the car. Take a photo of
+            it and we can have the right one ready before you arrive.
+          </p>
+        </header>
+
+        <div class="size-grid">
+          <figure class="size-figure" data-reveal>
+            <svg viewBox="0 0 520 300" role="img"
+                 aria-labelledby="sizeSvgTitle sizeSvgDesc" class="size-svg">
+              <title id="sizeSvgTitle">A tyre sidewall marked 195/65 R15 91V</title>
+              <desc id="sizeSvgDesc">The marking is broken into five parts: section
+                width 195, aspect ratio 65, construction R, rim diameter 15, and the
+                load and speed rating 91V.</desc>
+
+              <!-- sidewall arc -->
+              <path d="M 30 280 A 230 230 0 0 1 490 280" class="sw-arc" />
+              <path d="M 70 280 A 190 190 0 0 1 450 280" class="sw-arc sw-arc--inner" />
+
+              <!-- tread ticks around the outer arc -->
+              <g class="sw-tread">
+                <path d="M 34 250 L 12 244" /><path d="M 44 218 L 22 210" />
+                <path d="M 60 189 L 40 177" /><path d="M 82 163 L 65 148" />
+                <path d="M 108 142 L 94 124" /><path d="M 138 126 L 128 105" />
+                <path d="M 170 116 L 164 94" /><path d="M 204 111 L 201 88" />
+                <path d="M 238 109 L 237 86" /><path d="M 272 111 L 275 88" />
+                <path d="M 306 116 L 312 94" /><path d="M 338 126 L 348 105" />
+                <path d="M 368 142 L 382 124" /><path d="M 394 163 L 411 148" />
+                <path d="M 416 189 L 436 177" /><path d="M 432 218 L 454 210" />
+                <path d="M 442 250 L 464 244" />
+              </g>
+
+              <!-- the marking -->
+              <text x="260" y="235" class="sw-code" text-anchor="middle">
+                <tspan class="c1">195</tspan><tspan class="cs">/</tspan><tspan class="c2">65</tspan><tspan
+                  class="cs"> </tspan><tspan class="c3">R</tspan><tspan class="c4">15</tspan><tspan
+                  class="cs"> </tspan><tspan class="c5">91V</tspan>
+              </text>
+
+              <!-- leaders -->
+              <g class="sw-lead">
+                <path d="M 150 228 L 108 186" /><path d="M 210 214 L 186 152" />
+                <path d="M 258 210 L 258 140" /><path d="M 316 214 L 344 156" />
+                <path d="M 372 226 L 418 186" />
+              </g>
+              <g class="sw-label">
+                <text x="104" y="176" text-anchor="middle">Width</text>
+                <text x="182" y="142" text-anchor="middle">Aspect</text>
+                <text x="258" y="130" text-anchor="middle">Construction</text>
+                <text x="348" y="146" text-anchor="middle">Rim</text>
+                <text x="422" y="176" text-anchor="middle">Load &amp; Speed</text>
+              </g>
+            </svg>
+          </figure>
+
+          <dl class="size-defs" data-reveal>
+            <div>
+              <dt><span class="key k1">195</span> Section width</dt>
+              <dd>The width of the tyre in millimetres, measured sidewall to sidewall
+                at its widest point.</dd>
+            </div>
+            <div>
+              <dt><span class="key k2">65</span> Aspect ratio</dt>
+              <dd>The sidewall height as a percentage of the width. Here the sidewall
+                is 65% of 195&nbsp;mm, so about 127&nbsp;mm tall.</dd>
+            </div>
+            <div>
+              <dt><span class="key k3">R</span> Construction</dt>
+              <dd>Radial — the way the tyre is built. Almost every car tyre on the
+                road today is radial.</dd>
+            </div>
+            <div>
+              <dt><span class="key k4">15</span> Rim diameter</dt>
+              <dd>The wheel size in inches that the tyre is made to fit.</dd>
+            </div>
+            <div>
+              <dt><span class="key k5">91V</span> Load &amp; speed</dt>
+              <dd>The weight each tyre can carry and the speed rating it is certified
+                to. Match or better what the car came with.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="size-cta" data-reveal>
+          <p>Not sure what you need? Send us a photo of the sidewall.</p>
+          <a href="tel:+61298923587" class="btn btn--orange">Call the shop</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         Workshop / credentials
+         ================================================================= -->
+    <section class="act act--dark" id="workshop">
+      <div class="shell">
+        <div class="shop-grid">
+          <figure class="shop-shot" data-reveal>
+            <img src="assets/img/workshop.jpg" width="1000" height="1333" loading="lazy"
+                 alt="Inside the Tyre Express workshop, with a car on the hoist and tyres racked along the wall" />
+          </figure>
+
+          <div class="shop-copy">
+            <p class="eyebrow"><span class="dot" aria-hidden="true"></span>The Workshop</p>
+            <h2 data-reveal>Licensed, and on the tools.</h2>
+            <p class="lede" data-reveal>
+              Hoists, an alignment rack and a tyre machine on the floor — the work
+              happens here, not at a partner shop across town.
+            </p>
+
+            <ul class="cred-list" data-reveal>
+              <li>
+                <b>Licensed Vehicle Repairer</b>
+                <span>Licence No. 40946</span>
+              </li>
+              <li>
+                <b>Front End Specialist</b>
+                <span>Alignment, steering and suspension</span>
+              </li>
+              <li>
+                <b>Open 7 Days</b>
+                <span>From 7am</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         Find us
+         ================================================================= -->
+    <section class="act find" id="find">
+      <div class="shell">
+        <header class="act-head act-head--center" data-reveal>
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Find Us</p>
+          <h2>On the corner of Wellington and Clyde.</h2>
+        </header>
+
+        <div class="find-grid">
+          <a class="find-card" href="tel:+61298923587" data-reveal="stagger">
+            <span class="find-k">Phone</span>
+            <span class="find-v">(02) 9892 3587</span>
+            <span class="find-x">Tap to call</span>
+          </a>
+          <div class="find-card" data-reveal="stagger">
+            <span class="find-k">Address</span>
+            <span class="find-v">60 Wellington Rd</span>
+            <span class="find-x">Cnr Clyde St, South Granville NSW 2142</span>
+          </div>
+          <div class="find-card" data-reveal="stagger">
+            <span class="find-k">Hours</span>
+            <span class="find-v">Open 7 Days</span>
+            <span class="find-x">From 7am</span>
+          </div>
+        </div>
+
+        <div class="find-map" data-reveal>
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=Tyre+Express+60+Wellington+Rd+South+Granville+NSW+2142"
+             target="_blank" rel="noopener" class="btn btn--ghost">Open in Google Maps</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="shell foot-inner">
+      <p>&copy; <span id="year"></span> Tyre Express &middot; South Granville NSW</p>
+      <p class="foot-credit">
+        Designed and built by
+        <a href="https://www.digi-code.com.au" target="_blank" rel="noopener">DigiCode</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/motion.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,734 @@
+/* ==========================================================================
+   Tyre Express — concept build
+   DigiCode, 2026. Spec proposal; not affiliated with the live business.
+
+   Black, white and orange, taken from the shopfront. Condensed caps and hard
+   edges — a workshop reads as competent, not delicate, so nothing here is
+   soft-cornered or pastel.
+
+   The one piece of motion the page leans on is a wheel that actually turns,
+   built in CSS rather than dropped in as a picture so it stays sharp at any
+   size and can be driven by the scroll.
+   ========================================================================== */
+
+:root {
+  --orange:    #F26B21;
+  --orange-lt: #FF8A3D;
+  --orange-dk: #C4520F;
+
+  --ink:    #0C0D0F;
+  --ink-2:  #15171A;
+  --ink-3:  #1E2126;
+  --ink-4:  #2A2E34;
+
+  --white:  #FFFFFF;
+  --off:    #F4F5F6;
+  --grey:   #8B9199;
+  --grey-lt:#C6CBD1;
+
+  --line:      rgba(255, 255, 255, 0.12);
+  --line-dark: rgba(12, 13, 15, 0.12);
+
+  --head: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  --body: "Barlow", -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --shell: min(1200px, 92vw);
+  --ease:  cubic-bezier(0.22, 1, 0.36, 1);
+
+  --scroll: 0;   /* written by motion.js */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; background: var(--ink); }
+
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+::selection { background: var(--orange); color: var(--white); }
+
+h1, h2, h3 {
+  font-family: var(--head);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  margin: 0;
+}
+h1 { font-size: clamp(2.9rem, 7.2vw, 6rem); }
+h2 { font-size: clamp(2.2rem, 4.6vw, 3.6rem); }
+h3 { font-size: clamp(1.05rem, 1.6vw, 1.25rem); letter-spacing: 0; }
+
+p { margin: 0 0 1.1em; }
+p:last-child { margin-bottom: 0; }
+a { color: inherit; }
+
+.shell { width: var(--shell); margin-inline: auto; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 0 0 1rem;
+}
+.eyebrow .dot {
+  width: 8px; height: 8px;
+  background: var(--orange);
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.lede {
+  font-size: clamp(1.02rem, 1.5vw, 1.18rem);
+  color: var(--ink-3);
+  max-width: 54ch;
+}
+.act--dark .lede { color: var(--grey-lt); }
+
+/* --------------------------------------------------------------------------
+   Reveal
+   -------------------------------------------------------------------------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s var(--ease), transform 0.8s var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+[data-reveal].is-in { opacity: 1; transform: none; }
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 1.9rem;
+  font-family: var(--head);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: background 0.25s var(--ease), color 0.25s var(--ease),
+              border-color 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.btn--orange {
+  background: var(--orange);
+  color: var(--white);
+  border-color: var(--orange);
+}
+.btn--orange:hover { background: var(--orange-dk); border-color: var(--orange-dk); transform: translateY(-2px); }
+
+.btn--ghost {
+  border-color: currentColor;
+  color: inherit;
+}
+.btn--ghost:hover { background: var(--orange); border-color: var(--orange); color: var(--white); transform: translateY(-2px); }
+
+/* --------------------------------------------------------------------------
+   Navigation
+   -------------------------------------------------------------------------- */
+
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: space-between;
+  padding: 1rem clamp(1.1rem, 4vw, 2.6rem);
+  background: rgba(12, 13, 15, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--white);
+}
+/* The mark from the sign: a tyre, drawn rather than cropped out of a photo. */
+.brand-mark {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 5px solid var(--orange);
+  position: relative;
+  flex: none;
+}
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+}
+.brand-text {
+  font-family: var(--head);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.brand-text em { font-style: normal; color: var(--orange); }
+
+.nav-links {
+  display: flex;
+  gap: clamp(1rem, 2.2vw, 2rem);
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.nav-links a {
+  font-family: var(--head);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-lt);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.25s var(--ease);
+}
+.nav-links a:hover { color: var(--orange); }
+
+.nav-cta {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  text-decoration: none;
+  border: 2px solid var(--orange);
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  transition: background 0.25s var(--ease);
+}
+.nav-cta:hover { background: var(--orange); }
+
+.nav-toggle {
+  display: none;
+  background: none; border: 0; cursor: pointer;
+  padding: 0.5rem; color: var(--white);
+}
+.nav-toggle span {
+  display: block; width: 26px; height: 2px;
+  background: currentColor; margin: 6px 0;
+  transition: transform 0.3s var(--ease), opacity 0.2s;
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+/* --------------------------------------------------------------------------
+   Hero
+   -------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  background: var(--ink);
+  color: var(--white);
+  padding: clamp(7rem, 14vh, 10rem) 0 clamp(3rem, 6vh, 5rem);
+  overflow: hidden;
+}
+/* An orange rake across the black, echoing the stripe on the building. */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -20%; right: -10%;
+  width: 60%; height: 140%;
+  background: linear-gradient(200deg, transparent 40%, rgba(242, 107, 33, 0.14) 55%, transparent 72%);
+  pointer-events: none;
+}
+
+.hero-grid {
+  width: var(--shell);
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.hero h1 { margin: 0.5rem 0 0; }
+.hero h1 .line { display: block; overflow: hidden; }
+.hero h1 .line > span {
+  display: block;
+  transform: translateY(105%);
+  animation: rise 0.9s var(--ease) forwards;
+}
+.hero h1 .line:nth-child(2) > span { animation-delay: 0.1s; }
+.hero h1 .line:nth-child(3) > span { animation-delay: 0.2s; }
+.hero h1 em { font-style: normal; color: var(--orange); }
+@keyframes rise { to { transform: translateY(0); } }
+
+.hero-sub {
+  margin-top: 1.4rem;
+  max-width: 46ch;
+  color: var(--grey-lt);
+  font-size: 1.08rem;
+}
+
+.hero-actions {
+  display: flex; flex-wrap: wrap; gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.hero-facts {
+  display: flex; flex-wrap: wrap; gap: 2.2rem;
+  list-style: none; margin: 2.6rem 0 0; padding: 2rem 0 0;
+  border-top: 1px solid var(--line);
+}
+.hero-facts b {
+  display: block;
+  font-family: var(--head);
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--orange);
+}
+.hero-facts b i { font-style: normal; font-size: 1.1rem; }
+.hero-facts span {
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+/* ---- the wheel --------------------------------------------------------- */
+
+.hero-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(280px, 38vw, 460px);
+}
+
+/* Both the intro spin-up and the scroll rotation come from motion.js through
+   these properties. They were briefly a CSS keyframe plus a transform, which
+   cannot work: an animation with fill-mode both keeps its final transform
+   forever and would have frozen the wheel after the intro. One owner, no
+   conflict. */
+.wheel {
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: rotate(calc(var(--spin, 0) * 1deg)) scale(var(--wheel-scale, 1));
+  opacity: var(--wheel-op, 1);
+}
+
+.wheel-tyre {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    /* tread blocks */
+    repeating-conic-gradient(from 0deg,
+      #17191c 0deg 3deg, #101214 3deg 6deg),
+    radial-gradient(circle at 38% 30%, #34383d, #0b0c0e 70%);
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.9),
+    0 30px 70px -20px rgba(0, 0, 0, 0.8);
+}
+/* sidewall */
+.wheel-tyre::after {
+  content: "";
+  position: absolute;
+  inset: 11%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 32%, #26292e, #121417 72%);
+  box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.85);
+}
+
+.wheel-rim {
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, #f2f4f6, #a8aeb5 55%, #6f757c 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.5),
+    inset 0 -10px 24px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+/* Five spokes cut out of the rim face. */
+.wheel-spokes {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: conic-gradient(from 18deg,
+    transparent 0deg 26deg, #1a1c1f 26deg 46deg,
+    transparent 46deg 98deg, #1a1c1f 98deg 118deg,
+    transparent 118deg 170deg, #1a1c1f 170deg 190deg,
+    transparent 190deg 242deg, #1a1c1f 242deg 262deg,
+    transparent 262deg 314deg, #1a1c1f 314deg 334deg,
+    transparent 334deg 360deg);
+  mask-image: radial-gradient(circle, transparent 26%, #000 27%, #000 92%, transparent 93%);
+  -webkit-mask-image: radial-gradient(circle, transparent 26%, #000 27%, #000 92%, transparent 93%);
+  opacity: 0.9;
+}
+
+.wheel-hub {
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 34%, var(--orange-lt), var(--orange-dk));
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55), inset 0 -4px 10px rgba(0,0,0,0.35);
+}
+
+.wheel-glow {
+  position: absolute;
+  width: 78%; aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 107, 33, 0.35), transparent 68%);
+  filter: blur(50px);
+  z-index: -1;
+}
+
+/* ---- shopfront --------------------------------------------------------- */
+
+/* Deliberately framed rather than run full-bleed: the supplied photograph is
+   474px wide, and stretched across a desktop header it would be upscaled
+   three times over. At this size it is barely enlarged and stays sharp. */
+.hero-shot {
+  width: var(--shell);
+  margin: clamp(3rem, 7vh, 5rem) auto 0;
+  position: relative;
+  z-index: 2;
+}
+.hero-shot-frame {
+  max-width: 620px;
+  border: 3px solid var(--orange);
+  overflow: hidden;
+}
+.hero-shot img { width: 100%; height: auto; }
+.hero-shot figcaption {
+  margin-top: 0.9rem;
+  font-family: var(--head);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+
+/* --------------------------------------------------------------------------
+   Sections
+   -------------------------------------------------------------------------- */
+
+.act { padding: clamp(4.5rem, 10vh, 7.5rem) 0; }
+.act--dark { background: var(--ink); color: var(--white); }
+.act--dark h2 { color: var(--white); }
+
+.act-head { margin-bottom: clamp(2.2rem, 5vh, 3.4rem); }
+.act-head--center { text-align: center; }
+.act-head--center .lede { margin-inline: auto; }
+.act-head--center .eyebrow { justify-content: center; }
+.act-head h2 { margin-bottom: 1rem; }
+
+/* ---- services ---------------------------------------------------------- */
+
+/* Fifteen services, so the column count is chosen to divide it: five across
+   or three across both come out as full rows. auto-fit gave four and left a
+   dead cell in the corner. */
+.svc-grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--line-dark);
+  border: 1px solid var(--line-dark);
+}
+@media (max-width: 1040px) { .svc-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 620px) {
+  .svc-grid { grid-template-columns: repeat(2, 1fr); }
+  /* 15 is odd, so the last tile takes the spare column rather than
+     leaving a hole beside it. */
+  .svc-grid .svc:last-child { grid-column: span 2; }
+}
+.svc {
+  background: var(--white);
+  padding: 1.5rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: background 0.25s var(--ease), color 0.25s var(--ease);
+}
+.svc-n {
+  font-family: var(--head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--orange);
+}
+.svc:hover { background: var(--orange); color: var(--white); }
+.svc:hover .svc-n { color: rgba(255, 255, 255, 0.8); }
+
+/* ---- brands ------------------------------------------------------------ */
+
+.brand-row {
+  display: flex; flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.9rem;
+}
+/* Set as type rather than logo files: a pitch has no licence to redistribute
+   manufacturer trademarks, and a wordmark reads cleanly at any size. */
+.brand-chip {
+  font-family: var(--head);
+  font-size: clamp(1.1rem, 2.4vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--line);
+  color: var(--white);
+  transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
+}
+.brand-chip:hover { border-color: var(--orange); color: var(--orange); }
+
+.brand-note {
+  text-align: center;
+  margin-top: 2rem;
+  color: var(--grey);
+  font-size: 0.98rem;
+}
+
+/* ---- tyre size --------------------------------------------------------- */
+
+.size-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+.size-figure { margin: 0; }
+.size-svg { width: 100%; height: auto; }
+
+.sw-arc { fill: none; stroke: var(--ink-4); stroke-width: 2; }
+.sw-arc--inner { stroke: var(--line-dark); }
+.sw-tread path { stroke: var(--ink-4); stroke-width: 2; stroke-linecap: round; }
+.sw-lead path { stroke: var(--orange); stroke-width: 1.5; fill: none; }
+
+.sw-code {
+  font-family: var(--head);
+  font-weight: 800;
+  font-size: 46px;
+  fill: var(--ink);
+  letter-spacing: 1px;
+}
+.sw-code .cs { fill: var(--grey); }
+.sw-label text {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  fill: var(--ink-3);
+}
+
+.size-defs { margin: 0; display: grid; gap: 1.1rem; }
+.size-defs div { border-left: 3px solid var(--orange); padding-left: 1.1rem; }
+.size-defs dt {
+  font-family: var(--head);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex; align-items: baseline; gap: 0.55rem;
+}
+.size-defs .key {
+  background: var(--ink);
+  color: var(--orange);
+  padding: 0.1rem 0.5rem;
+  font-size: 1rem;
+}
+.size-defs dd { margin: 0.3rem 0 0; color: var(--ink-3); font-size: 0.98rem; }
+
+.size-cta {
+  margin-top: clamp(2.2rem, 5vh, 3.2rem);
+  padding: 1.8rem;
+  background: var(--off);
+  display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: space-between;
+  gap: 1.2rem;
+}
+.size-cta p {
+  margin: 0;
+  font-family: var(--head);
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* ---- workshop ---------------------------------------------------------- */
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+.shop-shot { margin: 0; border: 3px solid var(--orange); overflow: hidden; }
+.shop-shot img { width: 100%; height: auto; }
+
+.cred-list { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.cred-list li { background: var(--ink-2); padding: 1.2rem 1.4rem; }
+.cred-list b {
+  display: block;
+  font-family: var(--head);
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--white);
+}
+.cred-list span { font-size: 0.9rem; color: var(--grey); }
+
+/* ---- find us ----------------------------------------------------------- */
+
+.find-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1px;
+  background: var(--line-dark);
+  border: 1px solid var(--line-dark);
+}
+.find-card {
+  background: var(--white);
+  padding: 1.8rem 1.6rem;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.25s var(--ease), color 0.25s var(--ease);
+}
+a.find-card:hover { background: var(--orange); color: var(--white); }
+a.find-card:hover .find-k, a.find-card:hover .find-x { color: rgba(255,255,255,0.85); }
+.find-k {
+  display: block;
+  font-family: var(--head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 0.5rem;
+}
+.find-v {
+  display: block;
+  font-family: var(--head);
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+.find-x { display: block; margin-top: 0.4rem; font-size: 0.92rem; color: var(--grey); }
+
+.find-map { margin-top: 2rem; text-align: center; }
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+
+.foot {
+  background: var(--ink);
+  color: var(--grey);
+  padding: 2.4rem 0;
+  border-top: 1px solid var(--line);
+}
+.foot-inner {
+  display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: space-between;
+  gap: 1rem 2rem;
+  font-size: 0.88rem;
+}
+.foot p { margin: 0; }
+.foot-credit {
+  font-family: var(--head);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+.foot-credit a {
+  color: var(--orange);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(242, 107, 33, 0.4);
+}
+.foot-credit a:hover { border-bottom-color: var(--orange); }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 940px) {
+  .hero-grid, .size-grid, .shop-grid { grid-template-columns: 1fr; }
+  .hero-stage { order: -1; min-height: 260px; }
+  .wheel { width: min(72%, 320px); }
+  .nav-links, .nav-cta { display: none; }
+  .nav-toggle { display: block; }
+
+  .nav.is-open .nav-links {
+    display: flex;
+    position: absolute;
+    inset: 100% 0 auto 0;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(12, 13, 15, 0.98);
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 0 1rem;
+  }
+  .nav.is-open .nav-links a {
+    display: block;
+    padding: 0.9rem clamp(1.1rem, 4vw, 2.6rem);
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .hero-facts { gap: 1.4rem 2rem; }
+  .hero-facts b { font-size: 2rem; }
+  .size-cta { flex-direction: column; align-items: stretch; text-align: center; }
+  .foot-inner { justify-content: center; text-align: center; }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  [data-reveal] { opacity: 1; transform: none; }
+  .hero h1 .line > span { transform: none; }
+  .wheel { transform: none; }
+}
