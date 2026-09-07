@@ -89,7 +89,6 @@
   var hero      = document.querySelector(".hero");
   var storyPanel= document.querySelector(".story-panel");
   var menuCards = document.querySelectorAll(".dish-card");
-  var menuScene = document.querySelector(".menu");
   var nav       = document.querySelector(".nav");
   var rail      = document.querySelector(".rail");
   var parallax  = document.querySelectorAll("[data-parallax]");
@@ -116,18 +115,25 @@
       storyPanel.style.setProperty("--enter", throughView(s, vh).toFixed(4));
     }
 
-    /* --- Menu cards fly in from depth --------------------------------- */
-    if (menuScene && menuCards.length) {
-      var m = menuScene.getBoundingClientRect();
-      var p = throughView(m, vh);
+    /* --- Menu cards fly in from depth ---------------------------------
+       Driven per CARD, not from the section. Reading it off the section
+       meant dividing by the section height, and on a phone the menu stacks
+       to ~4500px against an 812px viewport — so progress crawled, and the
+       cards you were trying to read sat half-faded and pushed back in Z the
+       whole time. On the desktop grid the section is short enough that it
+       never showed.
+
+       The fade is gone entirely: this is the section people order from, so
+       a card is either arriving or it is fully legible, never a ghost. The
+       depth move stays as the entrance, and [data-reveal] still handles
+       the one-time fade-in. */
+    if (menuCards.length) {
       for (var i = 0; i < menuCards.length; i++) {
-        // Each card lags the one before it, so the grid arrives in waves
-        // instead of as a single flat plane.
-        var lag = (i % 3) * 0.06;
-        var local = clamp((p - lag) * 2.2, 0, 1);
-        // -520px (far, small) → 0 (in plane).
-        menuCards[i].style.setProperty("--z", Math.round(-520 * (1 - local)));
-        menuCards[i].style.opacity = (0.15 + local * 0.85).toFixed(3);
+        var cr = menuCards[i].getBoundingClientRect();
+        // 0 as the card's top enters from the bottom, 1 by the time it has
+        // travelled to mid-screen — so it is settled well before it is read.
+        var local = clamp((vh * 0.92 - cr.top) / (vh * 0.42), 0, 1);
+        menuCards[i].style.setProperty("--z", Math.round(-260 * (1 - local)));
       }
     }
 
