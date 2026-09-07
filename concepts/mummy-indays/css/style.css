@@ -1362,10 +1362,10 @@ a { color: inherit; }
 .marquee {
   display: flex;
   width: max-content;
-  /* Feathered at both ends so cards arrive and leave rather than being
-     chopped off at the viewport edge. */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  /* No edge feather. It faded cards at both ends, and on a phone — where
+     barely more than one card is on screen — that meant the review being
+     read was itself part-transparent. A clean clip at the edge reads as a
+     filmstrip and keeps every word at full strength. */
 }
 
 .marquee-track {
@@ -1388,9 +1388,11 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   padding: 1.9rem 1.7rem;
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   border-radius: 4px;
-  background: linear-gradient(170deg, rgba(237, 228, 215, 0.9), rgba(247, 241, 233, 0.9));
+  /* Opaque. At 0.9 the section behind was showing through and taking the
+     contrast out of the type sitting on it. */
+  background: linear-gradient(170deg, #f0e8dc, #fbf6ee);
 }
 
 .rev-stars {
@@ -1404,7 +1406,7 @@ a { color: inherit; }
   font-family: var(--display);
   font-size: 1.02rem;
   line-height: 1.55;
-  color: var(--ink-dim);
+  color: var(--ink);
   margin: 0 0 1.3rem;
   flex: 1;
   /* Cards in a flex row all stretch to the tallest, so the single longest
@@ -1424,7 +1426,7 @@ a { color: inherit; }
   font-size: 0.64rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--brown-lt);
+  color: var(--brown);
 }
 .rev-name::before { content: "— "; color: var(--muted); }
 
