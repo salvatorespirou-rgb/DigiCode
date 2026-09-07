@@ -90,14 +90,22 @@
             <a href="tel:+61298923587" class="btn btn--orange">Call (02) 9892 3587</a>
             <a href="#sizes" class="btn btn--ghost">Find your tyre size</a>
           </div>
-
-          <ul class="hero-facts">
-            <li><b>7</b><span>Days a week</span></li>
-            <li><b>7<i>am</i></b><span>Doors open</span></li>
-            <li><b>5</b><span>Major brands</span></li>
-            <li><b>30<i>min</i></b><span>Tyre change</span></li>
-          </ul>
         </div>
+
+        <!-- A sibling of .hero-copy, not a child. Nested inside the narrow
+             column it centred on that column's own midpoint, which sits well
+             left of the true centre of the page -- .hero-copy is capped at
+             74%/1100px but still starts at the left gutter, so its own centre
+             trails the page's by roughly 190px on a 1440px screen. Out here it
+             spans the full width of .hero-grid, which is inset from the page
+             edges by the same --gutter on both sides, so its centre IS the
+             page's centre, at every width, without a hand-tuned offset. -->
+        <ul class="hero-facts">
+          <li><b>7</b><span>Days a week</span></li>
+          <li><b>7<i>am</i></b><span>Doors open</span></li>
+          <li><b>5</b><span>Major brands</span></li>
+          <li><b>30<i>min</i></b><span>Tyre change</span></li>
+        </ul>
 
       </div>
 

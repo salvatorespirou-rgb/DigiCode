@@ -171,6 +171,23 @@ content sections but caps at 1560px rather than 1200. The hero copy is capped
 at `min(1100px, 74%)`, or on a very wide monitor the sub-heading would run to
 an unreadable measure.
 
+**The four hero stats sit outside `.hero-copy`, as a sibling rather than a
+child, for exactly this reason.** Centred inside the narrow column they were
+centred on the *column's* midpoint, which trails the true centre of the page
+by a growing amount as the screen widens — about 190px at 1440px, since
+`.hero-copy` is capped at 74% but still starts at the left gutter rather than
+being centred itself. Moved out to be a direct child of `.hero-grid`, which is
+inset from the page edges by the same `--gutter` on both sides, the stats'
+own centring lands within about 20px of the page's true centre at every width
+tested (375 to 2200px) — close enough that the boundary between the second and
+third stat reads as sitting on the page's centre line, without a hand-tuned
+offset that would need revisiting at every breakpoint.
+
+The residual few pixels are simply because "Major Brands" and "Tyre Change"
+are not exactly as wide as "Days A Week" and "Doors Open" — a symmetric row
+of unequal-width items is never perfectly centred on its middle boundary,
+only close to it.
+
 **`--shell` is built from `100%`, not `100vw`.** `vw` is the device viewport
 with the scrollbar included, so on any page tall enough to scroll it measures
 wider than what is actually visible — every `.shell` was running about 15-18px
