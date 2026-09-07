@@ -242,6 +242,57 @@ a { color: inherit; }
   padding: clamp(7rem, 14vh, 10rem) 0 clamp(3rem, 6vh, 5rem);
   overflow: hidden;
 }
+/* ---- the hero reel -----------------------------------------------------
+   Three photographs cross-fading in the space beside the headline.
+
+   It is a band on the right rather than a full-bleed background, and that is
+   a resolution decision before it is a design one. Two of the three supplied
+   photographs are small — 756x440 and 536x312 after cropping — and run behind
+   the whole hero they would be upscaled two to three times over. At this size
+   neither is enlarged much at all, and the third is scaled down.
+
+   All three are cropped to the same 1.72:1, so cover never crops one of them
+   somewhere unexpected. The two daylight shots were also graded down
+   (saturation 0.72, brightness 0.58) because dropping a bright forest photo
+   straight onto this black hero would have fought the headline for attention
+   and lost the page its composure. The Pirelli frame was already near-black
+   and was left alone.
+   ---------------------------------------------------------------------- */
+.hero-reel {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(50%, 760px);
+  aspect-ratio: 1.72 / 1;
+  max-height: 62%;
+  z-index: 1;
+  pointer-events: none;
+}
+.hero-reel .reel-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  /* Feathered on all four sides, the same crossed-gradient trick the shop
+     photographs use, so the band dissolves into the black rather than sitting
+     on it as a rectangle. */
+  -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%),
+      linear-gradient(to right,  transparent 0, #000 26%, #000 92%, transparent 100%);
+          mask-image:
+      linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%),
+      linear-gradient(to right,  transparent 0, #000 26%, #000 92%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-composite: intersect;
+
+  opacity: 0;
+  transition: opacity 1.1s var(--ease);
+}
+.hero-reel .reel-slide.is-on { opacity: 1; }
+
 /* An orange rake across the black, echoing the stripe on the building. */
 .hero::before {
   content: "";
@@ -739,6 +790,27 @@ a.find-card:hover .find-k, a.find-card:hover .find-x { color: rgba(255,255,255,0
 
 @media (max-width: 940px) {
   .size-grid, .shop-grid { grid-template-columns: 1fr; }
+
+  /* No empty space beside the headline on a narrow screen — it ran behind the
+     buttons and read as clutter. Dropped back into the flow as a full-width
+     band under the copy, where it has room to be looked at. The mask evens up
+     to match, since a band this wide does not want a heavy left feather. */
+  .hero-reel {
+    position: relative;
+    right: auto; top: auto;
+    transform: none;
+    width: var(--shell);
+    max-height: none;
+    margin: clamp(2.4rem, 6vh, 3.4rem) auto 0;
+  }
+  .hero-reel .reel-slide {
+    -webkit-mask-image:
+        linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%),
+        linear-gradient(to right,  transparent 0, #000 12%, #000 88%, transparent 100%);
+            mask-image:
+        linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%),
+        linear-gradient(to right,  transparent 0, #000 12%, #000 88%, transparent 100%);
+  }
   .nav-links, .nav-cta { display: none; }
   .nav-toggle { display: block; }
 

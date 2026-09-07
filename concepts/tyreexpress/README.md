@@ -10,7 +10,7 @@ Open `index.html`. No build step, no dependencies.
 index.html        the page
 css/style.css     tokens, sections, the rolling headline, responsive, reduced-motion
 js/motion.js      reveals, the rolling headline, nav
-assets/img/       logo.png, shopfront.jpg, workshop.jpg  (+ src/, brands/)
+assets/img/       logo.png, shopfront.jpg, workshop.jpg (+ src/, brands/, hero/)
 ```
 
 ## Where every fact on the page came from
@@ -124,6 +124,36 @@ brand, and it is DigiCode's own artwork rather than someone else's diagram.
 
 The worked example is correct: for 195/65R15, the sidewall is 65% of 195 mm,
 which is about 127 mm.
+
+### The hero reel
+
+Three photographs cross-fading in the space beside the headline, held 3.8
+seconds each with a 1.1s fade. Files in `assets/img/hero/`, originals in
+`assets/img/hero/src/`.
+
+**It is a band rather than a full-bleed background, and that is a resolution
+decision before it is a design one.** Two of the three are small — 756x440 and
+536x312 after cropping — and run behind the whole hero they would be upscaled
+two to three times over. At band size neither is enlarged much at all, and the
+third is scaled down.
+
+All three are cropped to the same 1.72:1 so `cover` never crops one of them
+somewhere unexpected. The two daylight shots were graded down (saturation 0.72,
+brightness 0.58): dropping a bright forest photograph onto this black hero
+would have fought the headline for attention and lost the page its composure.
+The Pirelli frame arrived near-black already and was left alone — it is the
+strongest of the three here, because it was shot to dissolve into black.
+
+**On a narrow screen it moves rather than hides.** Beside the headline there is
+no space on a phone, and the band ran behind the buttons and read as clutter.
+It sits after the copy in the markup for exactly this reason: wide screens lift
+it out and position it absolutely, narrow screens leave it in the flow as a
+full-width band under the facts. Hiding it on mobile was the other option and
+the worse one — that is the device the pitch will most often be shown on.
+
+The first slide carries `is-on` from the markup, so there is no first paint to
+schedule and no empty band without JavaScript. It stops in a background tab and
+does not run at all under `prefers-reduced-motion`.
 
 ### The shop photographs
 

@@ -154,6 +154,42 @@
   }
 
   /* ----------------------------------------------------------------------
+     Hero reel
+     Three photographs cross-fading beside the headline. Held just under four
+     seconds each: long enough to look at, short enough that it never reads as
+     a stalled image.
+
+     The first slide carries is-on from the markup, so a visitor with no
+     JavaScript still gets a photograph rather than an empty band, and there is
+     no first paint to schedule.
+     ---------------------------------------------------------------------- */
+
+  function wireHeroReel() {
+    var slides = [].slice.call(document.querySelectorAll(".reel-slide"));
+    if (slides.length < 2 || reduced.matches) return;
+
+    var HOLD = 3800;
+    var at = 0;
+    var timer = null;
+
+    function step() {
+      at = (at + 1) % slides.length;
+      slides.forEach(function (s, i) { s.classList.toggle("is-on", i === at); });
+    }
+
+    function start() { if (!timer) timer = setInterval(step, HOLD); }
+    function stop() { clearInterval(timer); timer = null; }
+
+    // Cycling photographs in a background tab is wasted work, and the fades
+    // pile up out of step with each other.
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stop(); else start();
+    });
+
+    start();
+  }
+
+  /* ----------------------------------------------------------------------
      Navigation
      ---------------------------------------------------------------------- */
 
@@ -188,6 +224,7 @@
     wireNav();
     wireYear();
     wireRollingHeadline();
+    wireHeroReel();
 
     tilted = [].slice.call(document.querySelectorAll("[data-tilt]"));
 
