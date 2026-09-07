@@ -310,19 +310,45 @@
     if (!rail) return;
 
     var dragging = false;
-    var startX = 0;
-    var startLeft = 0;
-    var travelled = 0;
+    var startX = 0, startLeft = 0, travelled = 0;
+    var vx = 0, lastX = 0, lastT = 0;   // for the throw
+    var glideId = null;
+
+    function stopGlide() {
+      if (glideId) { cancelAnimationFrame(glideId); glideId = null; }
+      rail.classList.remove("is-gliding");
+    }
+
+    // Momentum. Without it a drag stops dead the instant the button comes up,
+    // which is what made this feel glitchy — a flick should keep travelling
+    // and ease out. Friction per frame, stopping once the movement is below
+    // half a pixel, at which point proximity snap settles it onto a card.
+    function glide() {
+      vx *= 0.92;   // ~0.9s of coast; 0.94 ran closer to 1.2s and felt loose
+      rail.scrollLeft -= vx * 16;
+      onScroll();
+
+      var atEnd = rail.scrollLeft <= 0 ||
+                  rail.scrollLeft >= rail.scrollWidth - rail.clientWidth - 1;
+      if (Math.abs(vx) > 0.03 && !atEnd) {
+        glideId = requestAnimationFrame(glide);
+      } else {
+        stopGlide();
+      }
+    }
 
     rail.addEventListener("pointerdown", function (e) {
-      // Touch already scrolls this natively, and hijacking it there would
-      // only make it worse than the browser's own momentum.
+      // Touch already scrolls this natively, with the platform's own
+      // momentum, which is better than anything reimplemented here.
       if (e.pointerType === "touch") return;
       if (e.button !== 0) return;
 
+      stopGlide();
       dragging = true;
       travelled = 0;
-      startX = e.clientX;
+      vx = 0;
+      startX = lastX = e.clientX;
+      lastT = performance.now();
       startLeft = rail.scrollLeft;
       rail.classList.add("is-dragging");
       try { rail.setPointerCapture(e.pointerId); } catch (err) { /* not fatal */ }
@@ -333,6 +359,17 @@
       var dx = e.clientX - startX;
       travelled = Math.max(travelled, Math.abs(dx));
       rail.scrollLeft = startLeft - dx;
+
+      // Instantaneous velocity, smoothed, so one jittery sample near the end
+      // of a drag can't throw the whole flick off.
+      var now = performance.now();
+      var dt = now - lastT;
+      if (dt > 0) {
+        var v = (e.clientX - lastX) / dt;
+        vx = vx * 0.7 + v * 0.3;
+        lastX = e.clientX;
+        lastT = now;
+      }
       e.preventDefault();
     });
 
@@ -341,9 +378,16 @@
       dragging = false;
       rail.classList.remove("is-dragging");
       if (e && e.pointerId != null) {
-        try { rail.releasePointerCapture(e.pointerId); } catch (err) { /* already gone */ }
+        try { rail.releasePointerCapture(e.pointerId); } catch (err) { /* gone */ }
       }
-      onScroll();
+      // A stale velocity from a drag that paused before release would fling
+      // the strip for no reason, so only throw on a genuinely recent move.
+      if (Math.abs(vx) > 0.05 && performance.now() - lastT < 90) {
+        rail.classList.add("is-gliding");
+        glideId = requestAnimationFrame(glide);
+      } else {
+        onScroll();
+      }
     }
 
     rail.addEventListener("pointerup", release);
@@ -359,14 +403,16 @@
       }
     }, true);
 
-    // A plain wheel over the strip should move it sideways. Left alone when
-    // the gesture is already horizontal, which is what a trackpad sends.
+    // Only a horizontal gesture — a trackpad swipe — is taken. An earlier
+    // version mapped vertical wheel onto the strip, which meant that resting
+    // the cursor over the gallery trapped the page: every scroll went
+    // sideways and the page underneath would not move. Hijacking the primary
+    // scroll direction of the whole page is not worth a carousel.
     rail.addEventListener("wheel", function (e) {
-      if (e.deltaX !== 0) return;
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
       if (rail.scrollWidth <= rail.clientWidth) return;
-      rail.scrollLeft += e.deltaY;
-      e.preventDefault();
-    }, { passive: false });
+      stopGlide();
+    }, { passive: true });
   }
 
   /* ----------------------------------------------------------------------

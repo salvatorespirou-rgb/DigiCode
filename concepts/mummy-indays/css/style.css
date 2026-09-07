@@ -1290,7 +1290,10 @@ a { color: inherit; }
   padding: 2rem clamp(1.2rem, 6vw, 6rem) 3rem;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-snap-type: x mandatory;
+  /* Proximity, not mandatory: mandatory yanks the strip to the nearest card
+     on every frame of a throw, which is what made the flick feel like it was
+     catching. Proximity lets it run and only settles at the end. */
+  scroll-snap-type: x proximity;
   perspective: 1300px;
   scrollbar-width: none;
 }
@@ -1301,7 +1304,8 @@ a { color: inherit; }
    way to move it. */
 .rail { cursor: grab; }
 
-.rail.is-dragging {
+.rail.is-dragging,
+.rail.is-gliding {
   cursor: grabbing;
   /* Mandatory snap fights a free drag: every pointermove gets yanked back to
      the nearest card. Suspended while dragging and restored on release, so
@@ -1313,6 +1317,7 @@ a { color: inherit; }
 /* Stops a drag across the strip selecting captions, and stops the pointer
    being stolen mid-drag by a child. */
 .rail.is-dragging .rail-card { pointer-events: none; }
+.rail.is-gliding { cursor: grab; }
 
 .rail-card {
   flex: 0 0 clamp(220px, 26vw, 330px);
