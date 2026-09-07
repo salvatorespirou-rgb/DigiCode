@@ -168,6 +168,14 @@ tokens. Three things do not simply flip:
 - **Scrims.** The interlude wash darkened the *edges* and left the centre
   clear, which is right for light type over a photograph and exactly wrong for
   dark type. It is inverted: the centre is now the lightest part.
+
+  They are also *pools*, not sheets. Veiling a whole backdrop to protect the
+  words fogs the 80% of the image no text ever touches — so each backdrop
+  carries a tight ellipse of paper exactly where the copy sits, the type
+  carries its own halo, and the photograph runs at near full strength
+  everywhere else. The nav gets its own gradient rather than relying on the
+  hero scrim: `.hero-layer` is inset -10%, so that gradient'"'"'s 0% stop is
+  above the viewport and its ramp is spent before it reaches the bar.
 - **Glows.** Radial washes that emit light on black read as stains on paper,
   so they are held down to roughly a third of their old strength, and the
   hero steam had to go back to being lighter than what it drifts over.
