@@ -196,8 +196,8 @@ a { color: inherit; }
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(251, 248, 243, 0.94) 0%,
-                              rgba(251, 248, 243, 0.62) 55%, transparent 100%);
+  background: linear-gradient(180deg, rgba(251, 248, 243, 0.86) 0%,
+                              rgba(251, 248, 243, 0.48) 55%, transparent 100%);
   transition: opacity 0.5s var(--ease);
 }
 /* Once the bar has its own solid background this would only double up. */
@@ -220,7 +220,7 @@ a { color: inherit; }
 .nav-links a,
 .nav-cta,
 .nav-toggle {
-  text-shadow: 0 0 18px rgba(251, 248, 243, 0.95), 0 1px 2px rgba(251, 248, 243, 0.9);
+  text-shadow: 0 0 10px rgba(251, 248, 243, 0.75), 0 0 3px rgba(251, 248, 243, 0.65);
 }
 .nav.is-stuck .brand,
 .nav.is-stuck .nav-links a,
@@ -388,8 +388,8 @@ a { color: inherit; }
     linear-gradient(180deg, rgba(251, 248, 243, 0.88) 0%, rgba(251, 248, 243, 0.42) 11%,
                     rgba(251, 248, 243, 0.05) 30%, rgba(251, 248, 243, 0.05) 72%,
                     rgba(251, 248, 243, 0.80) 100%),
-    radial-gradient(56% 62% at 50% 52%, rgba(251, 248, 243, 0.86) 0%,
-                    rgba(251, 248, 243, 0.60) 62%, transparent 88%);
+    radial-gradient(58% 64% at 50% 52%, rgba(251, 248, 243, 0.58) 0%,
+                    rgba(251, 248, 243, 0.36) 62%, transparent 90%);
 }
 
 /* Depth 1: the far wall — a warm ember glow. */
@@ -441,10 +441,11 @@ a { color: inherit; }
 .hero-copy .eyebrow,
 .hero-copy .hero-sub,
 .hero-copy .hero-meta {
+  /* Tighter and weaker: enough to hold an edge against the photograph
+     without printing a visible white cloud around every word. */
   text-shadow:
-    0 0 30px rgba(251, 248, 243, 0.98),
-    0 0 12px rgba(251, 248, 243, 0.9),
-    0 1px 2px rgba(251, 248, 243, 0.85);
+    0 0 14px rgba(251, 248, 243, 0.72),
+    0 0 5px rgba(251, 248, 243, 0.6);
 }
 
 .hero-copy {
@@ -1020,8 +1021,8 @@ a { color: inherit; }
   background:
     linear-gradient(180deg, var(--paper) 0%, rgba(251, 248, 243, 0.10) 28%,
                     rgba(251, 248, 243, 0.10) 72%, var(--paper) 100%),
-    radial-gradient(38% 34% at 50% 50%, rgba(251, 248, 243, 0.88) 0%,
-                    rgba(251, 248, 243, 0.6) 52%, transparent 80%);
+    radial-gradient(44% 40% at 50% 50%, rgba(251, 248, 243, 0.60) 0%,
+                    rgba(251, 248, 243, 0.36) 55%, transparent 84%);
 }
 
 .interlude-copy {
@@ -1039,12 +1040,12 @@ a { color: inherit; }
   text-wrap: balance;
   /* A paper halo, not a drop shadow — it separates dark type from a busy
      photograph without printing a grey smudge under every letter. */
-  text-shadow: 0 0 26px rgba(251, 248, 243, 0.95), 0 1px 2px rgba(251, 248, 243, 0.9);
+  text-shadow: 0 0 13px rgba(251, 248, 243, 0.7), 0 0 4px rgba(251, 248, 243, 0.6);
 }
 .interlude-copy p {
   margin-top: 1.2rem;
   color: var(--ink);
-  text-shadow: 0 0 18px rgba(251, 248, 243, 0.95);
+  text-shadow: 0 0 10px rgba(251, 248, 243, 0.75);
   font-size: clamp(0.62rem, 1.6vw, 0.78rem);
   letter-spacing: clamp(0.14em, 0.5vw, 0.28em);
   text-transform: uppercase;
@@ -1076,15 +1077,16 @@ a { color: inherit; }
      a phone. Held back to roughly half that through the middle so the food is
      actually legible, while the bottom still lands on the card colour. */
   background: linear-gradient(180deg,
-    rgba(251, 248, 243, 0.02) 0%,
-    rgba(251, 248, 243, 0.22) 58%,
-    rgba(245, 239, 230, 0.88) 100%);
+    rgba(251, 248, 243, 0) 0%,
+    rgba(251, 248, 243, 0.04) 62%,
+    rgba(245, 239, 230, 0.58) 88%,
+    rgba(245, 239, 230, 0.82) 100%);
 }
 
 /* Their kitchen photography is mostly shot indoors under warm light and runs
    dark. Lifted here rather than in the files so it stays tunable. */
 .dish-photo .photo {
-  filter: saturate(1.14) contrast(1.04) brightness(1.18);
+  filter: saturate(1.12) contrast(1.10) brightness(1.0);
 }
 
 .dish-card:hover .dish-photo .photo {
