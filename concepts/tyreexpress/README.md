@@ -99,12 +99,17 @@ Three things worth knowing before touching it:
   caught the reduced-motion block, which had its own blanket
   `transform: none` on those spans.
 - **The slot is 1em tall with a padding-bottom of 0.14em and a matching
-  negative margin.** A bare 1em box cuts the tails off y, g and p — measured at
-  just under 7px on this face, obvious at hero size. The padding buys the
-  descenders room; the negative margin gives the space back so the three lines
-  stay evenly set. It is `content-box` on purpose, against the global
-  `border-box`, which would otherwise eat the padding out of the 1em and clip
-  harder.
+  negative margin.** This is insurance, not a fix for anything visible: the
+  headline is uppercase and caps descend about 1px on this face, so a bare 1em
+  slot clips nothing as it stands. Drop the `text-transform`, or add a
+  lowercase word to the list, and the tails of y, g and p would need the room.
+  It is `content-box` on purpose, against the global `border-box`, which would
+  otherwise eat the padding out of the 1em rather than add to it.
+
+  Worth recording how that was nearly got wrong: `measureText` does not apply
+  CSS `text-transform`, so measuring the raw lowercase strings reports a 22px
+  descent for a word that renders as caps and descends 1px. Measure what is
+  drawn, not what is in the markup.
 
 Measured at 1100px and 375px: no glyph clipped, exactly one word inside the
 slot in all six states, nothing wraps (widest word 247px in a 345px slot on

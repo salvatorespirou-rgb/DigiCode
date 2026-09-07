@@ -319,13 +319,16 @@ a { color: inherit; }
   display: block;
   height: 1em;
 
-  /* A 1em slot clips the tails off y, g and p — measured at just under 7px on
-     this face, which is plain to see at hero size. The padding gives the
-     descenders room and the negative margin takes the space straight back, so
-     the line still occupies exactly 1em and the three lines stay evenly set.
+  /* Headroom below the baseline, given back by the negative margin, so the
+     line still occupies exactly 1em and the three lines stay evenly set.
+
+     Insurance rather than a fix for anything visible today: the headline is
+     uppercase, and caps descend about 1px on this face, so a bare 1em slot
+     clips nothing as it stands. Drop the text-transform, or put a lowercase
+     word in the list, and the tails of y, g and p would need this room.
 
      content-box is deliberate. Everything else here is border-box, under which
-     this padding would eat into the 1em and clip harder rather than less. */
+     this padding would eat into the 1em rather than add to it. */
   box-sizing: content-box;
   padding-bottom: 0.14em;
   margin-bottom: -0.14em;
