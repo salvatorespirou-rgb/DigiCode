@@ -61,7 +61,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--body);
-  font-weight: 300;
+  font-weight: 400;
   font-size: 17px;
   line-height: 1.7;
   letter-spacing: 0.01em;
@@ -80,7 +80,7 @@ img { max-width: 100%; display: block; }
 
 h1, h2, h3, h4 {
   font-family: var(--display);
-  font-weight: 300;
+  font-weight: 500;
   line-height: 1.06;
   letter-spacing: -0.015em;
   margin: 0;
@@ -103,7 +103,7 @@ a { color: inherit; }
 .eyebrow {
   font-family: var(--body);
   font-size: 0.68rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.42em;
   text-transform: uppercase;
   color: var(--brown);
@@ -117,7 +117,7 @@ a { color: inherit; }
   font-size: clamp(1.25rem, 2.3vw, 1.7rem);
   line-height: 1.5;
   color: var(--ink-dim);
-  font-weight: 300;
+  font-weight: 400;
 }
 
 .shell {
@@ -196,8 +196,8 @@ a { color: inherit; }
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(251, 248, 243, 0.86) 0%,
-                              rgba(251, 248, 243, 0.48) 55%, transparent 100%);
+  background: linear-gradient(180deg, rgba(251, 248, 243, 0.74) 0%,
+                              rgba(251, 248, 243, 0.36) 55%, transparent 100%);
   transition: opacity 0.5s var(--ease);
 }
 /* Once the bar has its own solid background this would only double up. */
@@ -251,6 +251,7 @@ a { color: inherit; }
 }
 .nav-links a {
   text-decoration: none;
+  font-weight: 500;
   white-space: nowrap;
   font-size: 0.74rem;
   letter-spacing: 0.2em;
@@ -385,26 +386,24 @@ a { color: inherit; }
      exactly where the headline and buttons are. The photograph either side
      of that pool is barely touched. */
   background:
-    linear-gradient(180deg, rgba(251, 248, 243, 0.88) 0%, rgba(251, 248, 243, 0.42) 11%,
-                    rgba(251, 248, 243, 0.05) 30%, rgba(251, 248, 243, 0.05) 72%,
-                    rgba(251, 248, 243, 0.80) 100%),
-    radial-gradient(58% 64% at 50% 52%, rgba(251, 248, 243, 0.58) 0%,
-                    rgba(251, 248, 243, 0.36) 62%, transparent 90%);
+    linear-gradient(180deg, rgba(251, 248, 243, 0.80) 0%, rgba(251, 248, 243, 0.30) 11%,
+                    rgba(251, 248, 243, 0.02) 30%, rgba(251, 248, 243, 0.02) 72%,
+                    rgba(251, 248, 243, 0.72) 100%),
+    radial-gradient(60% 66% at 50% 52%, rgba(251, 248, 243, 0.40) 0%,
+                    rgba(251, 248, 243, 0.24) 62%, transparent 92%);
 }
 
 /* Depth 1: the far wall — a warm ember glow. */
 .hero-layer--glow {
   background:
-    radial-gradient(58% 48% at 50% 62%, rgba(122, 83, 51, 0.04), transparent 68%),
-    radial-gradient(40% 34% at 22% 30%, rgba(168, 85, 47, 0.03), transparent 70%),
-    radial-gradient(46% 40% at 82% 38%, rgba(106, 122, 92, 0.03), transparent 72%);
+    radial-gradient(58% 48% at 50% 62%, rgba(122, 83, 51, 0.02), transparent 68%);
   transform: translate3d(0, calc(var(--scroll) * 12vh), 0) scale(1.05);
 }
 
 /* Depth 2: banana leaf ribs, drawn rather than photographed so the pitch
    carries no third-party imagery. */
 .hero-layer--leaf {
-  opacity: 0.06;
+  opacity: 0.03;
   background-image:
     repeating-linear-gradient(102deg,
       rgba(106, 122, 92, 0.32) 0px,
@@ -417,7 +416,7 @@ a { color: inherit; }
 
 /* Depth 3: drifting steam. */
 .hero-layer--steam {
-  opacity: 0.22;
+  opacity: 0.10;
   background:
     radial-gradient(30% 22% at 30% 70%, rgba(255, 253, 250, 0.55), transparent 70%),
     radial-gradient(26% 20% at 68% 62%, rgba(255, 253, 250, 0.45), transparent 72%);
@@ -434,8 +433,13 @@ a { color: inherit; }
 /* Halos on the type mean the paper pool underneath can be much weaker than
    it would otherwise need to be — the letters separate themselves rather than
    relying on the whole frame being washed out. */
-.hero-copy .eyebrow { color: var(--brown-deep); }
+/* Over a photograph, contrast is bought by darkening the letters rather than
+   whitening the picture behind them. The sub-line drops its muted tone for
+   full ink for exactly that reason — it sits over the busiest part of the
+   frame and was the first thing to go when the haze came down. */
+.hero-copy .eyebrow   { color: var(--brown-deep); }
 .hero-copy .hero-meta { color: var(--ink); }
+.hero-copy .hero-sub  { color: var(--ink); }
 
 .hero-copy h1,
 .hero-copy .eyebrow,
@@ -563,7 +567,7 @@ a { color: inherit; }
   padding: 1.05rem 2.3rem;
   font-family: var(--body);
   font-size: 0.72rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   text-decoration: none;
@@ -809,6 +813,7 @@ a { color: inherit; }
   padding: 0;
 }
 .dish-list li {
+  font-weight: 400;
   display: flex;
   align-items: baseline;
   gap: 0.8rem;
@@ -905,8 +910,8 @@ a { color: inherit; }
      only as the section approaches rather than on first paint. */
   background-size: cover;
   background-position: center 45%;
-  opacity: 0.82;
-  filter: saturate(1.04) contrast(1.0) brightness(1.0);
+  opacity: 0.94;
+  filter: saturate(1.06) contrast(1.02) brightness(1.0);
   mix-blend-mode: multiply;
   transform: translate3d(0, calc(var(--p, 0.5) * 20vh - 10vh), 0) scale(1.12);
   will-change: transform;
@@ -1019,10 +1024,10 @@ a { color: inherit; }
      is legible. Dark type is not — so the centre is now the lightest part and
      the wash falls off outward. */
   background:
-    linear-gradient(180deg, var(--paper) 0%, rgba(251, 248, 243, 0.10) 28%,
-                    rgba(251, 248, 243, 0.10) 72%, var(--paper) 100%),
-    radial-gradient(44% 40% at 50% 50%, rgba(251, 248, 243, 0.60) 0%,
-                    rgba(251, 248, 243, 0.36) 55%, transparent 84%);
+    linear-gradient(180deg, var(--paper) 0%, rgba(251, 248, 243, 0.04) 26%,
+                    rgba(251, 248, 243, 0.04) 74%, var(--paper) 100%),
+    radial-gradient(46% 42% at 50% 50%, rgba(251, 248, 243, 0.44) 0%,
+                    rgba(251, 248, 243, 0.26) 55%, transparent 86%);
 }
 
 .interlude-copy {
@@ -1069,19 +1074,9 @@ a { color: inherit; }
 
 /* Fades the photograph into the card rather than cutting it with a hard
    edge — the card should read as one object, not a picture glued to a box. */
-.dish-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* Was 0.15 -> 0.96, which read as a blend on a bright monitor and as mud on
-     a phone. Held back to roughly half that through the middle so the food is
-     actually legible, while the bottom still lands on the card colour. */
-  background: linear-gradient(180deg,
-    rgba(251, 248, 243, 0) 0%,
-    rgba(251, 248, 243, 0.04) 62%,
-    rgba(245, 239, 230, 0.58) 88%,
-    rgba(245, 239, 230, 0.82) 100%);
-}
+/* No wash at all. Every version of this gradient took something off the food
+   — the whole point of the band is the photograph, and the card edge below is
+   a clean enough seam on its own. */
 
 /* Their kitchen photography is mostly shot indoors under warm light and runs
    dark. Lifted here rather than in the files so it stays tunable. */
