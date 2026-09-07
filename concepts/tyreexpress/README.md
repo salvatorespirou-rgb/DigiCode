@@ -10,7 +10,7 @@ Open `index.html`. No build step, no dependencies.
 index.html        the page
 css/style.css     tokens, sections, the rolling headline, responsive, reduced-motion
 js/motion.js      reveals, the rolling headline, nav
-assets/img/       logo.png, shopfront.jpg, workshop.jpg (+ src/, brands/, hero/)
+assets/img/       logo.png, shopfront.jpg, workshop.jpg, tyre-sidewall.jpg (+ src/, brands/, hero/)
 ```
 
 ## Where every fact on the page came from
@@ -118,27 +118,44 @@ under `prefers-reduced-motion`.
 
 ### The tyre-size diagram
 
-Half a tyre, drawn as inline SVG rather than used as a picture. It stays sharp
-at any size, the callouts are real text a screen reader can read, it recolours
-with the brand, and it is DigiCode's own artwork rather than someone else's.
+Was a hand-drawn half tyre in inline SVG. It is now a supplied photograph of a
+real sidewall, marked P 215/65 R 15 95H with an arrow already painted onto
+each part of the code, at `assets/img/tyre-sidewall.jpg` — the untouched
+original is kept at `assets/img/src/tyre-sidewall-original.png` (1.7 MB,
+gitignored; only the flattened, compressed JPG at 1200px wide, 139 KB, is
+tracked). The earlier SVG's markup and every rule under `.tyre`, `.t-*` and
+`.sw-*` were removed rather than left dead in the stylesheet.
 
-Every band is one arc carrying a thick stroke: the radius places it, the
-stroke-width gives it depth. The tread is two arcs on the same path — a
-near-black base that shows through as grooves, and a dashed rubber stroke over
-it whose gaps become the cuts between blocks. The sidewall carries the marking
-on a `textPath`, dark pass under light pass a pixel apart, which is enough to
-read as raised. Inside that sit a metallic rim, six spokes and a hub.
+The trade worth being honest about: the photograph is not DigiCode's own
+artwork and does not recolour with the brand the way the drawn version did.
+What it gains is a real tyre rather than an illustration of one, and arrows
+already burned into the image rather than leader lines built by hand.
 
-**The callout positions are measured, not estimated.** Laid out by eye the
-labels collided into "ASPECCONSTRUCTRIM" — Construction alone is 100px wide
-against a 262px code. The leaders now land on the measured centre of each group
-of glyphs (195 at 178, 65 at 250, R at 293, 15 at 323, 91V at 381) and the
-labels sit on two staggered rows, with Load & Speed carried out to the right
-and led back in at an angle. Re-measure with `getBBox` if the code or the font
-ever changes; the numbers will move.
+**The six callouts sit on top of the photograph's own arrows, not beside
+them.** Six labels — `Type`, `Width`, `Aspect`, `Construction`, `Rim`,
+`Load & Speed` — are absolutely positioned at `--x`/`--y` percentages of the
+photo. Those percentages are not estimated: the source file was scanned pixel
+by pixel for its red arrow paint, the hits were clustered by angle about the
+wheel's centre, and each label was placed at its cluster's outer tip. The
+brake caliper in the photo is red too and turned up as a seventh cluster on
+the first pass, so anything inside the tyre itself is discarded before
+clustering — worth knowing if this is ever redone from a different photo.
+Checked afterwards: every label's rendered centre lands within a pixel of its
+computed anchor.
 
-The worked example is correct: for 195/65R15, the sidewall is 65% of 195 mm,
-which is about 127 mm.
+**Two of the six arrow tips sit only 52px apart on a 375px screen** — Aspect
+and Construction — while nowrap labels centred on them measure 60px and 97px.
+The anchors cannot move; they are pinned to real ink in the photograph. Below
+620px the labels instead wrap to two lines inside a 66px cap, which is what
+buys the room back — "Construction" drops from 97px to about 55px this way.
+One pixel of box overlap remains between that pair even after tightening the
+padding; imperceptible in practice, but worth knowing if it is ever revisited.
+
+The worked example in the list below is correct: for 215/65R15, the sidewall
+is 65% of 215 mm, about 140 mm — P 215/65 R 15 95H is what this particular
+photograph actually shows, not the 195/65R15 91V used in the original SVG, so
+every number in the definitions list was updated to match, including a sixth
+entry for the `P` type marking that the earlier diagram did not have at all.
 
 ## Layout width
 
@@ -153,6 +170,28 @@ logo does and the reel takes the rest of the width. `--shell` still centres the
 content sections but caps at 1560px rather than 1200. The hero copy is capped
 at `min(1100px, 74%)`, or on a very wide monitor the sub-heading would run to
 an unreadable measure.
+
+**`--shell` is built from `100%`, not `100vw`.** `vw` is the device viewport
+with the scrollbar included, so on any page tall enough to scroll it measures
+wider than what is actually visible — every `.shell` was running about 15-18px
+past the real right edge. `%` resolves against the containing block at the
+point `--shell` is used, which for a full-width section is the content area
+the scrollbar has already been subtracted from.
+
+**A second, unrelated cause of the same symptom was found while chasing that
+one down.** The workshop photo's scroll-driven tilt (`rotateX`/`rotateY`, see
+"The shop photographs" below) very slightly overshoots its box at some scroll
+positions. `transform` does not affect layout, but it does count toward
+scrollable overflow, and nothing was clipping it at the document level — the
+page could genuinely scroll about 25px sideways with no visible cause. `body`
+already carried `overflow-x: hidden`, which per spec should propagate to the
+viewport when `html` is left at its default `visible`, but that propagation
+was not fully suppressing it here. `html` now carries `overflow-x: hidden`
+directly rather than relying on the propagation. Anywhere a `transform` is
+animated close to a section edge, this is the class of bug to check for —
+`document.documentElement.scrollWidth > document.documentElement.clientWidth`
+is the real test; an element-by-element scan of `getBoundingClientRect` can
+report nothing out of bounds and still miss it.
 
 ### The hero reel
 
@@ -359,3 +398,9 @@ Checked across the page at 1100px and 375px:
 3. Get better photography, or licence what exists.
 4. Ask whether the ABN, years trading, or fitting/alignment prices can be
    published — all three are strong trust content and none could be verified.
+5. **Confirm "30 Min Tyre Change" in the hero stats before this goes live.**
+   Unlike the days-a-week and doors-open figures, which come off the shop's
+   own signage, this is an operational performance claim with no source at
+   all — nobody timed a change. It reads as a promise, and a customer who
+   times theirs against it and comes in over will notice. Either get a real
+   number from the owner or soften the word "min" out of it.

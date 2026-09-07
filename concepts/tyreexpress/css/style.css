@@ -35,9 +35,16 @@
   /* One gutter for the whole page, so the nav and the hero cannot drift
      apart. At 2200px the logo sat 42px from the edge while the hero text
      started at 493px — the shell was capped at 1200 and centred, throwing
-     away 450px of room on each side. */
+     away 450px of room on each side.
+
+     100% here, not 100vw. vw is the device viewport, scrollbar included, so
+     on any page tall enough to scroll it measures wider than what is actually
+     visible — every .shell ran about 15-18px past the real right edge. % is
+     resolved against the containing block wherever --shell is used, which for
+     a full-width section is the content area the scrollbar has already been
+     subtracted from. */
   --gutter: clamp(1.1rem, 4vw, 2.6rem);
-  --shell: min(1560px, calc(100vw - 2 * var(--gutter)));
+  --shell: min(1560px, calc(100% - 2 * var(--gutter)));
   --ease:  cubic-bezier(0.22, 1, 0.36, 1);
 
   --scroll: 0;   /* written by motion.js */
@@ -45,7 +52,18 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; background: var(--ink); }
+html {
+  scroll-behavior: smooth;
+  background: var(--ink);
+  /* Belt and braces alongside body's own overflow-x:hidden below. The
+     tilted workshop photo (rotateX/rotateY driven by scroll) very slightly
+     overshoots its box at certain scroll positions -- transform does not
+     affect layout, but it does count toward scrollable overflow, and
+     nothing was clipping it at the document level. Measured: the page
+     could genuinely scroll about 25px sideways with no visible cause,
+     because body's overflow-x:hidden alone was not enough to stop it. */
+  overflow-x: hidden;
+}
 
 body {
   margin: 0;
@@ -427,11 +445,16 @@ a { color: inherit; }
   margin-top: 2rem;
 }
 
+/* Centred as a group and centred within each stat, rather than the ragged
+   left edge the numbers and labels had by default. */
 .hero-facts {
-  display: flex; flex-wrap: wrap; gap: 2.2rem clamp(2.2rem, 6vw, 5rem);
+  display: flex; flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.2rem clamp(2.2rem, 6vw, 5rem);
   list-style: none; margin: 3rem 0 0; padding: 2.2rem 0 0;
   border-top: 1px solid var(--line);
 }
+.hero-facts li { text-align: center; }
 .hero-facts b {
   display: block;
   font-family: var(--head);
@@ -651,59 +674,45 @@ a { color: inherit; }
   align-items: center;
 }
 .size-figure { margin: 0; }
-.size-svg { width: 100%; height: auto; }
 
-/* ---- the half tyre ------------------------------------------------------
-   Drawn, not photographed, so it stays sharp at any size and costs nothing to
-   load. Every band is one arc carrying a thick stroke: the radius places it,
-   the stroke-width gives it depth. The tread is two arcs on the same path —
-   a near-black base showing through as grooves, and a dashed rubber stroke
-   over it whose gaps become the cuts between blocks.
+/* ---- the sidewall photo -------------------------------------------------
+   The supplied photograph, arrows and all — the callouts below are placed
+   over the top of the ones already in the picture rather than replacing
+   them, since the photo's own arrows are painted in and cannot be moved.
+
+   Each label's position is a percentage of the photo, not a guess: the
+   source file was scanned for its red arrow pixels, clustered by angle
+   about the wheel centre, and the outer tip of each cluster became that
+   label's --x/--y. The wheel's own brake caliper is red too and briefly
+   turned up as a seventh cluster, so anything inside the tyre itself was
+   discarded before clustering — worth knowing if this is ever redone from a
+   different photo.
    ------------------------------------------------------------------------ */
-.tyre path { fill: none; }
-
-.t-tread    { stroke: #0b0d0f;           stroke-width: 42; }
-.t-blocks   { stroke: url(#tyreRubber);  stroke-width: 37; stroke-dasharray: 21 9; }
-.t-groove   { stroke: #08090b;           stroke-width: 4; opacity: 0.85; }
-
-.t-wall     { stroke: url(#tyreWall);    stroke-width: 64; }
-.t-shoulder { stroke: #08090b;           stroke-width: 3; }
-.t-bead     { stroke: #464c53;           stroke-width: 2; opacity: 0.7; }
-
-/* The marking sits on the sidewall as it does on the real thing: a dark pass
-   under a lighter one, a pixel apart, which is enough to read as raised. */
-.t-emboss {
+.tyre-photo {
+  position: relative;
+  line-height: 0;   /* kill the descender gap under the img */
+}
+.tyre-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tp-label {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
   font-family: var(--head);
   font-weight: 700;
-  font-size: 20px;
-  letter-spacing: 3px;
-  fill: #5a616a;
-}
-.t-emboss--lo { fill: #08090b; }
-
-.t-rim      { stroke: url(#rimMetal);    stroke-width: 68; }
-.t-rimlip   { stroke: #eceef1;           stroke-width: 3; opacity: 0.9; }
-.t-spoke path { stroke: #9aa0a7; stroke-width: 13; stroke-linecap: round; }
-.t-hub  { fill: #70767d; stroke: none; }
-.t-axle { fill: #3d4248; stroke: none; }
-
-.sw-lead path { stroke: var(--orange); stroke-width: 1.5; fill: none; }
-
-.sw-code {
-  font-family: var(--head);
-  font-weight: 800;
-  font-size: 46px;
-  fill: var(--ink);
-  letter-spacing: 1px;
-}
-.sw-code .cs { fill: var(--grey); }
-.sw-label text {
-  font-family: var(--head);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.1em;
+  font-size: clamp(0.72rem, 1.6vw, 0.92rem);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  fill: var(--ink-3);
+  color: var(--white);
+  background: rgba(12, 13, 15, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0.3rem 0.65rem;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .size-defs { margin: 0; display: grid; gap: 1.1rem; }
@@ -897,6 +906,23 @@ a.find-card:hover .find-k, a.find-card:hover .find-x { color: rgba(255,255,255,0
   .hero-facts b { font-size: 2rem; }
   .size-cta { flex-direction: column; align-items: stretch; text-align: center; }
   .foot-inner { justify-content: center; text-align: center; }
+
+  /* The two closest arrow tips in the photo — Aspect and Construction — sit
+     52px apart on a 375px screen, but the label boxes centred on them measure
+     60px and 97px: nowrap text cannot fit without touching, and the anchor
+     points cannot move, since they are pinned to real arrows drawn into the
+     photograph. Letting labels wrap to two lines inside a capped width is
+     what buys the room back — "Construction" alone drops from 97px to about
+     52px this way, just narrow enough to clear its neighbour. */
+  .tp-label {
+    max-width: 66px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.05;
+    font-size: 0.6rem;
+    padding: 0.22rem 0.26rem;
+    letter-spacing: 0.04em;
+  }
 }
 
 /* --------------------------------------------------------------------------
