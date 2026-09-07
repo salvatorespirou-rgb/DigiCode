@@ -4185,9 +4185,17 @@ if (devTabs.length) {
     };
   }
 
+  // A line is only real once it has a description — that is the rule
+  // saveInvoice enforces, so the totals on screen have to use the same one.
+  // They did not, which is how the form could read $2,500 while the invoice
+  // actually saved with a total of zero.
+  function lineWillSave(l) {
+    return !!(l.description || "").trim();
+  }
+
   function draftTotals(d) {
     const subtotal = d.lines.reduce(
-      (sum, l) => sum + toCents(l.dollars) * (Number(l.qty) || 1),
+      (sum, l) => sum + (lineWillSave(l) ? toCents(l.dollars) * (Number(l.qty) || 1) : 0),
       0
     );
     const discount = Math.min(subtotal, toCents(d.discount));
@@ -4553,13 +4561,25 @@ if (devTabs.length) {
     };
     if (err) err.hidden = true;
 
-    const lines = d.lines
-      .filter((l) => l.description.trim())
-      .map((l) => ({
-        description: l.description.trim(),
-        qty: Number(l.qty) || 1,
-        unit_cents: toCents(l.dollars),
-      }));
+    // A priced line with no description used to be dropped here silently
+    // while the on-screen total still counted it, so the invoice saved at
+    // zero and the mistake only surfaced later at send, as "put a price on
+    // the invoice" — on an invoice that visibly had one. Say it here, where
+    // it can still be fixed, and name the line.
+    const orphan = d.lines.findIndex((l) => !lineWillSave(l) && toCents(l.dollars) > 0);
+    if (orphan > -1) {
+      show(
+        "Line " + (orphan + 1) + " has a price but no description, so it won't be " +
+          "saved. Give it a description, or clear the price."
+      );
+      return;
+    }
+
+    const lines = d.lines.filter(lineWillSave).map((l) => ({
+      description: l.description.trim(),
+      qty: Number(l.qty) || 1,
+      unit_cents: toCents(l.dollars),
+    }));
 
     if (!lines.length) {
       show("Add at least one line with a description.");
