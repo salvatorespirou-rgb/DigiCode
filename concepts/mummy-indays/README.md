@@ -153,9 +153,24 @@ gets the resting state rather than a hover it can't leave.
 - **Cormorant Garamond** — delicate high-contrast serif, display only
 - **Jost** — geometric sans, body and UI
 
-The live site is cool blue-grey (`#eef4f7`), which fights the food. This goes
-the other way: near-black warm charcoal, lechon gold, annatto ember, banana
-leaf. Dark rooms make food photography glow.
+Warm paper and brown ink: an off-white ground (`#fbf8f3`), near-black brown
+type (`#2b1e15`), and soft brown accents (`#7a5333`). Deliberately
+low-contrast, so the food photography is the only saturated thing on the page.
+
+It was built dark-first and inverted later, which took more than recolouring
+tokens. Three things do not simply flip:
+
+- **`mix-blend-mode`.** The lechon backdrop used `screen` so the dark half of
+  the photo fell away into a black ground. Screen against paper returns paper,
+  so the image vanished entirely — it is `multiply` now, where the pale half
+  drops out instead. The film grain moved from `overlay` to `multiply` for the
+  same reason.
+- **Scrims.** The interlude wash darkened the *edges* and left the centre
+  clear, which is right for light type over a photograph and exactly wrong for
+  dark type. It is inverted: the centre is now the lightest part.
+- **Glows.** Radial washes that emit light on black read as stains on paper,
+  so they are held down to roughly a third of their old strength, and the
+  hero steam had to go back to being lighter than what it drifts over.
 
 ## Notes for the pitch conversation
 

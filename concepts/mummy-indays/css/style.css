@@ -14,25 +14,27 @@
    -------------------------------------------------------------------------- */
 
 :root {
-  /* A dark, warm room with a fire in it — charcoal, lechon gold, banana
-     leaf, and the annatto red that colours half the menu. */
-  --ink:        #0b0807;
-  --ink-2:      #141010;
-  --ink-3:      #1e1817;
-  --char:       #2a2220;
+  /* Warm paper and brown ink. The room is daylit now rather than lamplit:
+     an off-white ground, soft brown accents, and near-black brown type.
+     Kept deliberately low-contrast — "faded" — so the food photography is
+     the only saturated thing on the page. */
+  --paper:      #fbf8f3;
+  --paper-2:    #f5efe6;
+  --paper-3:    #ede4d7;
+  --paper-4:    #e3d7c6;
 
-  --cream:      #f7f0e4;
-  --cream-dim:  #d9cdbc;
-  --muted:      #a2907f;
+  --ink:        #2b1e15;
+  --ink-dim:    #55412f;
+  --muted:      #8d7663;
 
-  --gold:       #d9a441;
-  --gold-lt:    #f2cd82;
-  --gold-deep:  #a97a26;
-  --ember:      #b8502a;
-  --leaf:       #55704f;
+  --brown:      #7a5333;
+  --brown-lt:   #a2764a;
+  --brown-deep: #52351f;
+  --ember:      #a8552f;
+  --leaf:       #6a7a5c;
 
-  --line:       rgba(247, 240, 228, 0.12);
-  --line-soft:  rgba(247, 240, 228, 0.06);
+  --line:       rgba(43, 30, 21, 0.16);
+  --line-soft:  rgba(43, 30, 21, 0.08);
 
   --display: "Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif;
   --body:    "Jost", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -51,13 +53,13 @@
 html {
   scroll-behavior: smooth;
   /* The 3D scenes below rely on the viewport being the perspective origin. */
-  background: var(--ink);
+  background: var(--paper);
 }
 
 body {
   margin: 0;
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--body);
   font-weight: 300;
   font-size: 17px;
@@ -70,7 +72,7 @@ body {
 
 img { max-width: 100%; display: block; }
 
-::selection { background: var(--gold); color: var(--ink); }
+::selection { background: var(--brown); color: var(--paper); }
 
 /* --------------------------------------------------------------------------
    Type
@@ -104,7 +106,7 @@ a { color: inherit; }
   font-weight: 400;
   letter-spacing: 0.42em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--brown);
   margin: 0 0 1.4rem;
 }
 
@@ -114,7 +116,7 @@ a { color: inherit; }
   font-family: var(--display);
   font-size: clamp(1.25rem, 2.3vw, 1.7rem);
   line-height: 1.5;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
   font-weight: 300;
 }
 
@@ -128,7 +130,7 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: var(--gold);
+  color: var(--brown);
   opacity: 0.55;
 }
 .rule::before,
@@ -155,8 +157,8 @@ a { color: inherit; }
   inset: 0;
   z-index: 9000;
   pointer-events: none;
-  opacity: 0.16;
-  mix-blend-mode: overlay;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
   background-image: var(--grain);
   background-size: 180px 180px;
 }
@@ -166,7 +168,7 @@ a { color: inherit; }
   inset: 0;
   z-index: 8999;
   pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 45%, transparent 42%, rgba(0, 0, 0, 0.55) 100%);
+  background: radial-gradient(120% 90% at 50% 45%, transparent 42%, rgba(43, 30, 21, 0.05) 100%);
 }
 
 /* --------------------------------------------------------------------------
@@ -185,7 +187,7 @@ a { color: inherit; }
 }
 
 .nav.is-stuck {
-  background: rgba(11, 8, 7, 0.82);
+  background: rgba(251, 248, 243, 0.82);
   backdrop-filter: blur(14px) saturate(1.2);
   border-bottom: 1px solid var(--line-soft);
   padding-block: 1rem;
@@ -207,7 +209,7 @@ a { color: inherit; }
   font-size: 0.52rem;
   letter-spacing: 0.36em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--brown);
   margin-top: 0.35rem;
 }
 
@@ -225,7 +227,7 @@ a { color: inherit; }
   font-size: 0.74rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
   position: relative;
   padding-block: 0.3rem;
   transition: color 0.3s var(--ease);
@@ -235,12 +237,12 @@ a { color: inherit; }
   position: absolute;
   left: 0; bottom: 0;
   width: 100%; height: 1px;
-  background: var(--gold);
+  background: var(--brown);
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.45s var(--ease);
 }
-.nav-links a:hover { color: var(--cream); }
+.nav-links a:hover { color: var(--ink); }
 .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
 
 .nav-cta {
@@ -248,8 +250,8 @@ a { color: inherit; }
   align-items: center;
   gap: 0.6rem;
   padding: 0.72rem 1.5rem;
-  border: 1px solid var(--gold);
-  color: var(--gold);
+  border: 1px solid var(--brown);
+  color: var(--brown);
   text-decoration: none;
   font-size: 0.7rem;
   letter-spacing: 0.22em;
@@ -257,13 +259,13 @@ a { color: inherit; }
   border-radius: 100px;
   transition: background 0.4s var(--ease), color 0.4s var(--ease);
 }
-.nav-cta:hover { background: var(--gold); color: var(--ink); }
+.nav-cta:hover { background: var(--brown); color: var(--paper); }
 
 .nav-toggle {
   display: none;
   background: none;
   border: 0;
-  color: var(--cream);
+  color: var(--ink);
   cursor: pointer;
   padding: 0.5rem;
 }
@@ -350,28 +352,28 @@ a { color: inherit; }
 
 .hero-layer--scrim {
   background:
-    linear-gradient(180deg, rgba(11, 8, 7, 0.72) 0%, rgba(11, 8, 7, 0.45) 40%,
-                    rgba(11, 8, 7, 0.82) 100%),
-    radial-gradient(65% 55% at 50% 45%, transparent 10%, rgba(11, 8, 7, 0.75) 100%);
+    linear-gradient(180deg, rgba(251, 248, 243, 0.80) 0%, rgba(251, 248, 243, 0.64) 40%,
+                    rgba(251, 248, 243, 0.88) 100%),
+    radial-gradient(65% 55% at 50% 45%, transparent 10%, rgba(251, 248, 243, 0.75) 100%);
 }
 
 /* Depth 1: the far wall — a warm ember glow. */
 .hero-layer--glow {
   background:
-    radial-gradient(58% 48% at 50% 62%, rgba(217, 164, 65, 0.30), transparent 68%),
-    radial-gradient(40% 34% at 22% 30%, rgba(184, 80, 42, 0.24), transparent 70%),
-    radial-gradient(46% 40% at 82% 38%, rgba(85, 112, 79, 0.20), transparent 72%);
+    radial-gradient(58% 48% at 50% 62%, rgba(122, 83, 51, 0.09), transparent 68%),
+    radial-gradient(40% 34% at 22% 30%, rgba(168, 85, 47, 0.07), transparent 70%),
+    radial-gradient(46% 40% at 82% 38%, rgba(106, 122, 92, 0.06), transparent 72%);
   transform: translate3d(0, calc(var(--scroll) * 12vh), 0) scale(1.05);
 }
 
 /* Depth 2: banana leaf ribs, drawn rather than photographed so the pitch
    carries no third-party imagery. */
 .hero-layer--leaf {
-  opacity: 0.30;
+  opacity: 0.14;
   background-image:
     repeating-linear-gradient(102deg,
-      rgba(85, 112, 79, 0.55) 0px,
-      rgba(85, 112, 79, 0.55) 1px,
+      rgba(106, 122, 92, 0.32) 0px,
+      rgba(106, 122, 92, 0.32) 1px,
       transparent 1px,
       transparent 22px);
   mask-image: radial-gradient(70% 60% at 50% 55%, #000 20%, transparent 78%);
@@ -382,8 +384,8 @@ a { color: inherit; }
 .hero-layer--steam {
   opacity: 0.5;
   background:
-    radial-gradient(30% 22% at 30% 70%, rgba(247, 240, 228, 0.10), transparent 70%),
-    radial-gradient(26% 20% at 68% 62%, rgba(247, 240, 228, 0.08), transparent 72%);
+    radial-gradient(30% 22% at 30% 70%, rgba(255, 253, 250, 0.55), transparent 70%),
+    radial-gradient(26% 20% at 68% 62%, rgba(255, 253, 250, 0.45), transparent 72%);
   filter: blur(18px);
   animation: drift 18s ease-in-out infinite alternate;
   transform: translate3d(0, calc(var(--scroll) * 42vh), 0);
@@ -422,14 +424,14 @@ a { color: inherit; }
 @keyframes riseIn { to { transform: translateY(0); } }
 
 .hero h1 .gold {
-  color: var(--gold);
+  color: var(--brown);
   font-style: italic;
 }
 
 .hero-sub {
   max-width: 46ch;
   margin: 2rem auto 0;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
   opacity: 0;
   animation: fadeUp 1s var(--ease) 0.55s forwards;
 }
@@ -451,7 +453,7 @@ a { color: inherit; }
 .hero-meta span::before {
   content: "";
   width: 4px; height: 4px;
-  background: var(--gold);
+  background: var(--brown);
   transform: rotate(45deg);
 }
 
@@ -489,7 +491,7 @@ a { color: inherit; }
 .scroll-cue i {
   display: block;
   width: 1px; height: 54px;
-  background: linear-gradient(var(--gold), transparent);
+  background: linear-gradient(var(--brown), transparent);
   animation: cue 2.4s ease-in-out infinite;
   transform-origin: top;
 }
@@ -522,23 +524,23 @@ a { color: inherit; }
               background 0.4s var(--ease), color 0.4s var(--ease);
 }
 
-.btn--gold {
-  background: linear-gradient(135deg, var(--gold-lt), var(--gold));
-  color: var(--ink);
-  box-shadow: 0 12px 40px -14px rgba(217, 164, 65, 0.7);
+.btn--brown {
+  background: linear-gradient(135deg, var(--brown-lt), var(--brown));
+  color: var(--paper);
+  box-shadow: 0 12px 40px -14px rgba(122, 83, 51, 0.7);
 }
-.btn--gold:hover {
+.btn--brown:hover {
   transform: translateY(-3px);
-  box-shadow: 0 20px 52px -14px rgba(217, 164, 65, 0.85);
+  box-shadow: 0 20px 52px -14px rgba(122, 83, 51, 0.85);
 }
 
 .btn--ghost {
   border-color: var(--line);
-  color: var(--cream);
+  color: var(--ink);
 }
 .btn--ghost:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--brown);
+  color: var(--brown);
   transform: translateY(-3px);
 }
 
@@ -603,8 +605,8 @@ a { color: inherit; }
   overflow: hidden;
   border: 1px solid var(--line);
   box-shadow:
-    0 60px 120px -50px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(217, 164, 65, 0.08) inset;
+    0 60px 120px -50px rgba(43, 30, 21, 0.11),
+    0 0 0 1px rgba(122, 83, 51, 0.08) inset;
 }
 
 .story-quote {
@@ -612,8 +614,8 @@ a { color: inherit; }
   font-style: italic;
   font-size: clamp(1.3rem, 2.4vw, 1.85rem);
   line-height: 1.45;
-  color: var(--gold-lt);
-  border-left: 1px solid var(--gold);
+  color: var(--brown-lt);
+  border-left: 1px solid var(--brown);
   padding-left: 1.6rem;
   margin: 2.4rem 0 0;
 }
@@ -640,7 +642,7 @@ a { color: inherit; }
   position: relative;
   width: 100%;
   height: 100%;
-  background-color: var(--ink-3);
+  background-color: var(--paper-3);
   background-image: var(--src, none);
   background-size: cover;
   background-position: center;
@@ -654,11 +656,11 @@ a { color: inherit; }
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(80% 70% at 30% 25%, rgba(217, 164, 65, 0.28), transparent 70%),
+    radial-gradient(80% 70% at 30% 25%, rgba(122, 83, 51, 0.28), transparent 70%),
     radial-gradient(70% 60% at 75% 80%, rgba(184, 80, 42, 0.26), transparent 72%),
     repeating-linear-gradient(58deg,
-      rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 9px),
-    linear-gradient(160deg, var(--char), var(--ink-2));
+      rgba(43, 30, 21, 0.05) 0 2px, transparent 2px 9px),
+    linear-gradient(160deg, var(--paper-4), var(--paper-2));
 }
 
 /* The label only shows through when no real photo covers it. */
@@ -671,7 +673,7 @@ a { color: inherit; }
   font-family: var(--display);
   font-style: italic;
   font-size: 1.15rem;
-  color: rgba(247, 240, 228, 0.6);
+  color: rgba(43, 30, 21, 0.6);
 }
 
 /* Once a real photograph is in, the stand-in must go.
@@ -710,7 +712,7 @@ a { color: inherit; }
   border: 1px solid var(--line-soft);
   border-radius: 4px;
   background:
-    linear-gradient(165deg, rgba(42, 34, 32, 0.9), rgba(20, 16, 16, 0.92));
+    linear-gradient(165deg, rgba(227, 215, 198, 0.9), rgba(245, 239, 230, 0.92));
   transform-style: preserve-3d;
   transform: translate3d(0, 0, calc(var(--z, 0) * 1px));
   transition: border-color 0.5s var(--ease), box-shadow 0.6s var(--ease),
@@ -724,19 +726,19 @@ a { color: inherit; }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  background: linear-gradient(90deg, transparent, var(--brown), transparent);
   opacity: 0.25;
   transition: opacity 0.5s var(--ease);
 }
 
 .dish-card:hover {
-  border-color: rgba(217, 164, 65, 0.4);
-  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.95);
+  border-color: rgba(122, 83, 51, 0.4);
+  box-shadow: 0 40px 90px -40px rgba(43, 30, 21, 0.13);
 }
 .dish-card:hover::before { opacity: 1; }
 
 .dish-card h3 {
-  color: var(--cream);
+  color: var(--ink);
   margin-bottom: 0.4rem;
 }
 
@@ -744,7 +746,7 @@ a { color: inherit; }
   font-size: 0.68rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--brown);
   margin-bottom: 1.6rem;
   display: block;
 }
@@ -761,7 +763,7 @@ a { color: inherit; }
   padding: 0.62rem 0;
   border-bottom: 1px solid var(--line-soft);
   font-size: 0.95rem;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
 }
 .dish-list li:last-child { border-bottom: 0; }
 .dish-list .dot {
@@ -772,7 +774,7 @@ a { color: inherit; }
   transform: translateY(-3px);
 }
 .dish-list .amt {
-  color: var(--gold-lt);
+  color: var(--brown-lt);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -794,7 +796,7 @@ a { color: inherit; }
   overflow: hidden;
   background:
     radial-gradient(70% 60% at 50% 50%, rgba(184, 80, 42, 0.16), transparent 72%),
-    var(--ink);
+    var(--paper);
 }
 
 .lechon-grid {
@@ -818,8 +820,8 @@ a { color: inherit; }
 .lechon-plate .photo {
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(217, 164, 65, 0.22);
-  box-shadow: 0 60px 110px -45px rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(122, 83, 51, 0.22);
+  box-shadow: 0 60px 110px -45px rgba(43, 30, 21, 0.13);
   /* This one photograph is graded in CSS rather than baked in, because it is
      a WebP and the local pipeline (GDI+) cannot decode that format. Same
      direction as the hero grade, applied at render. */
@@ -851,9 +853,9 @@ a { color: inherit; }
      only as the section approaches rather than on first paint. */
   background-size: cover;
   background-position: center 45%;
-  opacity: 0.55;
-  filter: saturate(0.95) contrast(1.08) brightness(0.85);
-  mix-blend-mode: screen;
+  opacity: 0.42;
+  filter: saturate(0.92) contrast(0.95) brightness(1.06);
+  mix-blend-mode: multiply;
   transform: translate3d(0, calc(var(--p, 0.5) * 20vh - 10vh), 0) scale(1.12);
   will-change: transform;
 
@@ -872,7 +874,7 @@ a { color: inherit; }
   z-index: 0;
   pointer-events: none;
   background: linear-gradient(90deg,
-    transparent 0%, rgba(11, 8, 7, 0.35) 42%, rgba(11, 8, 7, 0.86) 72%);
+    transparent 0%, rgba(251, 248, 243, 0.35) 42%, rgba(251, 248, 243, 0.86) 72%);
 }
 
 .lechon-copy {
@@ -896,7 +898,7 @@ a { color: inherit; }
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.15rem 1.4rem;
-  background: var(--ink-2);
+  background: var(--paper-2);
 }
 .weight-list b {
   font-family: var(--display);
@@ -904,7 +906,7 @@ a { color: inherit; }
   font-weight: 400;
 }
 .weight-list .amt {
-  color: var(--gold-lt);
+  color: var(--brown-lt);
   font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
 }
@@ -918,10 +920,10 @@ a { color: inherit; }
 .freebie {
   margin-top: 1.6rem;
   padding: 1rem 1.3rem;
-  border: 1px dashed rgba(217, 164, 65, 0.35);
+  border: 1px dashed rgba(122, 83, 51, 0.35);
   border-radius: 3px;
   font-size: 0.85rem;
-  color: var(--gold-lt);
+  color: var(--brown-lt);
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -960,10 +962,14 @@ a { color: inherit; }
   position: absolute;
   inset: 0;
   z-index: -1;
+  /* Inverted, not just recoloured. On the dark build this darkened the EDGES
+     and left the centre clear, because light type over the middle of a photo
+     is legible. Dark type is not — so the centre is now the lightest part and
+     the wash falls off outward. */
   background:
-    linear-gradient(180deg, var(--ink) 0%, rgba(11, 8, 7, 0.42) 32%,
-                    rgba(11, 8, 7, 0.55) 68%, var(--ink) 100%),
-    radial-gradient(70% 60% at 50% 50%, transparent 20%, rgba(11, 8, 7, 0.6) 100%);
+    linear-gradient(180deg, var(--paper) 0%, rgba(251, 248, 243, 0.58) 30%,
+                    rgba(251, 248, 243, 0.62) 70%, var(--paper) 100%),
+    radial-gradient(46% 42% at 50% 50%, rgba(251, 248, 243, 0.82), transparent 78%);
 }
 
 .interlude-copy {
@@ -979,11 +985,14 @@ a { color: inherit; }
 .interlude-copy h2 {
   font-size: clamp(1.9rem, 5.4vw, 4rem);
   text-wrap: balance;
-  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.8);
+  /* A paper halo, not a drop shadow — it separates dark type from a busy
+     photograph without printing a grey smudge under every letter. */
+  text-shadow: 0 0 26px rgba(251, 248, 243, 0.95), 0 1px 2px rgba(251, 248, 243, 0.9);
 }
 .interlude-copy p {
   margin-top: 1.2rem;
-  color: var(--cream-dim);
+  color: var(--ink);
+  text-shadow: 0 0 18px rgba(251, 248, 243, 0.95);
   font-size: clamp(0.62rem, 1.6vw, 0.78rem);
   letter-spacing: clamp(0.14em, 0.5vw, 0.28em);
   text-transform: uppercase;
@@ -1001,7 +1010,7 @@ a { color: inherit; }
   height: clamp(200px, 22vw, 240px);
   margin: -2.4rem -2rem 1.8rem;
   overflow: hidden;
-  background-color: var(--ink-3);
+  background-color: var(--paper-3);
 }
 .dish-photo .photo { position: absolute; inset: 0; }
 
@@ -1015,9 +1024,9 @@ a { color: inherit; }
      a phone. Held back to roughly half that through the middle so the food is
      actually legible, while the bottom still lands on the card colour. */
   background: linear-gradient(180deg,
-    rgba(11, 8, 7, 0.02) 0%,
-    rgba(11, 8, 7, 0.22) 58%,
-    rgba(20, 16, 16, 0.88) 100%);
+    rgba(251, 248, 243, 0.02) 0%,
+    rgba(251, 248, 243, 0.22) 58%,
+    rgba(245, 239, 230, 0.88) 100%);
 }
 
 /* Their kitchen photography is mostly shot indoors under warm light and runs
@@ -1052,7 +1061,7 @@ a { color: inherit; }
   padding: 2.2rem 1.7rem;
   border: 1px solid var(--line-soft);
   border-radius: 4px;
-  background: linear-gradient(170deg, rgba(42, 34, 32, 0.85), rgba(14, 11, 11, 0.9));
+  background: linear-gradient(170deg, rgba(227, 215, 198, 0.85), rgba(247, 241, 233, 0.9));
   transform-style: preserve-3d;
   transform:
     rotateX(calc(var(--my, 0) * -7deg))
@@ -1060,19 +1069,19 @@ a { color: inherit; }
     translateZ(0);
   transition: transform 0.5s var(--ease), border-color 0.5s var(--ease);
 }
-.pkg:hover { border-color: rgba(217, 164, 65, 0.45); }
+.pkg:hover { border-color: rgba(122, 83, 51, 0.45); }
 
 .pkg--feature {
-  border-color: rgba(217, 164, 65, 0.42);
-  background: linear-gradient(170deg, rgba(60, 45, 30, 0.85), rgba(18, 13, 11, 0.94));
+  border-color: rgba(122, 83, 51, 0.42);
+  background: linear-gradient(170deg, rgba(236, 224, 206, 0.85), rgba(246, 238, 227, 0.94));
 }
 .pkg--feature::after {
   content: "Most booked";
   position: absolute;
   top: -1px; right: 1.4rem;
   padding: 0.35rem 0.8rem;
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--brown);
+  color: var(--paper);
   font-size: 0.55rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -1089,13 +1098,13 @@ a { color: inherit; }
   font-size: 3.1rem;
   line-height: 1;
   margin: 0.7rem 0 0.2rem;
-  color: var(--cream);
+  color: var(--ink);
   transform: translateZ(30px);
 }
 .pkg-price sup {
   font-size: 1.1rem;
   vertical-align: super;
-  color: var(--gold);
+  color: var(--brown);
 }
 .pkg-per {
   font-size: 0.7rem;
@@ -1113,7 +1122,7 @@ a { color: inherit; }
 }
 .pkg li {
   font-size: 0.88rem;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
   display: flex;
   gap: 0.7rem;
   align-items: baseline;
@@ -1121,7 +1130,7 @@ a { color: inherit; }
 .pkg li::before {
   content: "";
   width: 4px; height: 4px;
-  background: var(--gold);
+  background: var(--brown);
   transform: rotate(45deg);
   flex: none;
 }
@@ -1135,16 +1144,16 @@ a { color: inherit; }
   margin-top: 3rem;
 }
 .inclusions div {
-  background: var(--ink-2);
+  background: var(--paper-2);
   padding: 1.5rem 1.3rem;
   font-size: 0.85rem;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
 }
 .inclusions b {
   display: block;
   font-family: var(--display);
   font-size: 1.15rem;
-  color: var(--gold-lt);
+  color: var(--brown-lt);
   margin-bottom: 0.3rem;
   font-weight: 400;
 }
@@ -1174,7 +1183,7 @@ a { color: inherit; }
   font-family: var(--display);
   font-style: italic;
   font-size: 1.15rem;
-  color: var(--gold-lt);
+  color: var(--brown-lt);
 }
 
 .family-stack {
@@ -1189,7 +1198,7 @@ a { color: inherit; }
   overflow: hidden;
   border-radius: 3px;
   border: 1px solid var(--line-soft);
-  box-shadow: 0 50px 100px -45px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 50px 100px -45px rgba(43, 30, 21, 0.13);
   transform: translate3d(0, calc((var(--p, 0.5) - 0.5) * var(--depth, 1) * 16vh), 0);
   will-change: transform;
 }
@@ -1291,10 +1300,10 @@ a { color: inherit; }
   padding: 2rem 1.8rem;
   border: 1px solid var(--line-soft);
   border-radius: 4px;
-  background: linear-gradient(170deg, rgba(30, 24, 23, 0.8), rgba(14, 11, 11, 0.86));
+  background: linear-gradient(170deg, rgba(237, 228, 215, 0.8), rgba(247, 241, 233, 0.86));
 }
 .stars {
-  color: var(--gold);
+  color: var(--brown);
   letter-spacing: 0.3em;
   font-size: 0.8rem;
   margin-bottom: 1rem;
@@ -1304,7 +1313,7 @@ a { color: inherit; }
   font-style: italic;
   font-size: 1.15rem;
   line-height: 1.5;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
 }
 .review cite {
   display: block;
@@ -1327,8 +1336,8 @@ a { color: inherit; }
   padding: clamp(5rem, 11vh, 8rem) 0 clamp(4rem, 9vh, 6rem);
   border-top: 1px solid var(--line-soft);
   background:
-    radial-gradient(70% 60% at 50% 0%, rgba(217, 164, 65, 0.10), transparent 70%),
-    var(--ink);
+    radial-gradient(70% 60% at 50% 0%, rgba(122, 83, 51, 0.10), transparent 70%),
+    var(--paper);
   overflow: hidden;
 }
 
@@ -1363,11 +1372,11 @@ a { color: inherit; }
   padding: 1.9rem 1.7rem;
   border: 1px solid var(--line-soft);
   border-radius: 4px;
-  background: linear-gradient(170deg, rgba(30, 24, 23, 0.9), rgba(14, 11, 11, 0.9));
+  background: linear-gradient(170deg, rgba(237, 228, 215, 0.9), rgba(247, 241, 233, 0.9));
 }
 
 .rev-stars {
-  color: var(--gold);
+  color: var(--brown);
   letter-spacing: 0.26em;
   font-size: 0.82rem;
   margin: 0 0 1rem;
@@ -1377,7 +1386,7 @@ a { color: inherit; }
   font-family: var(--display);
   font-size: 1.02rem;
   line-height: 1.55;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
   margin: 0 0 1.3rem;
   flex: 1;
   /* Cards in a flex row all stretch to the tallest, so the single longest
@@ -1397,7 +1406,7 @@ a { color: inherit; }
   font-size: 0.64rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--gold-lt);
+  color: var(--brown-lt);
 }
 .rev-name::before { content: "— "; color: var(--muted); }
 
@@ -1416,8 +1425,8 @@ a { color: inherit; }
 .book {
   position: relative;
   background:
-    radial-gradient(60% 60% at 50% 0%, rgba(217, 164, 65, 0.14), transparent 70%),
-    var(--ink-2);
+    radial-gradient(60% 60% at 50% 0%, rgba(122, 83, 51, 0.14), transparent 70%),
+    var(--paper-2);
   border-top: 1px solid var(--line-soft);
 }
 
@@ -1445,19 +1454,19 @@ a { color: inherit; }
 .contact-list .v {
   font-family: var(--display);
   font-size: clamp(1.3rem, 2.4vw, 1.8rem);
-  color: var(--cream);
+  color: var(--ink);
   text-decoration: none;
   transition: color 0.35s var(--ease);
 }
-a.v:hover { color: var(--gold); }
+a.v:hover { color: var(--brown); }
 
 .notice {
   margin-top: 2.4rem;
   padding: 1.5rem 1.6rem;
-  border-left: 2px solid var(--gold);
-  background: rgba(217, 164, 65, 0.06);
+  border-left: 2px solid var(--brown);
+  background: rgba(122, 83, 51, 0.06);
   font-size: 0.9rem;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
 }
 
 /* --------------------------------------------------------------------------
@@ -1467,7 +1476,7 @@ a.v:hover { color: var(--gold); }
 .foot {
   padding: 3.5rem 0 4rem;
   border-top: 1px solid var(--line-soft);
-  background: var(--ink);
+  background: var(--paper);
 }
 .foot-inner {
   display: flex;
@@ -1478,8 +1487,8 @@ a.v:hover { color: var(--gold); }
   font-size: 0.75rem;
   color: var(--muted);
 }
-.foot a { color: var(--cream-dim); text-decoration: none; }
-.foot a:hover { color: var(--gold); }
+.foot a { color: var(--ink-dim); text-decoration: none; }
+.foot a:hover { color: var(--brown); }
 .socials { display: flex; align-items: center; gap: 1.4rem; }
 
 /* The marks sit optically level with the text links beside them, and the hit
@@ -1492,17 +1501,17 @@ a.v:hover { color: var(--gold); }
   height: 38px;
   margin: -9px -9px -9px -10px;
   border-radius: 50%;
-  color: var(--cream-dim);
+  color: var(--ink-dim);
   transition: color 0.35s var(--ease), background 0.35s var(--ease),
               transform 0.35s var(--ease);
 }
 .social-icon:hover {
-  color: var(--gold);
-  background: rgba(217, 164, 65, 0.10);
+  color: var(--brown);
+  background: rgba(122, 83, 51, 0.10);
   transform: translateY(-2px);
 }
 .social-icon:focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--brown);
   outline-offset: 2px;
 }
 .social-icon + .social-icon { margin-left: -0.4rem; }
@@ -1512,7 +1521,7 @@ a.v:hover { color: var(--gold); }
   margin: 1.6rem 0 0;
   font-size: 0.7rem;
   line-height: 1.85;
-  color: rgba(162, 144, 127, 0.72);
+  color: rgba(141, 118, 99, 0.72);
   letter-spacing: 0.02em;
   max-width: 78ch;
 }
@@ -1536,7 +1545,7 @@ a.v:hover { color: var(--gold); }
   line-height: 1.6;
   color: var(--muted);
 }
-.pitch-stamp b { color: var(--gold); font-weight: 400; }
+.pitch-stamp b { color: var(--brown); font-weight: 400; }
 
 /* --------------------------------------------------------------------------
    Responsive
@@ -1559,7 +1568,7 @@ a.v:hover { color: var(--gold); }
     top: 100%; left: 0; right: 0;
     flex-direction: column;
     gap: 0;
-    background: rgba(11, 8, 7, 0.97);
+    background: rgba(251, 248, 243, 0.97);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--line-soft);
     padding: 1rem 0 1.5rem;
