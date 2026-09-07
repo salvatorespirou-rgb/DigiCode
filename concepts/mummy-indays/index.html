@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/img/hero-1.jpg" fetchpriority="high" />
-  <link rel="stylesheet" href="css/style.css?v=4" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
 </head>
 <body>
 
@@ -534,8 +534,8 @@
             </p>
 
             <div class="hero-actions" style="justify-content: flex-start; margin-top: 2.4rem; opacity: 1; animation: none;" data-reveal>
-              <a href="tel:0434918557" class="btn btn--brown">Call 0434 918 557</a>
-              <a href="mailto:catering@mummyindays.com" class="btn btn--ghost">Email Us</a>
+              <a href="tel:+61434918557" class="btn btn--brown">Call 0434 918 557</a>
+              <a href="mailto:catering@mummyindays.com" class="btn btn--ghost" data-enquiry>Email Us</a>
             </div>
 
             <p class="notice" data-reveal>
@@ -548,11 +548,11 @@
             <ul class="contact-list" data-reveal>
               <li>
                 <p class="k">Bookings &amp; Pick-up</p>
-                <a class="v" href="tel:0434918557">0434 918 557</a>
+                <a class="v" href="tel:+61434918557">0434 918 557</a>
               </li>
               <li>
                 <p class="k">Menu Enquiries</p>
-                <a class="v" href="tel:0412188976">0412 188 976</a>
+                <a class="v" href="tel:+61412188976">0412 188 976</a>
               </li>
               <li>
                 <p class="k">Email</p>
@@ -698,6 +698,75 @@
     </div>
   </footer>
 
-  <script src="js/cinema.js?v=4"></script>
+
+  <!-- ===================================================================
+       Enquiry form
+       Opened by "Email Us". A native <dialog> so Escape, focus trapping and
+       the backdrop come from the browser rather than being reimplemented
+       badly. The button underneath stays a real mailto: link, so if the
+       script never runs the address still works — the form is an
+       enhancement, not a dependency.
+       =================================================================== -->
+  <dialog class="enquiry" id="enquiryDialog" aria-labelledby="enquiryTitle">
+    <form method="dialog" class="enquiry-form" id="enquiryForm">
+      <button type="submit" class="enquiry-close" value="cancel" aria-label="Close">&times;</button>
+
+      <p class="eyebrow">Tell Us About It</p>
+      <h2 id="enquiryTitle">Send an <em>enquiry.</em></h2>
+      <p class="enquiry-note">
+        Fill this in and it opens in your email, addressed to
+        catering@mummyindays.com with everything already written out.
+      </p>
+
+      <div class="enquiry-grid">
+        <label>Your name <span aria-hidden="true">*</span>
+          <input type="text" name="name" required autocomplete="name" />
+        </label>
+        <label>Email <span aria-hidden="true">*</span>
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>Phone
+          <input type="tel" name="phone" autocomplete="tel" inputmode="tel" />
+        </label>
+        <label>Event date
+          <input type="date" name="date" />
+        </label>
+        <label>How many guests
+          <input type="number" name="guests" min="1" inputmode="numeric" />
+        </label>
+        <label>What do you need
+          <select name="service">
+            <option>Not sure yet</option>
+            <option>Trays only</option>
+            <option>Full catering service</option>
+            <option>Lechon only</option>
+            <option>Trays and lechon</option>
+          </select>
+        </label>
+        <label>Pick-up or delivery
+          <select name="delivery">
+            <option>Not sure yet</option>
+            <option>Pick-up from Macquarie Fields</option>
+            <option>Delivery</option>
+          </select>
+        </label>
+        <label>Suburb
+          <input type="text" name="suburb" autocomplete="address-level2" />
+        </label>
+      </div>
+
+      <label class="enquiry-wide">What would you like to order
+        <textarea name="order" rows="4"
+                  placeholder="Dishes, tray sizes, lechon weight — or just tell us roughly what you're after and we'll help."></textarea>
+      </label>
+
+      <div class="enquiry-actions">
+        <button type="button" class="btn btn--brown" id="enquirySend">Open in email</button>
+        <button type="submit" class="clear-cart-link" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/cinema.js?v=5"></script>
 </body>
 </html>

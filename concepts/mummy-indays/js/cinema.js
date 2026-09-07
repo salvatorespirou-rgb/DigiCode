@@ -423,6 +423,76 @@
   }
 
   /* ----------------------------------------------------------------------
+     Enquiry dialog
+     "Email Us" is a real mailto: link in the markup. This upgrades it to a
+     form that collects the things a caterer actually needs — date, head
+     count, what they want — and hands the mail client a message that is
+     already written, instead of an empty compose window the reader has to
+     work out how to fill in.
+
+     There is no server here, so it composes a mailto: rather than posting.
+     That is the honest option for a static build: it genuinely works today,
+     on every device, with nothing to maintain. A real form endpoint is the
+     upgrade to sell them, not something to fake.
+     ---------------------------------------------------------------------- */
+
+  function wireEnquiry() {
+    var dialog = document.getElementById("enquiryDialog");
+    var opener = document.querySelector("[data-enquiry]");
+    if (!dialog || !opener || typeof dialog.showModal !== "function") return;
+
+    var form = document.getElementById("enquiryForm");
+    var send = document.getElementById("enquirySend");
+
+    opener.addEventListener("click", function (e) {
+      e.preventDefault();
+      dialog.showModal();
+    });
+
+    // A native dialog closes on Escape but not on a backdrop press. The
+    // backdrop is not a child, so a click that lands on the dialog element
+    // itself rather than on its form is a click outside the panel.
+    dialog.addEventListener("click", function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+
+    function line(label, value) {
+      value = (value || "").trim();
+      return value ? label + ": " + value + "\n" : "";
+    }
+
+    send.addEventListener("click", function () {
+      form.classList.add("is-checked");
+      if (!form.reportValidity()) return;
+
+      var f = form.elements;
+      var body =
+        "Hello Mummy Inday's,\n\n" +
+        line("Name", f.name.value) +
+        line("Email", f.email.value) +
+        line("Phone", f.phone.value) +
+        line("Event date", f.date.value) +
+        line("Guests", f.guests.value) +
+        line("Needs", f.service.value) +
+        line("Pick-up or delivery", f.delivery.value) +
+        line("Suburb", f.suburb.value) +
+        "\n" +
+        (f.order.value.trim()
+          ? "What we'd like to order:\n" + f.order.value.trim() + "\n"
+          : "") +
+        "\nThank you.";
+
+      var href =
+        "mailto:catering@mummyindays.com" +
+        "?subject=" + encodeURIComponent("Catering enquiry — " + f.name.value.trim()) +
+        "&body=" + encodeURIComponent(body);
+
+      window.location.href = href;
+      dialog.close();
+    });
+  }
+
+  /* ----------------------------------------------------------------------
      Year
      ---------------------------------------------------------------------- */
 
@@ -447,6 +517,7 @@
     wireNav();
     wirePhotos();
     wireYear();
+    wireEnquiry();
 
     if (document.readyState === "complete") loadDeferred();
     else window.addEventListener("load", loadDeferred, { once: true });
