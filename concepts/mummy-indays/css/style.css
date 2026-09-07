@@ -1800,6 +1800,23 @@ a.v:hover { color: var(--brown); }
   body { font-size: 16px; }
   .act { padding: 5rem 0; }
   .dish-card { padding: 1.9rem 1.5rem; }
+
+  /* The footer row is space-between on a wide screen, which reads as one
+     line. Once it wraps on a phone that becomes two left-aligned stacks with
+     a centred credit underneath — three different alignments in one block.
+     Centre the lot so it agrees with itself. */
+  .foot-inner {
+    justify-content: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  .foot-inner > p { margin: 0; }
+  .socials { justify-content: center; }
+
+  /* The icon's negative margins exist to pull the glyph flush with
+     left-aligned text beside it. Centred, that same offset drags the row
+     visibly off-centre, so it comes off. */
+  .social-icon { margin: -9px 0; }
 }
 
 /* --------------------------------------------------------------------------
