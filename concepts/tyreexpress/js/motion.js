@@ -7,10 +7,9 @@
    in CSS and lets the reduced-motion block switch it all off without this
    file knowing.
 
-   The wheel's intro spin and its scroll rotation are both driven from here,
-   deliberately. They were briefly a CSS keyframe plus a scroll transform,
-   which cannot work — an animation with fill-mode "both" holds its final
-   transform forever, so the wheel would have spun up once and then sat dead.
+   This drove a CSS-drawn wheel that spun up on load and turned with the
+   scroll. The wheel has been taken out of the hero, so that code is gone with
+   it rather than left here doing nothing.
    ========================================================================== */
 
 (function () {
@@ -18,7 +17,6 @@
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   var root = document.documentElement;
-  var wheel = document.getElementById("wheel");
   var nav = document.getElementById("nav");
 
   function clamp(n, lo, hi) { return n < lo ? lo : n > hi ? hi : n; }
@@ -52,71 +50,15 @@
   }
 
   /* ----------------------------------------------------------------------
-     The wheel
-     Intro: eases from a quarter turn back to zero while fading up.
-     After that the scroll owns the rotation — a wheel that turns as the page
-     moves is the one bit of motion a tyre shop has actually earned.
+     Scroll position, published as a 0–1 number for the stylesheet to use.
      ---------------------------------------------------------------------- */
-
-  var introSpin = -200;      // degrees still to unwind
-  var scrollSpin = 0;
-  var introDone = false;
-
-  function paintWheel() {
-    if (!wheel) return;
-    wheel.style.setProperty("--spin", (introSpin + scrollSpin).toFixed(2));
-  }
-
-  function runIntro() {
-    if (!wheel) return;
-    if (reduced.matches) {
-      introSpin = 0;
-      wheel.style.setProperty("--wheel-scale", 1);
-      wheel.style.setProperty("--wheel-op", 1);
-      introDone = true;
-      paintWheel();
-      return;
-    }
-
-    var start = null;
-    var DURATION = 1500;
-
-    function step(ts) {
-      if (start === null) start = ts;
-      var t = clamp((ts - start) / DURATION, 0, 1);
-      // easeOutQuint — fast off the mark, long settle, like a wheel slowing.
-      var e = 1 - Math.pow(1 - t, 5);
-
-      introSpin = -200 * (1 - e);
-      wheel.style.setProperty("--wheel-scale", (0.84 + 0.16 * e).toFixed(3));
-      wheel.style.setProperty("--wheel-op", e.toFixed(3));
-      paintWheel();
-
-      if (t < 1) {
-        requestAnimationFrame(step);
-      } else {
-        introSpin = 0;
-        introDone = true;
-        paintWheel();
-      }
-    }
-    requestAnimationFrame(step);
-  }
 
   var queued = false;
 
   function frame() {
     queued = false;
     var y = window.scrollY || window.pageYOffset || 0;
-
     root.style.setProperty("--scroll", clamp(y / (window.innerHeight || 1), 0, 1).toFixed(4));
-
-    if (wheel) {
-      // A third of a turn per screen travelled. Enough to read as rolling,
-      // slow enough that it never strobes.
-      scrollSpin = y * 0.12;
-      if (introDone) paintWheel();
-    }
   }
 
   function onScroll() {
@@ -216,7 +158,6 @@
     wireNav();
     wireYear();
     wireRollingHeadline();
-    runIntro();
 
     if (!reduced.matches) {
       window.addEventListener("scroll", onScroll, { passive: true });
@@ -228,9 +169,6 @@
     reduced.addEventListener("change", function () {
       if (reduced.matches) {
         window.removeEventListener("scroll", onScroll);
-        scrollSpin = 0;
-        introSpin = 0;
-        paintWheel();
       } else {
         window.addEventListener("scroll", onScroll, { passive: true });
         frame();

@@ -6,9 +6,9 @@
    edges — a workshop reads as competent, not delicate, so nothing here is
    soft-cornered or pastel.
 
-   The one piece of motion the page leans on is a wheel that actually turns,
-   built in CSS rather than dropped in as a picture so it stays sharp at any
-   size and can be driven by the scroll.
+   The one piece of motion the page leans on is the headline: the middle line
+   rolls through the six trades, so "not just a tyre shop" lands before anyone
+   has read a word of body copy.
    ========================================================================== */
 
 :root {
@@ -264,18 +264,23 @@ a { color: inherit; }
   pointer-events: none;
 }
 
+/* One column. This was a two-column grid with the copy on the left and a
+   wheel on the right; the wheel is gone and the headline now runs the full
+   measure on its own, which is what makes it read as the hero rather than as
+   one half of a split. */
 .hero-grid {
   width: var(--shell);
   margin-inline: auto;
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: center;
   position: relative;
   z-index: 2;
 }
 
-.hero h1 { margin: 0.5rem 0 0; }
+/* Bigger than the global h1 step, because it no longer shares the row with
+   anything and short all-caps lines can carry the extra size. */
+.hero h1 {
+  margin: 0.5rem 0 0;
+  font-size: clamp(3.4rem, 10vw, 9rem);
+}
 .hero h1 .line { display: block; overflow: hidden; }
 .hero h1 .line:not(.line--cycle) > span {
   display: block;
@@ -342,10 +347,11 @@ a { color: inherit; }
 .cyc.is-past { transform: translateY(-140%);  opacity: 0; }
 
 .hero-sub {
-  margin-top: 1.4rem;
-  max-width: 46ch;
+  margin-top: 1.6rem;
+  max-width: 54ch;
   color: var(--grey-lt);
-  font-size: 1.08rem;
+  font-size: clamp(1.08rem, 1.5vw, 1.3rem);
+  line-height: 1.55;
 }
 
 .hero-actions {
@@ -354,14 +360,14 @@ a { color: inherit; }
 }
 
 .hero-facts {
-  display: flex; flex-wrap: wrap; gap: 2.2rem;
-  list-style: none; margin: 2.6rem 0 0; padding: 2rem 0 0;
+  display: flex; flex-wrap: wrap; gap: 2.2rem clamp(2.2rem, 6vw, 5rem);
+  list-style: none; margin: 3rem 0 0; padding: 2.2rem 0 0;
   border-top: 1px solid var(--line);
 }
 .hero-facts b {
   display: block;
   font-family: var(--head);
-  font-size: 2.6rem;
+  font-size: clamp(2.6rem, 4vw, 3.6rem);
   font-weight: 800;
   line-height: 1;
   color: var(--orange);
@@ -374,97 +380,6 @@ a { color: inherit; }
   color: var(--grey);
 }
 
-/* ---- the wheel --------------------------------------------------------- */
-
-.hero-stage {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-height: clamp(280px, 38vw, 460px);
-}
-
-/* Both the intro spin-up and the scroll rotation come from motion.js through
-   these properties. They were briefly a CSS keyframe plus a transform, which
-   cannot work: an animation with fill-mode both keeps its final transform
-   forever and would have frozen the wheel after the intro. One owner, no
-   conflict. */
-.wheel {
-  position: relative;
-  width: min(100%, 420px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  transform: rotate(calc(var(--spin, 0) * 1deg)) scale(var(--wheel-scale, 1));
-  opacity: var(--wheel-op, 1);
-}
-
-.wheel-tyre {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    /* tread blocks */
-    repeating-conic-gradient(from 0deg,
-      #17191c 0deg 3deg, #101214 3deg 6deg),
-    radial-gradient(circle at 38% 30%, #34383d, #0b0c0e 70%);
-  box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.9),
-    0 30px 70px -20px rgba(0, 0, 0, 0.8);
-}
-/* sidewall */
-.wheel-tyre::after {
-  content: "";
-  position: absolute;
-  inset: 11%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 32%, #26292e, #121417 72%);
-  box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.85);
-}
-
-.wheel-rim {
-  position: absolute;
-  inset: 20%;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 38% 30%, #f2f4f6, #a8aeb5 55%, #6f757c 100%);
-  box-shadow:
-    inset 0 0 0 3px rgba(255, 255, 255, 0.5),
-    inset 0 -10px 24px rgba(0, 0, 0, 0.35);
-  z-index: 2;
-}
-
-/* Five spokes cut out of the rim face. */
-.wheel-spokes {
-  position: absolute;
-  inset: 6%;
-  border-radius: 50%;
-  background: conic-gradient(from 18deg,
-    transparent 0deg 26deg, #1a1c1f 26deg 46deg,
-    transparent 46deg 98deg, #1a1c1f 98deg 118deg,
-    transparent 118deg 170deg, #1a1c1f 170deg 190deg,
-    transparent 190deg 242deg, #1a1c1f 242deg 262deg,
-    transparent 262deg 314deg, #1a1c1f 314deg 334deg,
-    transparent 334deg 360deg);
-  mask-image: radial-gradient(circle, transparent 26%, #000 27%, #000 92%, transparent 93%);
-  -webkit-mask-image: radial-gradient(circle, transparent 26%, #000 27%, #000 92%, transparent 93%);
-  opacity: 0.9;
-}
-
-.wheel-hub {
-  position: absolute;
-  inset: 38%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 34%, var(--orange-lt), var(--orange-dk));
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55), inset 0 -4px 10px rgba(0,0,0,0.35);
-}
-
-.wheel-glow {
-  position: absolute;
-  width: 78%; aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(242, 107, 33, 0.35), transparent 68%);
-  filter: blur(50px);
-  z-index: -1;
-}
 
 /* ---- shopfront --------------------------------------------------------- */
 
@@ -740,9 +655,7 @@ a.find-card:hover .find-k, a.find-card:hover .find-x { color: rgba(255,255,255,0
    -------------------------------------------------------------------------- */
 
 @media (max-width: 940px) {
-  .hero-grid, .size-grid, .shop-grid { grid-template-columns: 1fr; }
-  .hero-stage { order: -1; min-height: 260px; }
-  .wheel { width: min(72%, 320px); }
+  .size-grid, .shop-grid { grid-template-columns: 1fr; }
   .nav-links, .nav-cta { display: none; }
   .nav-toggle { display: block; }
 
@@ -783,6 +696,5 @@ a.find-card:hover .find-k, a.find-card:hover .find-x { color: rgba(255,255,255,0
     transition-duration: 0.001ms !important;
   }
   [data-reveal] { opacity: 1; transform: none; }
-  .hero h1 .line > span { transform: none; }
-  .wheel { transform: none; }
+  .hero h1 .line:not(.line--cycle) > span { transform: none; }
 }

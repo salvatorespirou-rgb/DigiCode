@@ -8,8 +8,8 @@ Open `index.html`. No build step, no dependencies.
 
 ```
 index.html        the page
-css/style.css     tokens, sections, the CSS wheel, responsive, reduced-motion
-js/motion.js      reveals, the wheel's intro and scroll rotation, nav
+css/style.css     tokens, sections, the rolling headline, responsive, reduced-motion
+js/motion.js      reveals, the rolling headline, nav
 assets/img/       shopfront.jpg, workshop.jpg  (+ src/ originals, local only)
 ```
 
@@ -57,21 +57,20 @@ Black, white and orange, lifted from the shopfront. Barlow Condensed in caps
 for headings, Barlow for body — a workshop should read as competent rather
 than delicate, so nothing here is soft-cornered or pastel.
 
-### The wheel
+### The wheel — removed
 
-The one piece of motion the page leans on. It is **drawn in CSS**, not an
-image: tread from a repeating conic gradient, a metallic rim, five spokes cut
-with a mask, and an orange hub. That means it is sharp at any size, costs no
-bandwidth, and can be driven by the scroll.
+The hero used to be a two-column split: copy on the left, a CSS-drawn wheel on
+the right that spun up on load and turned with the scroll. It was taken out at
+the client's request and the headline expanded to fill the hero on its own.
 
-It spins up on load and then turns as the page moves — the only site where a
-rotating element is literally what the business sells.
+Its markup, CSS and JavaScript were deleted rather than left in place. If it is
+ever wanted back, it is in the history at `99ebd4c`, the last commit that
+still carries it.
 
-Both the intro and the scroll rotation are driven from `motion.js` through
-custom properties. That is deliberate: they were briefly a CSS keyframe plus a
-scroll transform, which cannot work — an animation with `fill-mode: both`
-holds its final transform forever, so the wheel would have spun up once and
-then sat dead for the rest of the page.
+The trade is worth stating plainly: the page lost its only scroll-driven
+motion, and the hero is now typography on black above the shopfront photograph.
+That is a cleaner, more confident opening and the headline reads much larger —
+but there is no longer anything moving as the visitor scrolls.
 
 ### The rolling headline
 
@@ -96,8 +95,9 @@ Three things worth knowing before touching it:
 - **The rise animation on the other two hero lines had to be scoped off this
   one** (`.line:not(.line--cycle)`). It is `animation: rise ... forwards`, and
   a `forwards` fill outranks a class-driven `transform` permanently — so all
-  six words pinned on top of each other and nothing ever moved. Same trap the
-  wheel hit, noted at the top of `motion.js`.
+  six words pinned on top of each other and nothing ever moved. The same trap
+  caught the reduced-motion block, which had its own blanket
+  `transform: none` on those spans.
 - **The slot is 1em tall with a padding-bottom of 0.14em and a matching
   negative margin.** A bare 1em box cuts the tails off y, g and p — measured at
   just under 7px on this face, obvious at hero size. The padding buys the
@@ -107,7 +107,7 @@ Three things worth knowing before touching it:
   harder.
 
 Measured at 1100px and 375px: no glyph clipped, exactly one word inside the
-slot in all six states, nothing wraps (widest word 210px in a 345px slot on
+slot in all six states, nothing wraps (widest word 247px in a 345px slot on
 mobile), no horizontal overflow. It pauses in a background tab and holds still
 under `prefers-reduced-motion`.
 
@@ -134,7 +134,7 @@ photo at all.
 
 So it is framed instead: sat in an orange-bordered card at about 620px, where
 it is barely enlarged and stays sharp. The hero's presence comes from the
-wordmark, the wheel and the black ground rather than from a stretched image.
+wordmark, the headline and the black ground rather than from a stretched image.
 
 Both files were interpolated up and graded (saturation, contrast, a slight
 gamma pull) from the originals in `assets/img/src/`.
@@ -154,7 +154,7 @@ Checked across the page at 1100px and 375px:
 - 33/33 reveals fire; no horizontal overflow at either width
 - smallest visible tap target 46px, above the 44px minimum
 - 436 KB total page weight
-- `prefers-reduced-motion` stops the wheel, the intro and every reveal
+- `prefers-reduced-motion` holds the headline still and stops every reveal
 
 ## Before this goes to the client
 
