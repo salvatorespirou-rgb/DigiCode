@@ -67,10 +67,10 @@ Its markup, CSS and JavaScript were deleted rather than left in place. If it is
 ever wanted back, it is in the history at `99ebd4c`, the last commit that
 still carries it.
 
-The trade is worth stating plainly: the page lost its only scroll-driven
-motion, and the hero is now typography on black above the shopfront photograph.
-That is a cleaner, more confident opening and the headline reads much larger —
-but there is no longer anything moving as the visitor scrolls.
+The hero is now typography on black above the shopfront photograph, which is
+a cleaner and more confident opening, and the headline reads much larger. The
+scroll-driven motion the wheel used to provide has since come back on the
+photographs themselves — see below.
 
 ### The rolling headline
 
@@ -124,6 +124,44 @@ brand, and it is DigiCode's own artwork rather than someone else's diagram.
 
 The worked example is correct: for 195/65R15, the sidewall is 65% of 195 mm,
 which is about 127 mm.
+
+### The shop photographs
+
+Both sit borderless on the near-black ground, masked so their edges dissolve
+into the page, and each leans a little as it passes up the screen.
+
+**The mask is two crossed linear gradients, not one radial.** That was arrived
+at the hard way. A radial big enough to soften the corners drags a vignette
+through the middle of the picture; a radial small enough to leave the middle
+alone barely touches the edges. Crossing a vertical fade with a horizontal one
+and intersecting them feathers all four sides evenly and leaves the centre
+completely untouched.
+
+Worth knowing if the mask is ever retuned: **the radii are a share of the box,
+so they are easy to get backwards.** The first attempt used `125%`, which puts
+the box edge only 40% of the way along the gradient — inside the opaque stop,
+so nothing faded at all and the photograph still had hard edges.
+
+Where `mask-composite` is unsupported the two masks add instead of intersect,
+which yields a nearly opaque mask: the photograph appears unblended rather than
+disappearing.
+
+**The tilt** is a few degrees of `rotateX`/`rotateY` plus a little vertical
+drift, driven from `--p` — the figure's progress up the viewport, `-1` low,
+`0` centred, `1` high, written by `motion.js`. The two photographs lean
+opposite ways so they do not move in step.
+
+`--p` is set on the `figure` and inherited by the `img` inside it, so the
+element being measured is never the element being transformed.
+`getBoundingClientRect` reports the *projected* box of a rotated element, so
+measuring the thing we transform would feed each frame's rotation into the
+next.
+
+This also gives the page back the scroll-driven motion it lost when the wheel
+came out, but attached to the photography rather than to an ornament.
+
+Under `prefers-reduced-motion` the transform is dropped and the scroll listener
+is never attached.
 
 ### Their logo
 

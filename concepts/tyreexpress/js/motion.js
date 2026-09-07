@@ -54,11 +54,35 @@
      ---------------------------------------------------------------------- */
 
   var queued = false;
+  var tilted = [];
+
+  /* Each tilted figure gets --p: its centre's progress up the viewport, -1 at
+     the bottom of the screen through 0 at the middle to 1 at the top. The
+     stylesheet turns that into a few degrees of rotation and a little drift.
+
+     The figure is measured; the image inside it is what gets transformed. That
+     separation is deliberate — getBoundingClientRect reports the *projected*
+     box of a rotated element, so measuring the thing we transform would feed
+     each frame's rotation into the next one. */
+  function paintTilt() {
+    if (!tilted.length) return;
+    var vh = window.innerHeight || 1;
+    var half = vh / 2;
+
+    for (var i = 0; i < tilted.length; i++) {
+      var el = tilted[i];
+      var r = el.getBoundingClientRect();
+      if (r.bottom < -160 || r.top > vh + 160) continue;   // nowhere near
+      var centre = r.top + r.height / 2;
+      el.style.setProperty("--p", clamp((half - centre) / half, -1, 1).toFixed(4));
+    }
+  }
 
   function frame() {
     queued = false;
     var y = window.scrollY || window.pageYOffset || 0;
     root.style.setProperty("--scroll", clamp(y / (window.innerHeight || 1), 0, 1).toFixed(4));
+    paintTilt();
   }
 
   function onScroll() {
@@ -165,6 +189,8 @@
     wireYear();
     wireRollingHeadline();
 
+    tilted = [].slice.call(document.querySelectorAll("[data-tilt]"));
+
     if (!reduced.matches) {
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("resize", onScroll);
@@ -175,6 +201,7 @@
     reduced.addEventListener("change", function () {
       if (reduced.matches) {
         window.removeEventListener("scroll", onScroll);
+        tilted.forEach(function (el) { el.style.removeProperty("--p"); });
       } else {
         window.addEventListener("scroll", onScroll, { passive: true });
         frame();

@@ -374,21 +374,81 @@ a { color: inherit; }
 
 /* ---- shopfront --------------------------------------------------------- */
 
-/* Deliberately framed rather than run full-bleed: the supplied photograph is
-   474px wide, and stretched across a desktop header it would be upscaled
-   three times over. At this size it is barely enlarged and stays sharp. */
+/* Both shop photographs are borderless. They sit on the same near-black
+   ground the rest of the page uses, so rather than a frame each one is masked
+   so its edges dissolve — the picture ends by fading into the page instead of
+   stopping at a line.
+
+   The mask earns its place twice over here. The supplied shopfront is only
+   474px wide, so a hard edge invites the eye straight to the softness of an
+   upscaled photograph. A dissolving edge does not.
+
+   The tilt is drawn from a single number, --p, which motion.js writes onto the
+   figure as its progress through the viewport: -1 low on screen, 0 centred,
+   1 high. JavaScript measures, the stylesheet decides what it means. --p is
+   set on the figure and inherited by the image, so the element being measured
+   is never the element being transformed — measuring a rotated box would feed
+   its own transform back into the next frame. */
+.photo { position: relative; margin: 0; }
+
+.photo-stage {
+  position: relative;
+  perspective: 1200px;
+}
+
+.photo-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  /* Feathered on every side. Opaque well past the middle so the subject stays
+     untouched; only the outer quarter gives way. */
+  /* Two linear masks crossed, rather than one radial. A radial big enough to
+     soften the corners pulls a vignette through the middle of the picture; a
+     radial small enough to leave the middle alone barely touches the edges.
+     Crossing a vertical and a horizontal fade feathers all four sides evenly
+     and leaves the centre completely untouched.
+
+     Where support for mask-composite is missing the two masks are added rather
+     than intersected, which gives a nearly opaque mask — the photograph simply
+     appears unblended instead of disappearing. */
+  -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0, #000 13%, #000 87%, transparent 100%),
+      linear-gradient(to right,  transparent 0, #000 11%, #000 89%, transparent 100%);
+          mask-image:
+      linear-gradient(to bottom, transparent 0, #000 13%, #000 87%, transparent 100%),
+      linear-gradient(to right,  transparent 0, #000 11%, #000 89%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-composite: intersect;
+
+  transform:
+    rotateX(calc(var(--p, 0) * 3.4deg))
+    rotateY(calc(var(--p, 0) * -2.6deg))
+    translate3d(0, calc(var(--p, 0) * -14px), 0)
+    scale(1.02);
+  will-change: transform;
+}
+
+/* A little ambient orange behind the picture. The border used to carry the
+   brand colour down here; this does it without drawing a box. */
+.photo-stage::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8%;
+  background: radial-gradient(50% 50% at 50% 50%,
+              rgba(242, 107, 33, 0.20), transparent 70%);
+  filter: blur(28px);
+  z-index: -1;
+  pointer-events: none;
+}
+
 .hero-shot {
   width: var(--shell);
   margin: clamp(3rem, 7vh, 5rem) auto 0;
   position: relative;
   z-index: 2;
 }
-.hero-shot-frame {
-  max-width: 620px;
-  border: 3px solid var(--orange);
-  overflow: hidden;
-}
-.hero-shot img { width: 100%; height: auto; }
+.hero-shot .photo-stage { max-width: 620px; }
 .hero-shot figcaption {
   margin-top: 0.9rem;
   font-family: var(--head);
@@ -555,8 +615,15 @@ a { color: inherit; }
   gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
 }
-.shop-shot { margin: 0; border: 3px solid var(--orange); overflow: hidden; }
-.shop-shot img { width: 100%; height: auto; }
+/* The workshop shot tilts the other way, so the two photographs do not lean in
+   step as the page moves. */
+.shop-shot .photo-stage img {
+  transform:
+    rotateX(calc(var(--p, 0) * -3deg))
+    rotateY(calc(var(--p, 0) * 3deg))
+    translate3d(0, calc(var(--p, 0) * -12px), 0)
+    scale(1.02);
+}
 
 .cred-list { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .cred-list li { background: var(--ink-2); padding: 1.2rem 1.4rem; }
@@ -688,4 +755,5 @@ a.find-card:hover .find-k, a.find-card:hover .find-x { color: rgba(255,255,255,0
   }
   [data-reveal] { opacity: 1; transform: none; }
   .hero h1 .line:not(.line--cycle) > span { transform: none; }
+  .photo-stage img { transform: none; }
 }

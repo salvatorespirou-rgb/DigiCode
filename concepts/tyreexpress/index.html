@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/img/shopfront.jpg" fetchpriority="high" />
-  <link rel="stylesheet" href="css/style.css?v=7" />
+  <link rel="stylesheet" href="css/style.css?v=10" />
 </head>
 <body>
 
@@ -99,8 +99,8 @@
 
       </div>
 
-      <figure class="hero-shot" data-reveal>
-        <div class="hero-shot-frame">
+      <figure class="hero-shot photo" data-reveal data-tilt>
+        <div class="photo-stage">
           <img src="assets/img/shopfront.jpg" width="1000" height="692"
                alt="The Tyre Express shopfront on Wellington Road, South Granville" />
         </div>
@@ -278,9 +278,11 @@
     <section class="act act--dark" id="workshop">
       <div class="shell">
         <div class="shop-grid">
-          <figure class="shop-shot" data-reveal>
-            <img src="assets/img/workshop.jpg" width="1000" height="1333" loading="lazy"
-                 alt="Inside the Tyre Express workshop, with a car on the hoist and tyres racked along the wall" />
+          <figure class="shop-shot photo" data-reveal data-tilt>
+            <div class="photo-stage">
+              <img src="assets/img/workshop.jpg" width="1000" height="1333" loading="lazy"
+                   alt="Inside the Tyre Express workshop, with a car on the hoist and tyres racked along the wall" />
+            </div>
           </figure>
 
           <div class="shop-copy">
@@ -357,6 +359,6 @@
     </div>
   </footer>
 
-  <script src="js/motion.js?v=6"></script>
+  <script src="js/motion.js?v=8"></script>
 </body>
 </html>
