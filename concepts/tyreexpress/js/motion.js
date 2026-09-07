@@ -126,6 +126,62 @@
   }
 
   /* ----------------------------------------------------------------------
+     Rolling headline
+     Same state model as the framer-motion original it is adapted from: the
+     live word rests at zero, everything before it is held above, everything
+     after it below. Two seconds a word, matching the reference.
+
+     The words are aria-hidden and the full sentence sits beside them in an
+     .sr-only span, so a screen reader is read one sentence rather than a
+     word looping forever.
+     ---------------------------------------------------------------------- */
+
+  function wireRollingHeadline() {
+    var words = [].slice.call(document.querySelectorAll(".cyc"));
+    if (words.length < 2) return;
+
+    var active = 0;
+
+    function paint() {
+      words.forEach(function (w, i) {
+        w.classList.toggle("is-on", i === active);
+        // Already shown sits above; still to come stays below, which is the
+        // default resting position.
+        w.classList.toggle("is-past", i < active);
+      });
+    }
+
+    if (reduced.matches) { paint(); return; }
+
+    // The first word ships with is-on in the markup so that a visitor with no
+    // JavaScript still reads a whole sentence. Take it off and hand it back a
+    // frame later, so the word rolls up into the slot the way the two static
+    // lines rise in rather than simply being there. The 100ms matches the
+    // animation-delay on line two.
+    words.forEach(function (w) { w.classList.remove("is-on", "is-past"); });
+    setTimeout(function () { requestAnimationFrame(paint); }, 100);
+
+    var timer = setInterval(function () {
+      active = (active + 1) % words.length;
+      paint();
+    }, 2000);
+
+    // A rolling word in a background tab is wasted work and drifts out of
+    // step with its own transitions.
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        clearInterval(timer);
+        timer = null;
+      } else if (!timer) {
+        timer = setInterval(function () {
+          active = (active + 1) % words.length;
+          paint();
+        }, 2000);
+      }
+    });
+  }
+
+  /* ----------------------------------------------------------------------
      Navigation
      ---------------------------------------------------------------------- */
 
@@ -159,6 +215,7 @@
     wireReveals();
     wireNav();
     wireYear();
+    wireRollingHeadline();
     runIntro();
 
     if (!reduced.matches) {

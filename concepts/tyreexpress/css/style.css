@@ -277,15 +277,69 @@ a { color: inherit; }
 
 .hero h1 { margin: 0.5rem 0 0; }
 .hero h1 .line { display: block; overflow: hidden; }
-.hero h1 .line > span {
+.hero h1 .line:not(.line--cycle) > span {
   display: block;
   transform: translateY(105%);
   animation: rise 0.9s var(--ease) forwards;
 }
-.hero h1 .line:nth-child(2) > span { animation-delay: 0.1s; }
-.hero h1 .line:nth-child(3) > span { animation-delay: 0.2s; }
+.hero h1 .line:not(.line--cycle):nth-child(2) > span { animation-delay: 0.1s; }
+.hero h1 .line:not(.line--cycle):nth-child(3) > span { animation-delay: 0.2s; }
 .hero h1 em { font-style: normal; color: var(--orange); }
 @keyframes rise { to { transform: translateY(0); } }
+
+/* Screen-reader-only, for the sentence behind the rolling headline. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- the rolling word --------------------------------------------------
+   The words are stacked in one clipped slot: the live one sits at rest, the
+   ones already shown are held above it and the ones to come below, so each
+   change reads as the list turning over rather than a crossfade.
+
+   The easing overshoots very slightly — that is what gives it the settle of
+   a spring rather than the dead stop of a linear slide. It is the same idea
+   as the framer-motion original, without needing framer-motion, React or a
+   build step to get it.
+   ---------------------------------------------------------------------- */
+.line--cycle {
+  position: relative;
+  display: block;
+  height: 1em;
+
+  /* A 1em slot clips the tails off y, g and p — measured at just under 7px on
+     this face, which is plain to see at hero size. The padding gives the
+     descenders room and the negative margin takes the space straight back, so
+     the line still occupies exactly 1em and the three lines stay evenly set.
+
+     content-box is deliberate. Everything else here is border-box, under which
+     this padding would eat into the 1em and clip harder rather than less. */
+  box-sizing: content-box;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+
+  overflow: hidden;
+}
+.cyc {
+  position: absolute;
+  inset: 0;
+  color: var(--orange);
+  transform: translateY(140%);
+  opacity: 0;
+  transition:
+    transform 0.85s cubic-bezier(0.22, 1.15, 0.36, 1),
+    opacity 0.5s ease;
+  will-change: transform, opacity;
+}
+.cyc.is-on   { transform: translateY(0);      opacity: 1; }
+.cyc.is-past { transform: translateY(-140%);  opacity: 0; }
 
 .hero-sub {
   margin-top: 1.4rem;

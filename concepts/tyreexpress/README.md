@@ -73,6 +73,44 @@ scroll transform, which cannot work — an animation with `fill-mode: both`
 holds its final transform forever, so the wheel would have spun up once and
 then sat dead for the rest of the page.
 
+### The rolling headline
+
+"We do **tyres** / seven days a week" — the middle word rolls over every two
+seconds through tyres, alignment, brakes, suspension, log books and rego
+checks. It does the job a paragraph would otherwise have to: says *we are not
+only a tyre shop* in the first three seconds, without asking anyone to read.
+
+Adapted from a React/framer-motion component. It is **not** React here — the
+whole build is dependency-free static HTML and this page is 436 KB, so adding
+React, framer-motion and a build step to move one word would have cost more
+than everything else on the page combined. The state model is the same as the
+original: the live word rests at zero, words already shown are held above,
+words still to come wait below. A `cubic-bezier` that overshoots slightly
+stands in for framer's spring.
+
+Three things worth knowing before touching it:
+
+- **The words are `aria-hidden`, with the full sentence beside them in an
+  `.sr-only` span.** A screen reader gets one sentence instead of a word
+  looping forever.
+- **The rise animation on the other two hero lines had to be scoped off this
+  one** (`.line:not(.line--cycle)`). It is `animation: rise ... forwards`, and
+  a `forwards` fill outranks a class-driven `transform` permanently — so all
+  six words pinned on top of each other and nothing ever moved. Same trap the
+  wheel hit, noted at the top of `motion.js`.
+- **The slot is 1em tall with a padding-bottom of 0.14em and a matching
+  negative margin.** A bare 1em box cuts the tails off y, g and p — measured at
+  just under 7px on this face, obvious at hero size. The padding buys the
+  descenders room; the negative margin gives the space back so the three lines
+  stay evenly set. It is `content-box` on purpose, against the global
+  `border-box`, which would otherwise eat the padding out of the 1em and clip
+  harder.
+
+Measured at 1100px and 375px: no glyph clipped, exactly one word inside the
+slot in all six states, nothing wraps (widest word 210px in a 345px slot on
+mobile), no horizontal overflow. It pauses in a background tab and holds still
+under `prefers-reduced-motion`.
+
 ### The tyre-size diagram
 
 Drawn as inline SVG rather than used as a picture. It stays sharp at any size,

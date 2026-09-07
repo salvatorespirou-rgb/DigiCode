@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/img/shopfront.jpg" fetchpriority="high" />
-  <link rel="stylesheet" href="css/style.css?v=1" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
 
@@ -59,14 +59,29 @@
           <p class="eyebrow"><span class="dot" aria-hidden="true"></span>South Granville &middot; Open 7 Days</p>
 
           <h1>
-            <span class="line"><span>Tyres on.</span></span>
-            <span class="line"><span>Wheels straight.</span></span>
-            <span class="line"><span><em>Same day.</em></span></span>
+            <!-- The rolling slot repeats what this sentence already says, so a
+                 screen reader gets the sentence once and skips the carousel. -->
+            <span class="sr-only">We do tyres, alignment, brakes, suspension,
+              log books and rego checks &mdash; seven days a week.</span>
+
+            <span aria-hidden="true">
+              <span class="line"><span>We do</span></span>
+              <span class="line line--cycle">
+                <span class="cyc is-on">tyres</span>
+                <span class="cyc">alignment</span>
+                <span class="cyc">brakes</span>
+                <span class="cyc">suspension</span>
+                <span class="cyc">log books</span>
+                <span class="cyc">rego checks</span>
+              </span>
+              <span class="line"><span>seven days a week.</span></span>
+            </span>
           </h1>
 
           <p class="hero-sub">
-            Tyres, wheel alignment, brakes, suspension and full mechanical work —
-            under one roof on the corner of Wellington Road and Clyde Street.
+            Tyres on, wheels straight, same day — plus the mechanical work most
+            tyre shops send somewhere else. All of it on the corner of Wellington
+            Road and Clyde Street.
           </p>
 
           <div class="hero-actions">
@@ -354,6 +369,6 @@
     </div>
   </footer>
 
-  <script src="js/motion.js?v=1"></script>
+  <script src="js/motion.js?v=3"></script>
 </body>
 </html>
