@@ -154,6 +154,33 @@
   }
 
   /* ----------------------------------------------------------------------
+     The reel stops at the rule above the three facts rather than running the
+     whole height of the hero. Where that rule falls depends on how the
+     headline and the copy wrap, so it is measured rather than guessed, and
+     re-measured whenever the layout can move.
+
+     Only on the wide layout: on a narrow screen the reel is back in the flow
+     as a band and sizes itself.
+     ---------------------------------------------------------------------- */
+
+  function sizeReel() {
+    var hero = document.querySelector(".hero");
+    var reel = document.querySelector(".hero-reel");
+    var facts = document.querySelector(".hero-facts");
+    if (!hero || !reel || !facts) return;
+
+    if (window.getComputedStyle(reel).position !== "absolute") {
+      hero.style.removeProperty("--reel-bottom");
+      return;
+    }
+    // The rule is the facts list's top border, so its border-box top is it.
+    // The reel is anchored by its bottom edge, so what the stylesheet needs is
+    // the distance from the foot of the hero up to that rule.
+    var up = hero.getBoundingClientRect().bottom - facts.getBoundingClientRect().top;
+    if (up > 0) hero.style.setProperty("--reel-bottom", Math.round(up) + "px");
+  }
+
+  /* ----------------------------------------------------------------------
      Hero reel
      Three photographs cross-fading beside the headline. Held just under four
      seconds each: long enough to look at, short enough that it never reads as
@@ -225,6 +252,14 @@
     wireYear();
     wireRollingHeadline();
     wireHeroReel();
+
+    sizeReel();
+    window.addEventListener("resize", sizeReel);
+    // Web fonts land after first paint and change how the headline wraps,
+    // which moves the rule the reel is measured against.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(sizeReel);
+    }
 
     tilted = [].slice.call(document.querySelectorAll("[data-tilt]"));
 

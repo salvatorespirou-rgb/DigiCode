@@ -131,18 +131,29 @@ Three photographs cross-fading in the space beside the headline, held 3.8
 seconds each with a 1.1s fade. Files in `assets/img/hero/`, originals in
 `assets/img/hero/src/`.
 
-It fills the full height of the hero on the right, clear from its left edge
-and dissolving away toward the right, so the picture lets go of the page rather
-than stopping at a border.
+It sits on the right, clear from its left edge and dissolving away toward the
+right, so the picture lets go of the page rather than stopping at a border.
 
-**Be aware of the resolution ceiling before enlarging anything further.** The
-supplied files are small: 756x550 and 536x360. Both are re-cropped from those
-originals to a 0.7:1 portrait and exported at 620x886, which is a 1.6x upscale
-on the Tacoma and 2.5x on the UTV before the browser scales them again to fill
-the panel. They hold up here because both crops are tight on a wheel, and
-coarse tread hides softness that a face or fine detail would not. Enlarge the
-panel much beyond this, or crop wider, and the UTV frame will start to show.
-The Pirelli file is 1920x823 and has room to spare.
+**The box takes the photograph's shape, not the other way round.** It is 1.43:1
+— the same aspect as all three files — and rests its bottom edge on the rule
+above the three facts. Because box aspect and image aspect match, `cover` crops
+nothing: the whole frame is shown, sized to reach the rule. An earlier version
+ran the panel the full height of the section, which meant cropping hard into
+each photograph and magnifying it about 2.5x.
+
+Where that rule falls depends on how the headline and copy wrap, so `motion.js`
+measures it and writes `--reel-bottom`; the stylesheet anchors the reel by its
+bottom edge. Without the script the reel simply sits at the foot of the section.
+It is re-measured on resize and after `document.fonts.ready`, since web fonts
+land after first paint and change how the headline wraps.
+
+**Fitting rather than filling also fixed the resolution problem.** The supplied
+files are small — 756x550 and 536x360 — and the earlier full-height panel was
+magnifying them roughly 2.5x. Shown whole at 900x629, they render at about
+0.68x on a 1100px screen: downscaled, not upscaled, which is why they now look
+sharp rather than soft. Reaching that shared 1.43:1 costs about ten pixels off
+each of the two small files, so they are effectively the full frame. Only the
+Pirelli takes a real crop, and at 1920x823 it has the pixels to spare.
 
 The two daylight shots are graded to saturation 0.92, brightness 0.82,
 contrast 1.12. An earlier pass at brightness 0.58 was too heavy and read as
