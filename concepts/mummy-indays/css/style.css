@@ -1267,6 +1267,31 @@ a { color: inherit; }
   .family-stack { margin-top: 2.5rem; }
 }
 
+/* Delivery terms under the packages. Centred and set apart from the notice
+   above it, because it answers a different question — not what a package
+   contains, but how it reaches you. */
+.delivery-note {
+  margin-top: clamp(2.4rem, 5vh, 3.4rem);
+  padding: clamp(1.8rem, 4vw, 2.6rem) 1.5rem;
+  text-align: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  background: var(--paper-2);
+}
+.delivery-note .eyebrow { margin-bottom: 1rem; }
+
+.delivery-lines {
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  line-height: 1.55;
+  color: var(--ink-dim);
+  margin: 0 0 1.8rem;
+}
+.delivery-lines strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
 /* --------------------------------------------------------------------------
    Act V — gallery rail
    Horizontal 3D coverflow. Cards rotate toward the centre of the viewport.
