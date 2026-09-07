@@ -10,7 +10,7 @@ Open `index.html`. No build step, no dependencies.
 index.html        the page
 css/style.css     tokens, sections, the rolling headline, responsive, reduced-motion
 js/motion.js      reveals, the rolling headline, nav
-assets/img/       shopfront.jpg, workshop.jpg  (+ src/ originals, local only)
+assets/img/       logo.png, shopfront.jpg, workshop.jpg  (+ src/ originals)
 ```
 
 ## Where every fact on the page came from
@@ -124,6 +124,32 @@ brand, and it is DigiCode's own artwork rather than someone else's diagram.
 
 The worked example is correct: for 195/65R15, the sidewall is 65% of 195 mm,
 which is about 127 mm.
+
+### Their logo
+
+`assets/img/logo.png` is the business's own logo, supplied by the client. It
+sits top left in the nav and replaced a tyre mark and type wordmark that were
+standing in until the real artwork arrived. The untouched original is kept at
+`assets/img/src/logo-original.png`.
+
+Two things were done to it, neither of them a redraw:
+
+- **Trimmed.** The supplied file is 2170x725, but the artwork only occupies
+  2133x363 of that — half the canvas is empty. Left untrimmed, the padding
+  becomes part of the layout and the logo has to be shrunk to fit a nav bar.
+- **Exported at 2x.** 517x88 for a 44px display height, downscaled from the
+  original so nothing is invented. 58 KB.
+
+**44px is a floor, not a preference.** The "OPEN 7 DAYS / 9892 3587" badge is
+just over half the logo's height, which puts each of its two lines at about
+11px at this size. Take the logo much smaller and that text stops being
+readable and starts being texture.
+
+Worth raising with the owner: the badge repeats the phone number that already
+sits in the nav button beside it, and "OPEN 7 DAYS" repeats the hero eyebrow.
+That is fine on a shopfront sign, where the logo is alone. In a nav bar it is
+the same information three times within about 700px. A version of the logo
+without the badge would sit better on the web, and is worth asking for.
 
 ### Brands as type, not logos
 

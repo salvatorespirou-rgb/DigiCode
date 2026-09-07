@@ -164,37 +164,25 @@ a { color: inherit; }
   border-bottom: 1px solid var(--line);
 }
 
+/* The real logo. It replaced a drawn tyre mark and a type wordmark that were
+   standing in until the business's own artwork was to hand.
+
+   44px is the smallest height that keeps the "OPEN 7 DAYS / 9892 3587" badge
+   legible: the badge is a little over half the logo's height, so each of its
+   two lines lands at about 11px here. Shrink the logo much below this and that
+   text turns into texture. */
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
   text-decoration: none;
   color: var(--white);
-}
-/* The mark from the sign: a tyre, drawn rather than cropped out of a photo. */
-.brand-mark {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  border: 5px solid var(--orange);
-  position: relative;
   flex: none;
 }
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.65);
+.brand img {
+  display: block;
+  height: 44px;
+  width: auto;
 }
-.brand-text {
-  font-family: var(--head);
-  font-weight: 800;
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  line-height: 1;
-}
-.brand-text em { font-style: normal; color: var(--orange); }
 
 .nav-links {
   display: flex;
