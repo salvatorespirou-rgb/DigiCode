@@ -196,8 +196,10 @@ a { color: inherit; }
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(251, 248, 243, 0.74) 0%,
-                              rgba(251, 248, 243, 0.36) 55%, transparent 100%);
+  background: linear-gradient(180deg, rgba(251, 248, 243, 0.97) 0%,
+                              rgba(251, 248, 243, 0.88) 42%,
+                              rgba(251, 248, 243, 0.55) 74%, transparent 100%);
+  backdrop-filter: blur(3px);
   transition: opacity 0.5s var(--ease);
 }
 /* Once the bar has its own solid background this would only double up. */
@@ -1592,6 +1594,29 @@ a.v:hover { color: var(--brown); }
   .nav.is-open .nav-links a {
     display: block;
     padding: 1rem clamp(1.2rem, 4vw, 3rem);
+  }
+}
+
+/* The hero copy fills a phone screen almost edge to edge, so it sits over
+   far more of the photograph than it does on a desktop — and some frames
+   (the barrel room especially) are dark exactly where the type is dark.
+   A stronger pool here only, rather than fogging the desktop hero too. */
+@media (max-width: 700px) {
+  .hero-layer--scrim {
+    background:
+      linear-gradient(180deg, rgba(251, 248, 243, 0.86) 0%, rgba(251, 248, 243, 0.34) 13%,
+                      rgba(251, 248, 243, 0.06) 30%, rgba(251, 248, 243, 0.06) 70%,
+                      rgba(251, 248, 243, 0.78) 100%),
+      radial-gradient(78% 54% at 50% 52%, rgba(251, 248, 243, 0.80) 0%,
+                      rgba(251, 248, 243, 0.62) 62%, rgba(251, 248, 243, 0.2) 88%);
+  }
+  .hero-copy h1,
+  .hero-copy .eyebrow,
+  .hero-copy .hero-sub,
+  .hero-copy .hero-meta {
+    text-shadow:
+      0 0 18px rgba(251, 248, 243, 0.95),
+      0 0 6px rgba(251, 248, 243, 0.85);
   }
 }
 
