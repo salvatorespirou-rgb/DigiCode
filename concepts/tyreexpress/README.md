@@ -118,12 +118,41 @@ under `prefers-reduced-motion`.
 
 ### The tyre-size diagram
 
-Drawn as inline SVG rather than used as a picture. It stays sharp at any size,
-the callouts are real text a screen reader can read, it recolours with the
-brand, and it is DigiCode's own artwork rather than someone else's diagram.
+Half a tyre, drawn as inline SVG rather than used as a picture. It stays sharp
+at any size, the callouts are real text a screen reader can read, it recolours
+with the brand, and it is DigiCode's own artwork rather than someone else's.
+
+Every band is one arc carrying a thick stroke: the radius places it, the
+stroke-width gives it depth. The tread is two arcs on the same path — a
+near-black base that shows through as grooves, and a dashed rubber stroke over
+it whose gaps become the cuts between blocks. The sidewall carries the marking
+on a `textPath`, dark pass under light pass a pixel apart, which is enough to
+read as raised. Inside that sit a metallic rim, six spokes and a hub.
+
+**The callout positions are measured, not estimated.** Laid out by eye the
+labels collided into "ASPECCONSTRUCTRIM" — Construction alone is 100px wide
+against a 262px code. The leaders now land on the measured centre of each group
+of glyphs (195 at 178, 65 at 250, R at 293, 15 at 323, 91V at 381) and the
+labels sit on two staggered rows, with Load & Speed carried out to the right
+and led back in at an angle. Re-measure with `getBBox` if the code or the font
+ever changes; the numbers will move.
 
 The worked example is correct: for 195/65R15, the sidewall is 65% of 195 mm,
 which is about 127 mm.
+
+## Layout width
+
+There is one `--gutter` for the page, `clamp(1.1rem, 4vw, 2.6rem)`, used by the
+nav and the hero alike so the two cannot drift apart. Before it, `--shell` was
+capped at 1200px and centred: on a 2200px monitor the logo sat 42px from the
+edge while the hero text started at 493px, throwing away 450px of room on each
+side and leaving everything looking marooned in the middle.
+
+The hero now runs from the gutter, so the headline begins exactly where the
+logo does and the reel takes the rest of the width. `--shell` still centres the
+content sections but caps at 1560px rather than 1200. The hero copy is capped
+at `min(1100px, 74%)`, or on a very wide monitor the sub-heading would run to
+an unreadable measure.
 
 ### The hero reel
 

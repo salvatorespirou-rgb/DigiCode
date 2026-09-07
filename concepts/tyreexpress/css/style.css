@@ -32,7 +32,12 @@
   --head: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
   --body: "Barlow", -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  --shell: min(1200px, 92vw);
+  /* One gutter for the whole page, so the nav and the hero cannot drift
+     apart. At 2200px the logo sat 42px from the edge while the hero text
+     started at 493px — the shell was capped at 1200 and centred, throwing
+     away 450px of room on each side. */
+  --gutter: clamp(1.1rem, 4vw, 2.6rem);
+  --shell: min(1560px, calc(100vw - 2 * var(--gutter)));
   --ease:  cubic-bezier(0.22, 1, 0.36, 1);
 
   --scroll: 0;   /* written by motion.js */
@@ -158,7 +163,7 @@ a { color: inherit; }
   align-items: center;
   gap: 1.5rem;
   justify-content: space-between;
-  padding: 1rem clamp(1.1rem, 4vw, 2.6rem);
+  padding: 1rem var(--gutter);
   background: rgba(12, 13, 15, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
@@ -315,12 +320,18 @@ a { color: inherit; }
    wheel on the right; the wheel is gone and the headline now runs the full
    measure on its own, which is what makes it read as the hero rather than as
    one half of a split. */
+/* The hero starts at the gutter rather than inside a centred shell, so the
+   headline begins where the logo does and the picture beside it gets the rest
+   of the screen. The copy is still capped, or on a very wide monitor the
+   sub-heading would run to an unreadable measure. */
 .hero-grid {
-  width: var(--shell);
-  margin-inline: auto;
+  width: auto;
+  margin-inline: 0;
+  padding-inline: var(--gutter);
   position: relative;
   z-index: 2;
 }
+.hero-copy { max-width: min(1100px, 74%); }
 
 /* Bigger than the global h1 step, because it no longer shares the row with
    anything and short all-caps lines can carry the extra size.
@@ -509,8 +520,8 @@ a { color: inherit; }
 }
 
 .hero-shot {
-  width: var(--shell);
-  margin: clamp(3rem, 7vh, 5rem) auto 0;
+  width: auto;
+  margin: clamp(3rem, 7vh, 5rem) var(--gutter) 0;
   position: relative;
   z-index: 2;
 }
@@ -642,9 +653,40 @@ a { color: inherit; }
 .size-figure { margin: 0; }
 .size-svg { width: 100%; height: auto; }
 
-.sw-arc { fill: none; stroke: var(--ink-4); stroke-width: 2; }
-.sw-arc--inner { stroke: var(--line-dark); }
-.sw-tread path { stroke: var(--ink-4); stroke-width: 2; stroke-linecap: round; }
+/* ---- the half tyre ------------------------------------------------------
+   Drawn, not photographed, so it stays sharp at any size and costs nothing to
+   load. Every band is one arc carrying a thick stroke: the radius places it,
+   the stroke-width gives it depth. The tread is two arcs on the same path —
+   a near-black base showing through as grooves, and a dashed rubber stroke
+   over it whose gaps become the cuts between blocks.
+   ------------------------------------------------------------------------ */
+.tyre path { fill: none; }
+
+.t-tread    { stroke: #0b0d0f;           stroke-width: 42; }
+.t-blocks   { stroke: url(#tyreRubber);  stroke-width: 37; stroke-dasharray: 21 9; }
+.t-groove   { stroke: #08090b;           stroke-width: 4; opacity: 0.85; }
+
+.t-wall     { stroke: url(#tyreWall);    stroke-width: 64; }
+.t-shoulder { stroke: #08090b;           stroke-width: 3; }
+.t-bead     { stroke: #464c53;           stroke-width: 2; opacity: 0.7; }
+
+/* The marking sits on the sidewall as it does on the real thing: a dark pass
+   under a lighter one, a pixel apart, which is enough to read as raised. */
+.t-emboss {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 3px;
+  fill: #5a616a;
+}
+.t-emboss--lo { fill: #08090b; }
+
+.t-rim      { stroke: url(#rimMetal);    stroke-width: 68; }
+.t-rimlip   { stroke: #eceef1;           stroke-width: 3; opacity: 0.9; }
+.t-spoke path { stroke: #9aa0a7; stroke-width: 13; stroke-linecap: round; }
+.t-hub  { fill: #70767d; stroke: none; }
+.t-axle { fill: #3d4248; stroke: none; }
+
 .sw-lead path { stroke: var(--orange); stroke-width: 1.5; fill: none; }
 
 .sw-code {
