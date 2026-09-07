@@ -101,7 +101,13 @@
     // lines rise in rather than simply being there. The 100ms matches the
     // animation-delay on line two.
     words.forEach(function (w) { w.classList.remove("is-on", "is-past"); });
-    setTimeout(function () { requestAnimationFrame(paint); }, 100);
+
+    // Plain setTimeout, deliberately not a requestAnimationFrame. rAF does not
+    // run at all in a background tab, so opening this page in a new tab and
+    // switching to it later left the headline with an empty line where the
+    // first word should be. A timeout still fires, the class still lands, and
+    // the transition simply plays or does not depending on visibility.
+    setTimeout(paint, 100);
 
     var timer = setInterval(function () {
       active = (active + 1) % words.length;
