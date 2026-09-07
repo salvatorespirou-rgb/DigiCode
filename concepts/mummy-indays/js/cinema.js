@@ -301,7 +301,7 @@
   }
 
   /* ----------------------------------------------------------------------
-     Gallery drag
+     Drag-to-scroll strips (the gallery, and the review wall)
      The rail is an overflow-x scroller with its scrollbar hidden, which on a
      mouse leaves no way at all to move it — nothing to grab and no drag. A
      trackpad swipe worked; everything else did nothing while the caption
@@ -312,8 +312,9 @@
      scroller handles arrows once focused).
      ---------------------------------------------------------------------- */
 
-  function wireRailDrag() {
-    if (!rail) return;
+  function wireDragScroller(el) {
+    if (!el) return;
+    var rail = el;   // the strip this instance drives
 
     var dragging = false;
     var startX = 0, startLeft = 0, travelled = 0;
@@ -438,7 +439,11 @@
     makeGrain();
     wireReveals();
     wireTilt();
-    wireRailDrag();
+    // The gallery and the review wall behave identically — pressed and
+    // thrown at the reader's own pace — so they share one implementation
+    // rather than two that drift apart.
+    wireDragScroller(rail);
+    wireDragScroller(document.querySelector(".marquee"));
     wireNav();
     wirePhotos();
     wireYear();
