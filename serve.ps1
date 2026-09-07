@@ -9,10 +9,40 @@ $mime = @{
   ".html" = "text/html"
   ".css"  = "text/css"
   ".js"   = "application/javascript"
+  ".json" = "application/json"
+  ".xml"  = "application/xml"
+  ".txt"  = "text/plain"
   ".png"  = "image/png"
   ".jpg"  = "image/jpeg"
+  ".jpeg" = "image/jpeg"
+  ".webp" = "image/webp"
+  ".gif"  = "image/gif"
   ".svg"  = "image/svg+xml"
   ".ico"  = "image/x-icon"
+  ".mp4"  = "video/mp4"
+  ".woff" = "font/woff"
+  ".woff2" = "font/woff2"
+}
+
+# Mirror how GitHub Pages resolves a request, so a link that works locally
+# works in production and vice versa. Pages serves /scripts from scripts.html
+# and /folder/ from folder/index.html; without this the site's clean URLs all
+# 404 locally while being perfectly fine once deployed.
+function Resolve-RequestPath {
+  param([string]$Root, [string]$UrlPath)
+
+  $rel = $UrlPath.TrimStart("/")
+  if ($rel -eq "") { $rel = "index.html" }
+
+  $candidates = @(
+    (Join-Path $Root $rel),
+    (Join-Path $Root ($rel + ".html")),
+    (Join-Path $Root (Join-Path $rel "index.html"))
+  )
+  foreach ($c in $candidates) {
+    if (Test-Path $c -PathType Leaf) { return $c }
+  }
+  return $null
 }
 
 while ($listener.IsListening) {
@@ -20,12 +50,10 @@ while ($listener.IsListening) {
   $request = $context.Request
   $response = $context.Response
 
-  $path = $request.Url.LocalPath
-  if ($path -eq "/") { $path = "/index.html" }
-  $filePath = Join-Path $root $path.TrimStart("/")
+  $filePath = Resolve-RequestPath -Root $root -UrlPath ([Uri]::UnescapeDataString($request.Url.LocalPath))
 
-  if (Test-Path $filePath -PathType Leaf) {
-    $ext = [System.IO.Path]::GetExtension($filePath)
+  if ($filePath) {
+    $ext = [System.IO.Path]::GetExtension($filePath).ToLower()
     $contentType = $mime[$ext]
     if (-not $contentType) { $contentType = "application/octet-stream" }
     $bytes = [System.IO.File]::ReadAllBytes($filePath)
