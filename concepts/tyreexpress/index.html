@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="assets/img/shopfront.jpg" fetchpriority="high" />
-  <link rel="stylesheet" href="css/style.css?v=10" />
+  <link rel="stylesheet" href="css/style.css?v=13" />
 </head>
 <body>
 
@@ -156,13 +156,16 @@
           </p>
         </header>
 
-        <div class="brand-row" data-reveal>
-          <span class="brand-chip">Bridgestone</span>
-          <span class="brand-chip">Pirelli</span>
-          <span class="brand-chip">Goodyear</span>
-          <span class="brand-chip">Falken</span>
-          <span class="brand-chip">Maxxis</span>
-        </div>
+        <!-- The manufacturers' own marks, shown to say which brands are
+             stocked. Rendered as white so every one of them is legible on
+             black — see the note in css/style.css. -->
+        <ul class="brand-row" data-reveal>
+          <li><img src="assets/img/brands/bridgestone.svg" alt="Bridgestone" width="1000" height="123" loading="lazy" /></li>
+          <li><img src="assets/img/brands/pirelli.svg"     alt="Pirelli"     width="189"  height="42" loading="lazy" /></li>
+          <li><img src="assets/img/brands/goodyear.svg"    alt="Goodyear"    width="176"  height="30"  loading="lazy" /></li>
+          <li><img src="assets/img/brands/falken.svg"      alt="Falken"      width="206"  height="23"  loading="lazy" /></li>
+          <li><img src="assets/img/brands/maxxis.svg"      alt="Maxxis"      width="458"  height="79"  loading="lazy" /></li>
+        </ul>
 
         <p class="brand-note" data-reveal>
           Not seeing yours? Most sizes and makes can be ordered in — ring the shop

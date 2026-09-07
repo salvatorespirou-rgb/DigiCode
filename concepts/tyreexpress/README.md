@@ -10,7 +10,7 @@ Open `index.html`. No build step, no dependencies.
 index.html        the page
 css/style.css     tokens, sections, the rolling headline, responsive, reduced-motion
 js/motion.js      reveals, the rolling headline, nav
-assets/img/       logo.png, shopfront.jpg, workshop.jpg  (+ src/ originals)
+assets/img/       logo.png, shopfront.jpg, workshop.jpg  (+ src/, brands/)
 ```
 
 ## Where every fact on the page came from
@@ -189,11 +189,54 @@ That is fine on a shopfront sign, where the logo is alone. In a nav bar it is
 the same information three times within about 700px. A version of the logo
 without the badge would sit better on the web, and is worth asking for.
 
-### Brands as type, not logos
+### Brand logos
 
-The five brands are set in type. A speculative pitch has no licence to
-redistribute manufacturer trademarks, and wordmarks read cleanly at any size.
-If the client engages, official logo kits can be requested properly.
+The five brands are shown in the manufacturers' own marks, in
+`assets/img/brands/`. They were set in type before, on the reasoning that a
+speculative pitch has no licence to redistribute trademarks; the client asked
+for the real logos and confirmed that was fine. Naming the brands a shop
+stocks, in their own marks, is ordinary nominative use.
+
+Where each file came from, because this should not have to be re-derived:
+
+| Brand | Source | Licence |
+|---|---|---|
+| Bridgestone | Wikimedia Commons, `Bridgestone logo.svg` | Public domain |
+| Pirelli | Wikimedia Commons, `Pirelli - logo black (Italy, 1970).svg` | Public domain |
+| Goodyear | `goodyear.com`, their own site asset | Trademark, used nominatively |
+| Falken | Wikimedia Commons, `Falken Tire logo.svg` | Public domain |
+| Maxxis | Wikimedia Commons, `MAXXIS logo.svg` | Public domain |
+
+The Commons files are public domain as simple text logos — not copyrightable,
+though still trademarks. Goodyear's current winged-foot mark is not on Commons
+at all, because it is excluded as non-free; the Wikipedia copy is fair-use
+only, which is not a basis for a commercial page, so it came from Goodyear's
+own site instead.
+
+**They are rendered white, which is a legibility decision rather than a
+stylistic one.** The section is near-black and two of the five are unreadable
+on it in full colour: Bridgestone's wordmark is `#231815` and Falken's is
+`#00458d`. A row where three brands sing and two disappear is worse than a row
+that is consistent. `brightness(0)` flattens each mark to black whatever colour
+it started as, and `invert(1)` turns it white, which holds regardless of what
+any individual file contains.
+
+Two things that bit while building this row, both worth knowing before
+swapping a logo in:
+
+- **Pirelli first came in as a solid block.** The obvious Commons file,
+  `Pirelli - logo full`, is the logo sitting on a filled background plate, and
+  the white filter turns that plate into a white rectangle. The plain wordmark
+  file has no background and behaves.
+- **Falken collapsed to 0x0 and vanished.** Its file carries a `viewBox` but no
+  `width` or `height`, so it has no intrinsic size for `max-width`/`max-height`
+  to constrain. The row therefore gives each `li` a fixed box and fits the
+  image inside it with `object-fit`, which does not depend on what any file
+  declares. Sizing logos by max-width alone will keep hitting this.
+
+If the client engages, ask for official brand kits — the manufacturers all
+publish them, and a kit resolves both the sourcing and the permission question
+properly.
 
 ## The photography problem
 
