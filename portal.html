@@ -7,6 +7,7 @@
   <meta name="description" content="DigiCode client portal — developer preview build." />
   <meta name="robots" content="noindex" />
   <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
+  <link rel="preload" as="image" href="assets/images/digicode-logo-560.webp" fetchpriority="high" />
   <link rel="stylesheet" href="css/site.min.css?v=2" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/supabase-client.js"></script>
@@ -49,7 +50,7 @@
     })();
   </script>
 
-  <img src="assets/images/digicode-logo-560.webp" alt="" srcset="assets/images/digicode-logo-560.webp 560w, assets/images/digicode-logo-1024.webp 1024w" sizes="(max-width: 1333px) 60vw, 800px" class="page-watermark" aria-hidden="true" width="560" height="560" />
+  <img src="assets/images/digicode-logo-560.webp" alt="" srcset="assets/images/digicode-logo-560.webp 560w, assets/images/digicode-logo-1024.webp 1024w" sizes="(max-width: 1333px) 60vw, 800px" class="page-watermark" aria-hidden="true" fetchpriority="high" width="560" height="560" />
 
   <header class="site-header">
     <div class="nav-left">
@@ -89,7 +90,7 @@
     <section class="page-hero">
       <div class="container">
         <a href="/" class="page-hero-logo-link" aria-label="DigiCode home">
-          <img src="assets/images/digicode-logo-560.webp" alt="DigiCode" class="page-hero-logo" width="768" height="768" decoding="async" />
+          <img src="assets/images/digicode-logo-560.webp" alt="DigiCode" class="page-hero-logo" width="560" height="560" fetchpriority="high" decoding="async" />
         </a>
         <p class="eyebrow">Preview Build</p>
         <h1>Welcome, <span class="gradient-text" id="portalWelcomeName">Dev.</span></h1>
