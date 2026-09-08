@@ -28,6 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=46" />
+  <link rel="stylesheet" href="css/digital-cards.css?v=1" />
 </head>
 <body>
 
@@ -139,40 +140,10 @@
 
     <section id="services" class="services">
       <div class="container">
-        <div class="service-list">
-          <a href="/services/gaming" class="service-row">
-            <div class="service-photo" style="background-image: url('assets/images/service-bg-gaming.jpg');">
-              <img src="assets/images/service-gaming.svg" alt="Gaming website icon" class="service-icon" />
-            </div>
-            <div class="service-text">
-              <h3>Gaming Websites</h3>
-              <span class="service-divider"></span>
-              <p>Bold, high-energy sites for gaming brands, clans, and creators — built to keep players engaged and coming back.</p>
-            </div>
-            <span class="service-cta">Click To Start</span>
-          </a>
-          <a href="/services/business" class="service-row">
-            <div class="service-photo" style="background-image: url('assets/images/service-bg-business.jpg');">
-              <img src="assets/images/service-business.svg" alt="Business website icon" class="service-icon" />
-            </div>
-            <div class="service-text">
-              <h3>Business Websites</h3>
-              <span class="service-divider"></span>
-              <p>Clean, professional sites that make small businesses look established, trustworthy, and easy to work with.</p>
-            </div>
-            <span class="service-cta">Click To Start</span>
-          </a>
-          <a href="/services/social" class="service-row">
-            <div class="service-photo" style="background-image: url('assets/images/service-bg-social.jpg');">
-              <img src="assets/images/service-social.svg" alt="Social platform icon" class="service-icon" />
-            </div>
-            <div class="service-text">
-              <h3>Social Platforms</h3>
-              <span class="service-divider"></span>
-              <p>Community-driven sites and social experiences designed to connect people and keep the conversation going.</p>
-            </div>
-            <span class="service-cta">Click To Start</span>
-          </a>
+        <div class="dc-deck">
+            <div class="dc-stage"><a class="dc-card" href="/services/gaming" data-name="Gaming Websites" data-link="gaming" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-gaming.jpg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Gaming Websites</h3><span class="dc-description">Bold, high-energy sites for gaming brands, clans, and creators — built to keep players engaged and coming back.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/business" data-name="Business Websites" data-link="business" data-selected="true" style="--accent:#2e9fe6"><span class="dc-card-top"><span class="dc-state">Selected</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-business.jpg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Business Websites</h3><span class="dc-description">Clean, professional sites that make small businesses look established, trustworthy, and easy to work with.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/social" data-name="Social Platforms" data-link="social" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-social.jpg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Social Platforms</h3><span class="dc-description">Community-driven sites and social experiences designed to connect people and keep the conversation going.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
         </div>
       </div>
     </section>
@@ -186,37 +157,10 @@
       <div class="container">
         <h2 class="section-title">Website Management</h2>
         <p class="section-sub">We don't just build your site and walk away — we can manage everything around it too, from the server it lives on to the content on the page. One team handling your whole online presence, so you can focus on running your business.</p>
-        <div class="service-list">
-          <a href="/services/seo" class="service-row">
-            <div class="service-media">
-              <img src="assets/images/service-seo.svg" alt="SEO icon" />
-            </div>
-            <div class="service-text">
-              <h3>SEO</h3>
-              <p>On-page optimization, keyword targeting, and search performance tracking so customers can actually find you online.</p>
-            </div>
-            <span class="service-cta">Click To Start</span>
-          </a>
-          <a href="/services/updates" class="service-row">
-            <div class="service-media">
-              <img src="assets/images/service-updates.svg" alt="Website update management icon" />
-            </div>
-            <div class="service-text">
-              <h3>Update Management</h3>
-              <p>Ongoing content edits, security patches, and software updates handled for you — your site stays current without you lifting a finger.</p>
-            </div>
-            <span class="service-cta">Click To Start</span>
-          </a>
-          <a href="/services/hosting" class="service-row">
-            <div class="service-media">
-              <img src="assets/images/service-hosting.svg" alt="Website hosting icon" />
-            </div>
-            <div class="service-text">
-              <h3>Website Hosting</h3>
-              <p>Fast, secure, reliable hosting with uptime monitoring — one less account, one less bill, one less thing to manage yourself.</p>
-            </div>
-            <span class="service-cta">Click To Start</span>
-          </a>
+        <div class="dc-deck">
+            <div class="dc-stage"><a class="dc-card" href="/services/seo" data-name="SEO" data-link="seo" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo dc-management-photo" src="assets/images/service-seo.svg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>SEO</h3><span class="dc-description">On-page optimization, keyword targeting, and search performance tracking so customers can actually find you online.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/updates" data-name="Update Management" data-link="updates" data-selected="true" style="--accent:#2e9fe6"><span class="dc-card-top"><span class="dc-state">Selected</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo dc-management-photo" src="assets/images/service-updates.svg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Update Management</h3><span class="dc-description">Ongoing content edits, security patches, and software updates handled for you — your site stays current without you lifting a finger.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/hosting" data-name="Website Hosting" data-link="hosting" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo dc-management-photo" src="assets/images/service-hosting.svg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Website Hosting</h3><span class="dc-description">Fast, secure, reliable hosting with uptime monitoring — one less account, one less bill, one less thing to manage yourself.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
         </div>
       </div>
     </section>
@@ -316,6 +260,7 @@
   </script>
 
   <script src="js/main.js?v=40"></script>
+  <script src="js/digital-cards.js?v=1" defer></script>
   <script src="js/live-chat.js?v=4"></script>
   <script src="js/analytics.js?v=1"></script>
 </body>
