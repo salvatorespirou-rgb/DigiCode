@@ -1893,6 +1893,8 @@ html:not(.motion-ready) .hero-slide:first-child { opacity: 1; }
 @media (max-width: 700px) {
   .hero-slides { inset: 0; transform: none; }
   .hero-copy { transform: none; opacity: 1; }
+  .dish-card, .interlude-img, .family-shot, .rail-card { transform: none; }
+  .hero-copy, .hero-layer, .interlude-img, .family-shot, .dish-card { will-change: auto; }
   .hero-slide { animation: none; opacity: 0; will-change: auto; }
   .hero-slide:first-child { opacity: 1; }
   .hero-layer--glow { display: none; }

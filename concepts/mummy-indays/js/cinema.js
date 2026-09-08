@@ -17,6 +17,7 @@
   "use strict";
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var compact = window.matchMedia('(max-width: 700px)');
   var root = document.documentElement;
 
   /* ----------------------------------------------------------------------
@@ -99,6 +100,12 @@
   function frame() {
     queued = false;
     if (reduced.matches) return;
+    if (compact.matches) {
+      // Phone layouts have no scroll-depth transforms: avoid measuring the
+      // entire menu and gallery just to update the fixed navigation.
+      if (nav) nav.classList.toggle('is-stuck', window.scrollY > 40);
+      return;
+    }
     var vh = window.innerHeight;
     var writes = [];
     function property(el, key, value) {
