@@ -2,103 +2,100 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.digi-code.com.au/</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>1.0</priority>
   </url>
-  <url><loc>https://www.digi-code.com.au/scripts</loc><lastmod>2026-09-02</lastmod><priority>0.8</priority></url>
-  <url><loc>https://www.digi-code.com.au/web-design-australia</loc><lastmod>2026-08-31</lastmod><priority>0.9</priority></url>
-  <url><loc>https://www.digi-code.com.au/web-design-sydney</loc><lastmod>2026-08-31</lastmod><priority>0.9</priority></url>
-  <url><loc>https://www.digi-code.com.au/web-design-parramatta</loc><lastmod>2026-08-31</lastmod><priority>0.8</priority></url>
-  <url><loc>https://www.digi-code.com.au/web-design-western-sydney</loc><lastmod>2026-08-31</lastmod><priority>0.8</priority></url>
-  <url><loc>https://www.digi-code.com.au/web-design-blue-mountains</loc><lastmod>2026-08-31</lastmod><priority>0.8</priority></url>
+  <url><loc>https://www.digi-code.com.au/scripts</loc><priority>0.8</priority></url>
+  <url><loc>https://www.digi-code.com.au/web-design-australia</loc><priority>0.9</priority></url>
+  <url><loc>https://www.digi-code.com.au/web-design-sydney</loc><priority>0.9</priority></url>
+  <url><loc>https://www.digi-code.com.au/web-design-parramatta</loc><priority>0.8</priority></url>
+  <url><loc>https://www.digi-code.com.au/web-design-western-sydney</loc><priority>0.8</priority></url>
+  <url><loc>https://www.digi-code.com.au/web-design-blue-mountains</loc><priority>0.8</priority></url>
   <url>
     <loc>https://www.digi-code.com.au/builds</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/subscription</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/portfolio</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/custom-projects</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/own-your-platform</loc>
-    <lastmod>2026-08-29</lastmod>
+
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/digicode-gaming</loc>
-    <lastmod>2026-08-29</lastmod>
+
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/marketing</loc>
-    <lastmod>2026-08-29</lastmod>
+
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/services/business</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/services/gaming</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/services/social</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/services/seo</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/services/updates</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/services/hosting</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/Portfolio/Business/FreshCuts/</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/Portfolio/Streaming/Jeffos/</loc>
-    <lastmod>2026-08-29</lastmod>
+    <lastmod>2026-09-08</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.digi-code.com.au/signin</loc>
-    <lastmod>2026-08-29</lastmod>
-    <priority>0.3</priority>
-  </url>
-  <url>
     <loc>https://www.digi-code.com.au/privacy-policy</loc>
-    <lastmod>2026-08-29</lastmod>
+
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.digi-code.com.au/terms</loc>
-    <lastmod>2026-08-29</lastmod>
+
     <priority>0.3</priority>
   </url>
+<url><loc>https://www.digi-code.com.au/digicode%20games/FlappyDragon/</loc><lastmod>2026-09-08</lastmod></url>
+<url><loc>https://www.digi-code.com.au/digicode%20games/Run%20Habib/</loc><lastmod>2026-09-08</lastmod></url>
 </urlset>

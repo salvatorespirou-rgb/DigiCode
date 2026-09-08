@@ -3,34 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DigiCode — Web Design Studio</title>
-  <meta name="description" content="DigiCode hand-codes modern, high-performing websites for small businesses and brands — real code, not drag-and-drop, with optimization work available on existing codebases too." />
+  <title>Web Design Australia &amp; Sydney | DigiCode</title>
+  <meta name="description" content="Custom web design for businesses of every size in Sydney and across Australia. Hand-coded websites, gaming sites, social platforms, SEO and website management." />
   <meta name="google-site-verification" content="d2iZyU7SgigieFGeCxEGsfqJ9xFp-LRFLDIL7w-0UEg" />
   <link rel="canonical" href="https://www.digi-code.com.au/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="DigiCode" />
-  <meta property="og:title" content="DigiCode — Web Design Studio" />
-  <meta property="og:description" content="DigiCode hand-codes modern, high-performing websites for small businesses and brands — real code, not drag-and-drop, with optimization work available on existing codebases too." />
+  <meta property="og:title" content="Web Design Australia &amp; Sydney | DigiCode" />
+  <meta property="og:description" content="Custom web design for businesses of every size in Sydney and across Australia. Hand-coded websites, gaming sites, social platforms, SEO and website management." />
   <meta property="og:url" content="https://www.digi-code.com.au/" />
   <meta property="og:image" content="https://www.digi-code.com.au/assets/images/digicode-og.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="DigiCode — Web Design Studio" />
-  <meta name="twitter:description" content="DigiCode hand-codes modern, high-performing websites for small businesses and brands — real code, not drag-and-drop, with optimization work available on existing codebases too." />
+  <meta name="twitter:title" content="Web Design Australia &amp; Sydney | DigiCode" />
+  <meta name="twitter:description" content="Custom web design for businesses of every size in Sydney and across Australia. Hand-coded websites, gaming sites, social platforms, SEO and website management." />
   <meta name="twitter:image" content="https://www.digi-code.com.au/assets/images/digicode-og.png" />
   <link rel="icon" href="assets/images/digicode-logo.png" type="image/png" />
   <link rel="preload" as="image"
-        href="assets/images/digicode-logo-768.png"
-        imagesrcset="assets/images/digicode-logo-768.png 768w, assets/images/digicode-logo-transparent.png 1024w"
+        href="assets/images/digicode-logo-560.webp"
+        imagesrcset="assets/images/digicode-logo-320.webp 320w, assets/images/digicode-logo-560.webp 560w, assets/images/digicode-logo-768.webp 768w"
         imagesizes="(max-width: 860px) 280px, 480px" fetchpriority="high" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=46" />
+  <link rel="stylesheet" href="css/fonts.css?v=1">
+  <link rel="stylesheet" href="css/style.css?v=47" />
   <link rel="stylesheet" href="css/digital-cards.css?v=2" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <header class="site-header">
     <div class="nav-left">
@@ -66,20 +65,20 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <section id="top" class="hero">
-      <video class="hero-bg-video" id="heroBgVideo" muted loop playsinline preload="none" data-src="assets/video/digicode.mp4"></video>
+      <video class="hero-bg-video" aria-hidden="true" tabindex="-1" id="heroBgVideo" poster="assets/images/digicode-motion-poster.webp" muted loop playsinline preload="none" data-src="assets/video/digicode-web.mp4"></video>
       <div class="hero-overlay"></div>
       <div class="container hero-content">
         <div class="hero-logo-wrap">
           <!-- Largest Contentful Paint element. 1x screens take the 768
                (335KB), 2x take the full 1024 (585KB) — nobody sees a softer
                logo, most people save 250KB. Preloaded in <head>. -->
-          <img src="assets/images/digicode-logo-768.png"
-               srcset="assets/images/digicode-logo-768.png 768w, assets/images/digicode-logo-transparent.png 1024w"
+          <img src="assets/images/digicode-logo-560.webp"
+               srcset="assets/images/digicode-logo-560.webp 768w, assets/images/digicode-logo-768.webp 1024w"
                sizes="(max-width: 860px) 280px, 480px"
                alt="DigiCode" class="hero-logo" id="heroLogo"
-               width="768" height="768" fetchpriority="high" decoding="async" />
+               width="560" height="560" fetchpriority="high" decoding="async" />
         </div>
         <p class="eyebrow">Real Code. Real People. Real Quality.</p>
         <h1>Hand-Coded Websites Built for <span class="gradient-text">Australian Businesses.</span></h1>
@@ -138,12 +137,13 @@
       </div>
     </section>
 
-    <section id="services" class="services">
+    <section id="services" class="services" aria-labelledby="services-heading">
+      <h2 class="visually-hidden" id="services-heading">Website design services</h2>
       <div class="container">
         <div class="dc-deck">
-            <div class="dc-stage"><a class="dc-card" href="/services/gaming" data-name="Gaming Websites" data-link="gaming" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-gaming.jpg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Gaming Websites</h3><span class="dc-description">Custom gaming website design for brands, clans and creators in Sydney and across Australia — built to keep players engaged.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
-            <div class="dc-stage"><a class="dc-card" href="/services/business" data-name="Business Websites" data-link="business" data-selected="true" style="--accent:#2e9fe6"><span class="dc-card-top"><span class="dc-state">Selected</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-business.jpg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Business Websites</h3><span class="dc-description">Custom web design for businesses of every size in Sydney and across Australia — from new ventures to established brands ready for a fresh look.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
-            <div class="dc-stage"><a class="dc-card" href="/services/social" data-name="Social Platforms" data-link="social" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-social.jpg" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Social Platforms</h3><span class="dc-description">Custom social platform development for communities in Sydney and across Australia — connect people and keep the conversation going.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/gaming" data-name="Gaming Websites" data-link="gaming" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-gaming.webp" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Gaming Websites</h3><span class="dc-description">Custom gaming website design for brands, clans and creators in Sydney and across Australia — built to keep players engaged.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/business" data-name="Business Websites" data-link="business" data-selected="true" style="--accent:#2e9fe6"><span class="dc-card-top"><span class="dc-state">Selected</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-business.webp" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Business Websites</h3><span class="dc-description">Custom web design for businesses of every size in Sydney and across Australia — from new ventures to established brands ready for a fresh look.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
+            <div class="dc-stage"><a class="dc-card" href="/services/social" data-name="Social Platforms" data-link="social" data-selected="false" style="--accent:#6d4ee8"><span class="dc-card-top"><span class="dc-state">Explore</span></span><span class="dc-art" aria-hidden="true"><img class="dc-service-card-photo" src="assets/images/service-bg-social.webp" alt="" loading="lazy" decoding="async"></span><span class="dc-copy"><h3>Social Platforms</h3><span class="dc-description">Custom social platform development for communities in Sydney and across Australia — connect people and keep the conversation going.</span></span><span class="dc-bottom"><span>Click To Start</span><span class="dc-arrow" aria-hidden="true">↗</span></span></a></div>
         </div>
       </div>
     </section>
@@ -152,7 +152,7 @@
       <!-- Reusing the hero clip until a second one exists: the file this used
            to point at was deleted in the rebrand, so it 404'd on every load
            and left this section flat. Same file means it's already cached. -->
-      <video class="work-bg-video" id="workBgVideo" muted loop playsinline preload="none" data-src="assets/video/digicode.mp4"></video>
+      <video class="work-bg-video" aria-hidden="true" tabindex="-1" id="workBgVideo" poster="assets/images/digicode-motion-poster.webp" muted loop playsinline preload="none" data-src="assets/video/digicode-web.mp4"></video>
       <div class="work-overlay"></div>
       <div class="container">
         <h2 class="section-title">Website Management</h2>
@@ -214,13 +214,13 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
+    "@type": "Organization",
+    "@id": "https://www.digi-code.com.au/#organization",
     "name": "DigiCode",
     "description": "DigiCode hand-codes fast, modern websites, online stores, creator platforms and apps from scratch — no page builders, no bloated templates.",
     "url": "https://www.digi-code.com.au/",
     "logo": "https://www.digi-code.com.au/assets/images/digicode-logo.png",
     "image": "https://www.digi-code.com.au/assets/images/digicode-og.png",
-    "priceRange": "$$",
     "areaServed": [
       { "@type": "Country", "name": "Australia" },
       { "@type": "City", "name": "Sydney", "containedInPlace": { "@type": "State", "name": "New South Wales" } },
@@ -259,7 +259,7 @@
   }
   </script>
 
-  <script src="js/main.js?v=40"></script>
+  <script src="js/main.js?v=41"></script>
   <script src="js/digital-cards.js?v=2" defer></script>
   <script src="js/live-chat.js?v=4"></script>
   <script src="js/analytics.js?v=1"></script>

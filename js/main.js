@@ -68,7 +68,7 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
 // included. Only `prefers-reduced-motion` and the dev portal skip both.
 (function initMatrixTrail() {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reducedMotion || document.querySelector(".dev-tabs")) return;
+  if (reducedMotion || window.matchMedia("(pointer: coarse)").matches || document.querySelector(".dev-tabs")) return;
 
   const canvas = document.createElement("canvas");
   canvas.className = "matrix-trail-canvas";
@@ -183,6 +183,7 @@ if (gameThumbSvg && window.matchMedia("(prefers-reduced-motion: reduce)").matche
 // Background videos: skip entirely on slow/data-saver connections, and only
 // fetch the below-the-fold one once it's about to scroll into view.
 function isConstrainedConnection() {
+  if (window.matchMedia("(max-width: 800px), (prefers-reduced-motion: reduce)").matches) return true;
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   if (!conn) return false;
   if (conn.saveData) return true;
