@@ -1453,6 +1453,7 @@ body.custom-cursor-active button {
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(60vw, 800px);
+  height: auto;
   opacity: 0.12;
   mix-blend-mode: screen;
   pointer-events: none;
