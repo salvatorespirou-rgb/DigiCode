@@ -9,28 +9,40 @@ function selectCard(card){
 }
 const tiltControllers=[];
 cards.forEach(card=>{
- let frame=0,point=null;
- const reset=()=>{cancelAnimationFrame(frame);frame=0;point=null;card.style.setProperty('--rx','0deg');card.style.setProperty('--ry','0deg')};
+ let frame=0,point=null,bounds=null,touch=null,suppressClickUntil=0;
+ const reset=()=>{cancelAnimationFrame(frame);frame=0;point=null;bounds=null;card.classList.remove('dc-touching');card.style.setProperty('--rx','0deg');card.style.setProperty('--ry','0deg')};
  tiltControllers.push(reset);
-
+ card.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='touch'||!e.isPrimary||reduced.matches||currentBurst)return;
+  suppressClickUntil=0;touch={id:e.pointerId,x:e.clientX,y:e.clientY,dragged:false};
+  bounds=card.parentElement.getBoundingClientRect();card.classList.add('dc-touching');
+  card.setPointerCapture(e.pointerId);
+ },{passive:true});
  card.addEventListener('pointermove',e=>{
-  if(reduced.matches||paused||currentBurst||e.pointerType==='touch')return;
+  if(reduced.matches||paused||currentBurst)return;
+  if(e.pointerType==='touch'){
+   if(!touch||touch.id!==e.pointerId)return;
+   if(Math.hypot(e.clientX-touch.x,e.clientY-touch.y)>8)touch.dragged=true;
+  }
   point={x:e.clientX,y:e.clientY};if(frame)return;
   frame=requestAnimationFrame(()=>{
    frame=0;if(!point||paused||reduced.matches||currentBurst)return;
-   const r=card.parentElement.getBoundingClientRect();
+   const r=bounds||card.parentElement.getBoundingClientRect();
    const x=Math.max(0,Math.min(1,(point.x-r.left)/r.width)),y=Math.max(0,Math.min(1,(point.y-r.top)/r.height));
    card.style.setProperty('--rx',(0.5-y)*20+'deg');card.style.setProperty('--ry',(x-0.5)*26+'deg');
-   card.style.setProperty('--mx',x*100+'%');card.style.setProperty('--my',y*100+'%');
+   if(!touch){card.style.setProperty('--mx',x*100+'%');card.style.setProperty('--my',y*100+'%')}
   });
  });
- card.addEventListener('pointerleave',reset);card.addEventListener('pointercancel',reset);
+ const endTouch=e=>{if(touch&&touch.id===e.pointerId){if(touch.dragged||e.type==='pointercancel')suppressClickUntil=performance.now()+700;touch=null;if(card.hasPointerCapture(e.pointerId))card.releasePointerCapture(e.pointerId)}reset()};
+ card.addEventListener('pointerup',endTouch);card.addEventListener('pointercancel',endTouch);
+ card.addEventListener('pointerleave',()=>{if(!touch)reset()});
+ card.addEventListener('click',e=>{if(e.detail!==0&&performance.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation()}},true);
 });
 
 reduced.addEventListener('change',()=>tiltControllers.forEach(reset=>reset()));
 // Reserve the full text layout while revealing an accessible visual copy.
 const visibleCards=new Set();
-const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)visibleCards.add(entry.target);else visibleCards.delete(entry.target)}));
+const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{entry.target.classList.toggle('dc-offscreen',!entry.isIntersecting);if(entry.isIntersecting)visibleCards.add(entry.target);else visibleCards.delete(entry.target)}));
 cards.forEach(card=>observer.observe(card));
 const typingTargets=[];
 cards.forEach(card=>{
@@ -41,16 +53,17 @@ cards.forEach(card=>{
   const visual=document.createElement('span');visual.className='dc-type-visual';visual.textContent=text;visual.setAttribute('aria-hidden','true');
   const accessible=document.createElement('span');accessible.className='dc-type-accessible';accessible.textContent=text;
   element.append(measure,visual,accessible);
-  typingTargets.push({card,visual,text,characters:Array.from(text),delay:index*180,duration:index===1?3400:1800});
+  typingTargets.push({card,visual,text,characters:Array.from(text),delay:index*180,duration:index===1?4800:2800});
  });
 });
 let typingFrame=0,typingTimer=0;
 function finishTyping(){cancelAnimationFrame(typingFrame);typingFrame=0;typingTargets.forEach(({visual,text})=>{visual.textContent=text;visual.classList.remove('is-typing')})}
 function playTyping(){
  if(paused||reduced.matches||document.hidden||currentBurst){finishTyping();return}
- cancelAnimationFrame(typingFrame);const start=performance.now();
+ cancelAnimationFrame(typingFrame);const start=performance.now();let lastPaint=0;
  function renderTyping(now){
   if(paused||reduced.matches||document.hidden||currentBurst){finishTyping();return}
+  if(now-lastPaint<50){typingFrame=requestAnimationFrame(renderTyping);return}lastPaint=now;
   let pending=false;
   typingTargets.forEach(({card,visual,text,characters,delay,duration})=>{
    if(!visibleCards.has(card)){if(visual.textContent!==text)visual.textContent=text;visual.classList.remove("is-typing");return}
@@ -64,7 +77,7 @@ function playTyping(){
  }
  typingFrame=requestAnimationFrame(renderTyping);
 }
-function syncTyping(){clearInterval(typingTimer);finishTyping();if(!paused&&!reduced.matches&&!document.hidden){playTyping();typingTimer=setInterval(playTyping,5000)}}
+function syncTyping(){clearInterval(typingTimer);finishTyping();if(!paused&&!reduced.matches&&!document.hidden){playTyping();typingTimer=setInterval(playTyping,8000)}}
 reduced.addEventListener('change',syncTyping);document.addEventListener('visibilitychange',syncTyping);
 cards.forEach(card=>card.addEventListener('click',finishTyping));
 // A short, reversible block explosion uses a separate layer above the preview.
@@ -126,7 +139,8 @@ async function explodeCard(card){
  const rect=ghost.getBoundingClientRect();
  finishBurst(false);
  const layer=document.createElement('div');layer.className='dc-block-burst';layer.setAttribute('aria-hidden','true');
- const particles=[],columns=innerWidth<600?5:7,rows=8,cellW=rect.width/columns,cellH=rect.height/rows;
+ const mobile=matchMedia('(max-width:800px), (pointer:coarse)').matches;
+ const particles=[],columns=mobile?4:7,rows=mobile?6:8,cellW=rect.width/columns,cellH=rect.height/rows;
  const radius=Math.min(135,rect.width*.4,innerHeight*.22),count=columns*rows;
  const burst={layer,card,frame:0};currentBurst=burst;
  for(let row=0;row<rows;row++)for(let col=0;col<columns;col++){

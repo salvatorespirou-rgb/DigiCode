@@ -80,3 +80,15 @@ body.dc-card-paused .dc-card,body.dc-card-paused .dc-card[data-selected=true]{tr
 .dc-card{display:block;font-family:"Inter",sans-serif;line-height:1.6;text-decoration:none}.dc-deck{align-items:stretch}.dc-stage{display:flex}.dc-card{height:100%}.dc-card .dc-management-photo{object-fit:contain;padding:25px;background:linear-gradient(135deg,#6d4ee81c,#2e9fe60d)}
 @media(prefers-reduced-motion:reduce){.dc-card,.dc-card *,.dc-card:before,.dc-card:after,.dc-card *:before,.dc-card *:after{animation:none!important;transition:none!important}}
 body.dc-card-hidden .dc-card *,body.dc-card-hidden .dc-card *:before,body.dc-card-hidden .dc-card *:after{animation-play-state:paused!important}
+/* Mobile keeps the glass depth while avoiding repeated large-area paints. */
+.dc-card{touch-action:pan-y pinch-zoom;-webkit-tap-highlight-color:transparent}
+.dc-card.dc-touching{transition:transform 80ms linear;will-change:transform;user-select:none;-webkit-user-select:none}
+.dc-card.dc-offscreen *,.dc-card.dc-offscreen *:before,.dc-card.dc-offscreen *:after{animation-play-state:paused!important}
+@media(max-width:800px),(pointer:coarse){
+ .dc-card,.dc-card[data-selected=true]{box-shadow:2px 2px 0 #35425c,5px 5px 0 #202a3e,8px 8px 0 #111a2b,12px 18px 24px #0008}
+ .dc-art:before{display:none}
+ .dc-screen-fx:before{animation:none;transform:translateX(0);opacity:.4}
+ .dc-screen-fx:after{animation-duration:10s}
+ .dc-burst-face:after{display:none}
+ .dc-burst-face{box-shadow:inset 1px 1px 0 #ffffff55,inset -1px -1px 0 #0005}
+}
