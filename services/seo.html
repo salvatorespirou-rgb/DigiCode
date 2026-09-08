@@ -22,7 +22,7 @@
   <link rel="preload" as="image" href="../assets/images/digicode-logo-560.webp" fetchpriority="high" />
   <link rel="stylesheet" href="../css/site.min.css?v=2" />
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"SEO","description":"Improve your website search visibility with DigiCode. Discuss technical SEO, on-page content, keyword targeting and performance tracking for your business.","url":"https://www.digi-code.com.au/services/seo","serviceType":"SEO","areaServed":{"@type":"Country","name":"Australia"},"provider":{"@type":"Organization","@id":"https://www.digi-code.com.au/#organization","name":"DigiCode","url":"https://www.digi-code.com.au/"}}</script>
-  <link rel="stylesheet" href="../css/service-steps.css?v=2" />
+  <link rel="stylesheet" href="../css/service-steps.css?v=3" />
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -77,72 +77,96 @@
     <section class="request-form-section">
       <div class="container">
         <form class="request-form" data-service="SEO">
-          <div class="form-card">
-            <h2>Contact Details</h2>
-            <p class="form-hint">All optional — fill in whatever's easiest for us to reach you.</p>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" data-label="Name" placeholder="Your name" />
-              </div>
-              <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" data-label="Email" placeholder="you@example.com" />
-              </div>
-              <div class="form-group">
-                <label for="discord">Discord Username</label>
-                <input type="text" id="discord" name="discord" data-label="Discord" placeholder="yourname" />
-              </div>
-              <div class="form-group">
-                <label for="mobile">Mobile Number</label>
-                <input type="tel" id="mobile" name="mobile" data-label="Mobile" placeholder="Optional" />
-              </div>
-            </div>
-          </div>
 
-          <div class="form-card">
-            <h2>About Your Project</h2>
-            <div class="form-group">
-              <label for="style">Style &amp; content</label>
-              <textarea id="style" name="style" data-label="Style &amp; content" rows="4" placeholder="Any brand tone, keywords, or focus areas that matter to you? (optional)"></textarea>
-            </div>
-            <div class="form-group">
-              <label for="existingSite">Do you have an existing website?</label>
-              <input type="text" id="existingSite" name="existingSite" data-label="Existing website" placeholder="e.g. mysite.com, or 'not yet'" />
-            </div>
-            <div class="form-group">
-              <label for="serviceQ">What are your main SEO goals?</label>
-              <textarea id="serviceQ" name="serviceQ" data-label="SEO goals" rows="3" placeholder="e.g. want to rank higher for 'plumber in [city]'"></textarea>
-            </div>
-          </div>
+<div class="form-card sf-brief">
+<h2>A little about you</h2>
+<p class="form-hint">Just the essentials. We’ll work through the details together once your project is underway.</p>
+<div class="sf-contact-grid">
+<div class="sf-question">
+<label for="q1">
+<span class="sf-number">01</span> Your name</label>
+<input type="text" id="q1" name="name" data-label="Name" autocomplete="name" placeholder="Your name" />
+</div>
+<div class="sf-question">
+<label for="q2">
+<span class="sf-number">02</span> Your email</label>
+<input type="email" id="q2" name="email" data-label="Email" autocomplete="email" placeholder="you@example.com" />
+</div>
+<div class="sf-question">
+<label for="q3">
+<span class="sf-number">03</span> Name of your business</label>
+<input type="text" id="q3" name="brand" data-label="Brand or business" autocomplete="organization" placeholder="Your brand or business name" />
+</div>
+<div class="sf-question">
+<label for="q4">
+<span class="sf-number">04</span> Your current website</label>
+<input type="text" id="q4" name="existingSite" data-label="Existing website" autocomplete="off" placeholder="Website address, or “not yet”" />
+</div>
+</div>
+</div>
+<div class="form-card sf-brief">
+<h2>Your project at a glance</h2>
+<p class="form-hint">A few quick answers to help us understand what you need. Skip anything you’re unsure about.</p>
+<div class="sf-question">
+<label for="q5">
+<span class="sf-number">05</span> What is your main SEO goal?</label>
+<textarea id="q5" name="goal" data-label="What is your main SEO goal?" rows="3" placeholder="Tell us what you offer, who you want to reach and the result that matters most.">
+</textarea>
+</div>
+<fieldset class="sf-question">
+<legend>
+<span class="sf-number">06</span> What support do you need?</legend>
+<p class="sf-help">Choose any that apply.</p>
+<div class="sf-options">
+<label class="sf-option">
+<input type="checkbox" name="scope0" data-label="Support: More local enquiries" />
+<span>More local enquiries</span>
+</label>
+<label class="sf-option">
+<input type="checkbox" name="scope1" data-label="Support: Better search visibility" />
+<span>Better search visibility</span>
+</label>
+<label class="sf-option">
+<input type="checkbox" name="scope2" data-label="Support: Technical SEO review" />
+<span>Technical SEO review</span>
+</label>
+<label class="sf-option">
+<input type="checkbox" name="scope3" data-label="Support: Content improvements" />
+<span>Content improvements</span>
+</label>
+<label class="sf-option">
+<input type="checkbox" name="scope4" data-label="Support: Not sure yet" />
+<span>Not sure yet</span>
+</label>
+</div>
+</fieldset>
+<fieldset class="sf-question">
+<legend>
+<span class="sf-number">07</span> When would you like to get started?</legend>
+<div class="sf-options">
+<label class="sf-option">
+<input type="radio" name="timing" value="0" data-label="Timing: As soon as possible" />
+<span>As soon as possible</span>
+</label>
+<label class="sf-option">
+<input type="radio" name="timing" value="1" data-label="Timing: Within 1–3 months" />
+<span>Within 1–3 months</span>
+</label>
+<label class="sf-option">
+<input type="radio" name="timing" value="2" data-label="Timing: Just exploring" />
+<span>Just exploring</span>
+</label>
+</div>
+</fieldset>
+<div class="sf-question">
+<label for="q8">
+<span class="sf-number">08</span> Anything else we should know?</label>
+<textarea id="q8" name="notes" data-label="Additional notes" rows="3" placeholder="Any must-haves, budget or deadline. A short summary is plenty.">
+</textarea>
+</div>
+</div>
 
-          <div class="form-card">
-            <h2>Domain</h2>
-            <div class="form-group">
-              <span class="form-label">Do you already have a domain name?</span>
-              <div class="radio-row">
-                <label class="radio-option"><input type="radio" name="hasDomain" value="yes" data-label="Has a domain: Yes" /> Yes, I have one</label>
-                <label class="radio-option"><input type="radio" name="hasDomain" value="no" data-label="Has a domain: No" /> No, not yet</label>
-              </div>
-            </div>
-            <div class="form-group domain-followup" id="domainFollowup" hidden>
-              <label class="checkbox-option">
-                <input type="checkbox" id="domainInterest" name="domainInterest" data-label="Interested in DigiCode's domain management (coming soon)" />
-                I'd like to learn about DigiCode's domain management service (coming soon)
-              </label>
-            </div>
-          </div>
-
-          <div class="form-card">
-            <h2>Website Management</h2>
-            <p class="form-hint">After launch — updates, hosting, SEO monitoring, and someone who actually answers when you need a change made.</p>
-            <p class="form-note" style="margin-top: 14px; line-height: 1.6;">Management is its own thing now, separate from builds. That means you can start a plan whenever it suits — on a site we built for you, or one you already have running somewhere else. Pick the package that fits on the subscription page.</p>
-            <div style="margin-top: 20px;">
-              <a href="/subscription" class="quick-link-tab">See Management Plans</a>
-            </div>
-          </div>
-
-          <div class="form-actions">
+<div class="form-actions">
             <button type="button" id="checkoutBtn" class="btn btn-primary btn-large" data-enquiry="true">Send SEO Request</button>
             <p class="form-note">SEO work is scoped and quoted rather than bought off a shelf — send us the details above and we’ll come back with a price. For ongoing management, see the <a href="/subscription">subscription page</a>.</p>
           </div>
@@ -161,6 +185,6 @@
   <script src="../js/main.min.js?v=1"></script>
   <script src="../js/live-chat.min.js?v=1"></script>
   <script src="../js/analytics.min.js?v=1"></script>
-  <script src="../js/service-steps.js?v=2"></script>
+  <script src="../js/service-steps.js?v=3"></script>
 </body>
 </html>

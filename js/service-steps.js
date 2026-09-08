@@ -15,10 +15,9 @@
   const actions = form.querySelector('.form-actions');
   const titles = steps.map(el => el.querySelector('h2').textContent.trim());
   const header = document.createElement('div');
-  header.className = 'sf-header';
-  header.innerHTML = '<div class="sf-intro"><span class="sf-eyebrow">LET’S BUILD SOMETHING GREAT</span><p>Your project. One step at a time.</p></div><div class="sf-status" aria-live="polite" aria-atomic="true"></div><label class="sf-jump-label" for="serviceStep">Jump to a section</label><select id="serviceStep" class="sf-jump"></select><div class="sf-track" aria-hidden="true"><span></span></div>';
-  const select = header.querySelector('select');
-  titles.forEach((title, i) => select.add(new Option(`${String(i + 1).padStart(2, '0')} / ${title}`, String(i))));
+  header.className = 'visually-hidden sf-status';
+  header.setAttribute('aria-live', 'polite');
+  header.setAttribute('aria-atomic', 'true');
   const nav = document.createElement('div');
   nav.className = 'sf-nav';
   nav.setAttribute('aria-label', 'Form steps');
@@ -45,18 +44,13 @@
     if (actions) actions.hidden = current !== steps.length - 1;
     back.disabled = current === 0;
     next.hidden = current === steps.length - 1 || (current === 0 && !hasChoice());
-    select.disabled = !hasChoice();
-    header.querySelector('.sf-intro p').textContent = build && current === 0
-      ? 'Choose your build. Then make it yours.' : 'Your project. One step at a time.';
     nav.querySelector('.sf-note').textContent = build && current === 0
       ? 'Choose a package to start your project.' : 'Skip anything you’re unsure about.';
-    select.value = String(current);
-    header.querySelector('.sf-status').textContent = `Step ${current + 1} of ${steps.length} · ${titles[current]}`;
-    header.querySelector('.sf-track span').style.width = `${(current + 1) / steps.length * 100}%`;
+    header.textContent = `Step ${current + 1} of ${steps.length} · ${titles[current]}`;
     next.setAttribute('aria-label', `Next: ${titles[current + 1] || 'Finish'}`);
     if (focus) {
       steps[current].querySelector('h2').focus({ preventScroll: true });
-      header.scrollIntoView({ block: 'start', behavior: 'auto' });
+      steps[current].scrollIntoView({ block: 'start', behavior: 'auto' });
     }
   }
   function invalidIn(step) {
@@ -76,7 +70,6 @@
   }
   back.addEventListener('click', () => show(current - 1));
   next.addEventListener('click', advance);
-  select.addEventListener('change', () => show(Number(select.value)));
   form.addEventListener('keydown', event => {
     if (event.key === 'Enter' && event.target.matches('input:not([type="file"]):not([type="checkbox"]):not([type="radio"])')) {
       event.preventDefault();
