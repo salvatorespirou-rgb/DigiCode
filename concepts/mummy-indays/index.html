@@ -7,6 +7,29 @@
   <meta name="description" content="Sydney-based traditional Filipino caterer. Cebuano lechon, pancit, kare kare and full buffet service for parties of fifty and up. Pick-up from Macquarie Fields or delivered across Sydney." />
   <!-- Pitch build. Not the live site, and not to be indexed. -->
   <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://mummyindays.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_AU" />
+  <meta property="og:site_name" content="Mummy Inday’s Catering" />
+  <meta property="og:title" content="Mummy Inday’s Catering — Filipino Catering in Sydney" />
+  <meta property="og:description" content="Traditional Filipino food, Cebuano lechon and full buffet catering. Cooked for your celebration, with pick-up and delivery across Sydney." />
+  <meta property="og:url" content="https://mummyindays.com/" />
+  <meta property="og:image" content="https://mummyindays.com/assets/img/hero-1.webp" />
+  <meta property="og:image:alt" content="Mummy Inday’s buffet service set for a celebration" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FoodEstablishment",
+    "name": "Mummy Inday’s Catering",
+    "url": "https://mummyindays.com/",
+    "description": "Traditional Filipino catering, Cebuano lechon and buffet service in Sydney.",
+    "telephone": "+61412188976",
+    "email": "catering@mummyindays.com",
+    "servesCuisine": "Filipino",
+    "areaServed": { "@type": "City", "name": "Sydney" }
+  }
+  </script>
 
   <!-- Favicon: a monogram, not a cropped photo -- there is no supplied logo
        to work from, and food/interior shots turn to mud at 16px anyway. SVG
@@ -23,13 +46,11 @@
   <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
   <meta name="theme-color" content="#7a5333" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="preload" as="image" href="assets/img/hero-1.jpg" fetchpriority="high" />
-  <link rel="stylesheet" href="css/style.css?v=14" />
+  <link rel="preload" as="image" href="assets/img/hero-1.webp" imagesrcset="assets/img/hero-1-mobile.webp 768w, assets/img/hero-1.webp 1284w" imagesizes="100vw" fetchpriority="high" />
+  <link rel="stylesheet" href="css/style.min.css?v=20" />
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
   <div class="film-grain" aria-hidden="true"></div>
   <div class="vignette" aria-hidden="true"></div>
@@ -63,7 +84,7 @@
     </button>
   </header>
 
-  <main id="top">
+  <main id="main-content"><span id="top"></span>
 
     <!-- =================================================================
          Hero — the establishing shot
@@ -71,10 +92,9 @@
     <section class="hero">
       <div class="hero-stage" aria-hidden="true">
         <div class="hero-slides">
-          <div class="hero-slide" style="background-image: url('assets/img/hero-1.jpg');"></div>
-          <div class="hero-slide" data-defer="assets/img/hero-2.jpg"></div>
-          <div class="hero-slide" data-defer="assets/img/hero-3.jpg"></div>
-          <div class="hero-slide" data-defer="assets/img/hero-4.jpg"></div>
+          <div class="hero-slide"><img class="hero-photo" src="assets/img/hero-1.webp" srcset="assets/img/hero-1-mobile.webp 768w, assets/img/hero-1.webp 1284w" sizes="100vw" width="1284" height="1709" alt="" fetchpriority="high" /></div>
+          <div class="hero-slide" data-defer="assets/img/hero-2.webp"></div>
+          <div class="hero-slide" data-defer="assets/img/hero-3.webp"></div>
         </div>
         <div class="hero-layer hero-layer--scrim"></div>
         <div class="hero-layer hero-layer--glow"></div>
@@ -149,7 +169,7 @@
 
           <div class="story-panel" data-reveal>
             <div class="story-plate">
-              <div class="photo photo--tall" data-img="buffet-service.jpg" data-label="Service, mid-event"></div>
+              <div class="photo photo--tall" data-img="buffet-service.webp" data-label="Service, mid-event" role="img" aria-label="Service, mid-event"></div>
             </div>
           </div>
         </div>
@@ -159,7 +179,7 @@
 
     <!-- Interlude — a held beat between acts -->
     <section class="interlude">
-      <div class="interlude-img" data-parallax data-bg="assets/img/buffet-set.jpg"></div>
+      <div class="interlude-img" data-parallax data-bg="assets/img/buffet-set.webp"></div>
       <div class="interlude-copy">
         <h2>Set before the<br /><em>first guest arrives.</em></h2>
         <p>Linen &middot; warmers &middot; lights &middot; centrepiece</p>
@@ -184,7 +204,7 @@
         <div class="menu-grid">
 
           <article class="dish-card" data-reveal="stagger">
-            <div class="dish-photo"><div class="photo" data-img="cat-entrees.jpg" data-label="Fried chicken &amp; spring rolls"></div></div>
+            <div class="dish-photo"><div class="photo" data-img="cat-entrees.webp" data-label="Fried chicken &amp; spring rolls" role="img" aria-label="Fried chicken &amp; spring rolls"></div></div>
             <h3>Entrees</h3>
             <span class="price-band">Per piece &middot; Kinilaw per tray</span>
             <ul class="dish-list">
@@ -201,7 +221,7 @@
           </article>
 
           <article class="dish-card" data-reveal="stagger">
-            <div class="dish-photo"><div class="photo" data-img="cat-noodles.jpg" data-label="Pancit"></div></div>
+            <div class="dish-photo"><div class="photo" data-img="cat-noodles.webp" data-label="Pancit" role="img" aria-label="Pancit"></div></div>
             <h3>Noodle Dishes</h3>
             <span class="price-band">M $130 &middot; L $150 &middot; XL $180</span>
             <ul class="dish-list">
@@ -212,7 +232,7 @@
           </article>
 
           <article class="dish-card" data-reveal="stagger">
-            <div class="dish-photo"><div class="photo" data-img="cat-vegetables.jpg" data-label="Chopsuey"></div></div>
+            <div class="dish-photo"><div class="photo" data-img="cat-vegetables.webp" data-label="Chopsuey" role="img" aria-label="Chopsuey"></div></div>
             <h3>Vegetables &amp; Salads</h3>
             <span class="price-band">M $130 &middot; L $150 &middot; XL $180</span>
             <ul class="dish-list">
@@ -225,7 +245,7 @@
           </article>
 
           <article class="dish-card" data-reveal="stagger">
-            <div class="dish-photo"><div class="photo" data-img="cat-traditional.jpg" data-label="Menudo"></div></div>
+            <div class="dish-photo"><div class="photo" data-img="cat-traditional.webp" data-label="Menudo" role="img" aria-label="Menudo"></div></div>
             <h3>Traditional Mains</h3>
             <span class="price-band">M $130 &middot; L $150 &middot; XL $180</span>
             <ul class="dish-list">
@@ -242,7 +262,7 @@
           </article>
 
           <article class="dish-card" data-reveal="stagger">
-            <div class="dish-photo"><div class="photo" data-img="cat-premium.jpg" data-label="Kare kare"></div></div>
+            <div class="dish-photo"><div class="photo" data-img="cat-premium.webp" data-label="Kare kare" role="img" aria-label="Kare kare"></div></div>
             <h3>Premium Mains</h3>
             <span class="price-band">M $140 &middot; L $160 &middot; XL $190</span>
             <ul class="dish-list">
@@ -257,7 +277,7 @@
           </article>
 
           <article class="dish-card" data-reveal="stagger">
-            <div class="dish-photo"><div class="photo" data-img="cat-dessert.jpg" data-label="Filipino fruit salad"></div></div>
+            <div class="dish-photo"><div class="photo" data-img="cat-dessert.webp" data-label="Filipino fruit salad" role="img" aria-label="Filipino fruit salad"></div></div>
             <h3>Dessert</h3>
             <span class="price-band">L $100 &middot; XL $130</span>
             <ul class="dish-list">
@@ -298,9 +318,9 @@
                shallower depth so the two separate instead of moving as one. -->
           <figure class="lechon-plate" data-parallax data-reveal>
             <div class="lechon-slides">
-              <div class="photo lechon-slide" data-img="lechon-whole.jpg" data-label="Whole Cebuano lechon"></div>
-              <div class="photo lechon-slide" data-img="lechon-belly.webp" data-label="Lechon belly, carved"></div>
-              <div class="photo lechon-slide" data-img="lechon-mangtomas.jpg" data-label="Boxed with the Mang Tomas"></div>
+              <div class="photo lechon-slide" data-img="lechon-whole.webp" data-label="Whole Cebuano lechon" role="img" aria-label="Whole Cebuano lechon"></div>
+              <div class="photo lechon-slide" data-img="lechon-belly.webp" data-label="Lechon belly, carved" role="img" aria-label="Lechon belly, carved"></div>
+              <div class="photo lechon-slide" data-img="lechon-mangtomas.webp" data-label="Boxed with the Mang Tomas" role="img" aria-label="Boxed with the Mang Tomas"></div>
             </div>
             <figcaption>Whole, boneless by the kilo, or carved to order</figcaption>
           </figure>
@@ -345,7 +365,7 @@
 
     <!-- Interlude — a held beat between acts -->
     <section class="interlude">
-      <div class="interlude-img" data-parallax data-bg="assets/img/buffet-line.jpg"></div>
+      <div class="interlude-img" data-parallax data-bg="assets/img/buffet-line.webp"></div>
       <div class="interlude-copy">
         <h2>Fifty guests,<br /><em>or five hundred.</em></h2>
         <p>Four hours of service &middot; Sydney-wide</p>
@@ -506,7 +526,7 @@
                frame — and it drifts against the scroll on --p. -->
           <div class="family-stack" data-reveal>
             <figure class="family-shot family-shot--lead" data-parallax style="--depth: 0.85;">
-              <div class="photo photo--family" data-img="family.jpg" data-label="The family"></div>
+              <div class="photo photo--family" data-img="family.webp" data-label="The family" role="img" aria-label="The family"></div>
             </figure>
           </div>
 
@@ -526,20 +546,20 @@
       </div>
 
       <div class="rail" tabindex="0" aria-label="Photo gallery, scroll sideways">
-        <figure class="rail-card"><div class="photo photo--sq" data-img="lechon-hero.jpg" data-label="Cebuano lechon belly"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="buffet-set.jpg" data-label="Buffet, dressed and set"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="skewers.jpg" data-label="Pork BBQ skewers"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="cat-noodles.jpg" data-label="Pancit"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="venue-barrels.jpg" data-label="Set up on site"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="kinilaw.jpg" data-label="Kinilaw"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="lechon-mangtomas.jpg" data-label="Lechon, with the Mang Tomas"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="cat-vegetables.jpg" data-label="Chopsuey"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="buffet-line.jpg" data-label="The line, before doors"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="meatballs.jpg" data-label="Sweet &amp; sour meatballs"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="pancit-pot.jpg" data-label="Pancit bihon"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="plate.jpg" data-label="A plate, made up"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="fish-cocktail.jpg" data-label="Fish cocktail"></div></figure>
-        <figure class="rail-card"><div class="photo photo--sq" data-img="venue-table.jpg" data-label="Long table, set"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="lechon-hero.webp" data-label="Cebuano lechon belly" role="img" aria-label="Cebuano lechon belly"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="buffet-set.webp" data-label="Buffet, dressed and set" role="img" aria-label="Buffet, dressed and set"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="skewers.webp" data-label="Pork BBQ skewers" role="img" aria-label="Pork BBQ skewers"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="cat-noodles.webp" data-label="Pancit" role="img" aria-label="Pancit"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="venue-barrels.webp" data-label="Set up on site" role="img" aria-label="Set up on site"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="kinilaw.webp" data-label="Kinilaw" role="img" aria-label="Kinilaw"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="lechon-mangtomas.webp" data-label="Lechon, with the Mang Tomas" role="img" aria-label="Lechon, with the Mang Tomas"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="cat-vegetables.webp" data-label="Chopsuey" role="img" aria-label="Chopsuey"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="buffet-line.webp" data-label="The line, before doors" role="img" aria-label="The line, before doors"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="meatballs.webp" data-label="Sweet &amp; sour meatballs" role="img" aria-label="Sweet &amp; sour meatballs"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="pancit-pot.webp" data-label="Pancit bihon" role="img" aria-label="Pancit bihon"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="plate.webp" data-label="A plate, made up" role="img" aria-label="A plate, made up"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="fish-cocktail.webp" data-label="Fish cocktail" role="img" aria-label="Fish cocktail"></div></figure>
+        <figure class="rail-card"><div class="photo photo--sq" data-img="venue-table.webp" data-label="Long table, set" role="img" aria-label="Long table, set"></div></figure>
       </div>
 
       <p class="rail-hint">Drag sideways</p>
@@ -776,6 +796,7 @@
     </form>
   </dialog>
 
-  <script src="js/cinema.js?v=14"></script>
+  <script defer src="js/cinema.min.js?v=16"></script>
+  <script defer src="js/headline.min.js?v=4"></script>
 </body>
 </html>

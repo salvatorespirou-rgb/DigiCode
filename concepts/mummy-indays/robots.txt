@@ -1,0 +1,3 @@
+# Private client preview. Replace with Allow: / only for the approved launch.
+User-agent: *
+Disallow: /

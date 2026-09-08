@@ -1,3 +1,4 @@
+@import "./fonts.css";
 /* ==========================================================================
    Mummy Inday's Catering — cinematic pitch build
    DigiCode, 2026. Spec proposal; not affiliated with the live site.
@@ -25,10 +26,10 @@
 
   --ink:        #2b1e15;
   --ink-dim:    #55412f;
-  --muted:      #8d7663;
+  --muted:      #705a47;
 
   --brown:      #7a5333;
-  --brown-lt:   #a2764a;
+  --brown-lt:   #805732;
   --brown-deep: #52351f;
   --ember:      #a8552f;
   --leaf:       #6a7a5c;
@@ -355,9 +356,9 @@ a { color: inherit; }
    about 1.23x. The source files cap the rest. */
 .hero-slides {
   position: absolute;
-  inset: -7%;
+  inset: -2%;
   overflow: hidden;
-  transform: translate3d(0, calc(var(--scroll) * 4vh), 0) scale(calc(1.0 + var(--scroll) * 0.03));
+  transform: translate3d(0, calc(var(--scroll) * 1vh), 0) scale(1);
 }
 
 .hero-slide {
@@ -366,8 +367,8 @@ a { color: inherit; }
   background-size: cover;
   background-position: center 45%;
   opacity: 0;
-  filter: saturate(1.06) contrast(1.04);
-  animation: heroCycle 32s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: none;
+  animation: heroCycle 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   will-change: opacity, transform;
 }
 .hero-slide:nth-child(1) { animation-delay: 0s; }
@@ -379,12 +380,9 @@ a { color: inherit; }
    The push-in keeps running to 30% so the frame is still moving through the
    whole crossfade, which is what stops the change reading as a hard cut. */
 @keyframes heroCycle {
-  0%   { opacity: 0;    transform: scale(1.0); }
-  3%   { opacity: 0.95; }
-  22%  { opacity: 0.95; }
-  27%  { opacity: 0;    }
-  30%  { transform: scale(1.05); }
-  100% { opacity: 0;    transform: scale(1.05); }
+  0%, 28% { opacity: 1; transform: scale(1); }
+  34% { opacity: 0; transform: scale(1.015); }
+  100% { opacity: 0; transform: scale(1.015); }
 }
 
 .hero-layer--scrim {
@@ -466,7 +464,7 @@ a { color: inherit; }
   text-align: center;
   padding: 8rem 1.5rem 6rem;
   transform: translate3d(0, calc(var(--scroll) * -14vh), 0);
-  opacity: calc(1 - var(--scroll) * 1.5);
+  opacity: 1;
   will-change: transform, opacity;
 }
 
@@ -627,7 +625,7 @@ a { color: inherit; }
 }
 
 /* Reveal: elements start pushed back in Z and rise as they enter. */
-[data-reveal] {
+.motion-ready [data-reveal] {
   opacity: 0;
   transform: translate3d(0, 44px, -120px) rotateX(6deg);
   transition:
@@ -635,7 +633,7 @@ a { color: inherit; }
     transform 1.15s var(--ease);
   transition-delay: var(--delay, 0ms);
 }
-[data-reveal].is-in {
+.motion-ready [data-reveal].is-in {
   opacity: 1;
   transform: translate3d(0, 0, 0) rotateX(0);
 }
@@ -1006,11 +1004,11 @@ a { color: inherit; }
 
 .interlude-img {
   position: absolute;
-  inset: -22% 0;
+  inset: -6% 0;
   background-size: cover;
   background-position: center;
   /* Overscrolls its own frame, so the parallax never exposes an edge. */
-  transform: translate3d(0, calc(var(--p, 0.5) * 26vh - 13vh), 0) scale(1.18);
+  transform: translate3d(0, calc(var(--p, 0.5) * 4vh - 2vh), 0);
   will-change: transform;
   z-index: -2;
 }
@@ -1842,7 +1840,7 @@ a.v:hover { color: var(--brown); }
     transition-duration: 0.001ms !important;
   }
 
-  [data-reveal] { opacity: 1; transform: none; }
+  .motion-ready [data-reveal] { opacity: 1; transform: none; }
   .hero-copy,
   .hero-layer { transform: none; opacity: 1; }
   .dish-card { transform: none; }
@@ -1859,3 +1857,52 @@ a.v:hover { color: var(--brown); }
   .hero h1 .line > span { transform: none; }
   .hero-sub, .hero-meta, .hero-actions { opacity: 1; }
 }
+
+/* Client preview polish: readable warm ink, natural photographs, gold lettering. */
+.skip-link { position: fixed; top: .75rem; left: .75rem; z-index: 10000; padding: .7rem 1rem; background: var(--ink); color: var(--paper); transform: translateY(-200%); }
+.skip-link:focus { transform: none; }
+:focus-visible { outline: 2px solid var(--brown); outline-offset: 5px; }
+.hero-layer--steam, .hero-layer--leaf, .film-grain { display: none; }
+.hero-slide:nth-child(1) { z-index: 1; }
+.hero-photo { width: 100%; height: 100%; object-fit: cover; object-position: center 45%; }
+html:not(.motion-ready) .hero-slide { animation: none; opacity: 0; }
+html:not(.motion-ready) .hero-slide:first-child { opacity: 1; }
+.hero-slide:nth-child(2) { z-index: 2; }
+.hero-slide:nth-child(3) { z-index: 3; }
+.hero h1 { position: relative; }
+.hero h1 .line { overflow: visible; }
+.hero h1 .line > span { animation: none; transform: none; }
+.hero h1 .gold { color: #67421e; }
+.hero-copy .hero-sub {
+  padding: .7rem 1rem;
+  font-weight: 600;
+  color: #211a15;
+  background: transparent;
+  text-shadow: 0 1px 1px rgba(251, 248, 243, .25);
+  filter: none;
+}
+.hero-copy .hero-meta { width: fit-content; margin-inline: auto; padding: .5rem .8rem; background: transparent; text-shadow: 0 1px 3px rgba(251, 248, 243, .8); }
+.typed-letter { white-space: pre; }
+.headline-sparkles { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.gold-sparkle { position: absolute; width: 8px; height: 8px; background: #f8d775; clip-path: polygon(50% 0, 62% 36%, 100% 50%, 62% 64%, 50% 100%, 38% 64%, 0 50%, 38% 36%); filter: drop-shadow(0 0 3px #c89537); }
+.doc > .shell > h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+.doc-body h2 { font-size: clamp(1.65rem, 3vw, 2.2rem); }
+@media (max-width: 700px) {
+  .hero-slides { inset: 0; transform: none; }
+  .hero-copy { transform: none; opacity: 1; }
+  .hero-slide { animation: none; opacity: 0; will-change: auto; }
+  .hero-slide:first-child { opacity: 1; }
+  .hero-layer--glow { display: none; }
+  .gold-sparkle { width: 6px; height: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .headline-sparkles { display: none; }
+  .typed-letter { opacity: 1 !important; }
+  .hero-slides { transform: none; }
+}
+
+/* Clear gold flecks and an accessible pause control for the repeating greeting. */
+.gold-sparkle { width: 11px; height: 11px; background: radial-gradient(circle, #fff8dc 0 15%, #e9b84b 40%, #b47a16 80%); filter: none; }
+.headline-toggle { display: block; margin: 1rem auto 0; padding: .5rem .8rem; border: 1px solid rgba(122,83,51,.3); border-radius: 2rem; color: var(--brown-deep); background: var(--paper); font: 400 .75rem var(--body); cursor: pointer; }
+.headline-toggle[hidden] { display: none; }
+@media (max-width: 700px) { .gold-sparkle { width: 8px; height: 8px; } }
