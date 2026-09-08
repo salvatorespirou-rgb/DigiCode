@@ -3434,7 +3434,7 @@ input[type="radio"] { accent-color: var(--purple); }
   border-color: rgba(125, 200, 255, 0.4);
   box-shadow: 0 28px 58px rgba(0, 0, 0, 0.5), 0 0 38px rgba(109, 78, 232, 0.2);
 }
-.seo-card h4 {
+.seo-card h3 {
   font-family: "Space Grotesk", system-ui, sans-serif;
   font-size: 1.12rem; letter-spacing: 0.01em;
   margin-bottom: 10px;
@@ -4002,7 +4002,7 @@ input[type="radio"] { accent-color: var(--purple); }
 .footer-areas {
   margin-top: 8px;
   font-size: 0.82rem;
-  color: rgba(185, 194, 204, 0.6);
+  color: #b9c2cc;
 }
 .footer-areas a { color: #8fd4ff; text-decoration: underline; text-underline-offset: 3px; }
 .footer-areas a:hover { color: #8fd4ff; text-decoration: underline; }

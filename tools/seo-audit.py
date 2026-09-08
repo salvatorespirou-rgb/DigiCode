@@ -13,11 +13,16 @@ class Page(HTMLParser):
         self.title = ''; self.in_title = False; self.h1 = 0; self.lang = ''
         self.meta = {}; self.canonicals = []; self.refs = []; self.missing_alt = 0
         self.schemas = []; self.schema_text = None
+        self.previous_heading = 0; self.heading_skips = []
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == 'html': self.lang = a.get('lang', '')
         if tag == 'title': self.in_title = True
         if tag == 'h1': self.h1 += 1
+        if tag in ('h1','h2','h3','h4','h5','h6'):
+            level = int(tag[1])
+            if level > self.previous_heading + 1: self.heading_skips.append(tag)
+            self.previous_heading = level
         if tag == 'meta': self.meta[a.get('name', a.get('property', ''))] = a.get('content', '')
         if tag == 'link' and a.get('rel') == 'canonical': self.canonicals.append(a.get('href', ''))
         if tag == 'img' and 'alt' not in a: self.missing_alt += 1
@@ -48,7 +53,7 @@ def run():
             if not any(x.is_file() for x in [target, Path(str(target)+'.html'), target/'index.html']): broken.append(ref)
         records.append({'file': rel.as_posix(), 'indexable': 'noindex' not in p.meta.get('robots',''),
             'title': p.title, 'description': p.meta.get('description',''), 'canonical':p.canonicals,
-            'lang':p.lang,'h1':p.h1,'missing_alt':p.missing_alt,'broken_local_refs':sorted(set(broken)),
+            'lang':p.lang,'h1':p.h1,'heading_skips':p.heading_skips,'missing_alt':p.missing_alt,'broken_local_refs':sorted(set(broken)),
             'invalid_schema':any(s.get('invalid') for s in p.schemas if isinstance(s,dict)), 'schema_count':len(p.schemas)})
     urls = [e.text for e in ET.parse(ROOT/'sitemap.xml').iter('{http://www.sitemaps.org/schemas/sitemap/0.9}loc')]
     canonical_pages = {r['canonical'][0]:r for r in records if len(r['canonical'])==1}
@@ -58,6 +63,7 @@ def run():
         for key in ('title','description','lang'):
             if not r[key]: issues.append(f"{r['file']}: missing {key}")
         if r['h1'] != 1: issues.append(f"{r['file']}: expected one H1, found {r['h1']}")
+        if r['indexable'] and r['heading_skips']: issues.append(f"{r['file']}: skipped heading levels {r['heading_skips']}")
         if r['indexable'] and (len(r['canonical'])!=1 or not r['canonical'][0].startswith('https://www.digi-code.com.au/')): issues.append(f"{r['file']}: invalid canonical")
         if r['missing_alt'] or r['broken_local_refs'] or r['invalid_schema']: issues.append(f"{r['file']}: asset, link or schema issue")
     output={'pages_checked':len(records),'indexable_pages':sum(r['indexable'] for r in records),'sitemap_urls':len(urls),'issues':issues,'sitemap_issues':sitemap_issues,'pages':records}

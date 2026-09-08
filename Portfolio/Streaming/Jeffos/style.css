@@ -402,7 +402,7 @@ h1, h2, h3, h4 { font-family: var(--nk-head); line-height: 1.15; letter-spacing:
 
 /* ---------------- Clips ---------------- */
 .nk-clip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-.nk-clip h4 { font-size: 0.95rem; margin-top: 10px; }
+.nk-clip h3 { font-size: 0.95rem; margin-top: 10px; }
 .nk-clip p { font-size: 0.78rem; color: var(--nk-dim); margin-top: 3px; }
 .nk-clip-thumb {
   position: relative; aspect-ratio: 16 / 9; border-radius: 13px; overflow: hidden;
