@@ -10,14 +10,15 @@ EXCLUDED = {'.git', '.claude', '.vscode', 'node_modules', 'remodel', 'concepts',
 class Page(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.title = ''; self.in_title = False; self.h1 = 0; self.lang = ''
+        self.title = ''; self.in_title = False; self.in_head = False; self.h1 = 0; self.lang = ''
         self.meta = {}; self.canonicals = []; self.refs = []; self.missing_alt = 0
         self.schemas = []; self.schema_text = None
         self.previous_heading = 0; self.heading_skips = []
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == 'html': self.lang = a.get('lang', '')
-        if tag == 'title': self.in_title = True
+        if tag == 'head': self.in_head = True
+        if tag == 'title' and self.in_head: self.in_title = True
         if tag == 'h1': self.h1 += 1
         if tag in ('h1','h2','h3','h4','h5','h6'):
             level = int(tag[1])
@@ -31,6 +32,7 @@ class Page(HTMLParser):
             if a.get(key): self.refs.append(a[key])
     def handle_endtag(self, tag):
         if tag == 'title': self.in_title = False
+        if tag == 'head': self.in_head = False
         if tag == 'script' and self.schema_text is not None:
             try: self.schemas.append(json.loads(self.schema_text))
             except ValueError: self.schemas.append({'invalid': True})
