@@ -20,6 +20,7 @@
 .sf-nav button:disabled { opacity: .4; cursor: default; }
 .sf-note { color: #b3c1dc; font-size: .78rem; }
 .sf-wizard .form-actions { padding-top: 24px; }
+.sf-custom-quote { display: block; margin-top: 22px; padding: 12px 0; border: 0; background: transparent; color: #b8dfff; font: inherit; text-align: left; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
 .sf-wizard :is(button,select,input,textarea,a):focus-visible { outline: 2px solid #a4dcff; outline-offset: 4px; }
 @keyframes sf-appear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 600px) {

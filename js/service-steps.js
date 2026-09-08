@@ -4,6 +4,14 @@
   if (!form) return;
   const steps = [...form.children].filter(el => el.classList.contains('form-card'));
   if (steps.length < 2) return;
+  const build = steps.find(step => step.querySelector('input[name="buildTier"]'));
+  const quote = form.querySelector('#wantQuote');
+  if (build) {
+    steps.splice(steps.indexOf(build), 1);
+    steps.unshift(build);
+    form.prepend(build);
+  }
+  const hasChoice = () => !build || !!build.querySelector('input[name="buildTier"]:checked') || !!quote?.checked;
   const actions = form.querySelector('.form-actions');
   const titles = steps.map(el => el.querySelector('h2').textContent.trim());
   const header = document.createElement('div');
@@ -31,11 +39,17 @@
     step.setAttribute('aria-labelledby', heading.id);
   });
   function show(index, focus = true) {
+    if (index > 0 && !hasChoice()) index = 0;
     current = Math.max(0, Math.min(index, steps.length - 1));
     steps.forEach((step, i) => { step.hidden = i !== current; });
     if (actions) actions.hidden = current !== steps.length - 1;
     back.disabled = current === 0;
-    next.hidden = current === steps.length - 1;
+    next.hidden = current === steps.length - 1 || (current === 0 && !hasChoice());
+    select.disabled = !hasChoice();
+    header.querySelector('.sf-intro p').textContent = build && current === 0
+      ? 'Choose your build. Then make it yours.' : 'Your project. One step at a time.';
+    nav.querySelector('.sf-note').textContent = build && current === 0
+      ? 'Choose a package to start your project.' : 'Skip anything you’re unsure about.';
     select.value = String(current);
     header.querySelector('.sf-status').textContent = `Step ${current + 1} of ${steps.length} · ${titles[current]}`;
     header.querySelector('.sf-track span').style.width = `${(current + 1) / steps.length * 100}%`;
@@ -82,5 +96,42 @@
       break;
     }
   }, true);
+  if (build) {
+    build.querySelectorAll('.tier-card').forEach(card => {
+      const button = card.querySelector('.tier-purchase-btn');
+      const radio = card.querySelector('.tier-radio');
+      if (!button || !radio) return;
+      const name = card.querySelector('.tier-name').textContent.trim();
+      button.textContent = `Choose ${name}`;
+      // The existing purchase handler adds/replaces this service's build in
+      // the cart. Advance only after that handler has run; no payment occurs.
+      card.addEventListener('click', event => {
+        if (event.target !== radio && !event.target.closest('.tier-purchase-btn')) {
+          button.click();
+        }
+      });
+      button.addEventListener('click', () => {
+        if (quote?.checked) {
+          quote.checked = false;
+          quote.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        radio.checked = true;
+        show(1);
+      });
+      radio.addEventListener('change', () => { if (radio.checked) button.click(); });
+    });
+    if (quote) {
+      const custom = document.createElement('button');
+      custom.type = 'button';
+      custom.className = 'sf-custom-quote';
+      custom.textContent = 'Need something different? Start with a custom quote →';
+      custom.addEventListener('click', () => {
+        quote.checked = true;
+        quote.dispatchEvent(new Event('change', { bubbles: true }));
+        show(1);
+      });
+      build.append(custom);
+    }
+  }
   show(0, false);
 })();
