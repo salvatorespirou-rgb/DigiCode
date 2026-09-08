@@ -60,14 +60,13 @@
     hasPlayed = true;
     var bounds = heading.getBoundingClientRect();
     var positions = chars.map(function (char) { return char.getBoundingClientRect(); });
-    var colours = chars.map(function (char) { return getComputedStyle(char).color; });
     var count = matchMedia('(max-width: 700px)').matches ? 3 : 5;
     chars.forEach(function (char, i) {
       var delay = 350 + i * 145;
       animations.push(char.animate([
-        { opacity: 0, color: '#b47a16', textShadow: '0 0 0 transparent' },
-        { opacity: 1, color: '#a96c0b', textShadow: '0 0 10px #ffe5a1', offset: .38 },
-        { opacity: 1, color: colours[i], textShadow: '0 0 0 transparent' }
+        { opacity: 0 },
+        { opacity: 1, offset: .38 },
+        { opacity: 1 }
       ], { duration: 850, delay: delay, fill: 'backwards', easing: 'ease-in-out' }));
       if (!char.textContent.trim()) return;
       for (var p = 0; p < count; p++) {

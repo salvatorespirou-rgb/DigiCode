@@ -150,6 +150,7 @@
 
     Array.prototype.forEach.call(document.querySelectorAll(".pkg"), function (card) {
       card.addEventListener("pointermove", function (e) {
+        if (reduced.matches) return;
         var r = card.getBoundingClientRect();
         card.style.setProperty("--mx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
         card.style.setProperty("--my", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
@@ -180,6 +181,33 @@
       nav.classList.remove("is-open");
       toggle.setAttribute("aria-expanded", "false");
     });
+    nav.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !nav.classList.contains('is-open')) return;
+      nav.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.focus();
+    });
+  }
+
+  // Background photographs do not need to animate outside the visible page.
+  function wireSceneVisibility() {
+    if (!window.IntersectionObserver) return;
+    var scenes = document.querySelectorAll('.hero, .lechon-plate');
+    var visibleScenes = new Set();
+    function update() {
+      scenes.forEach(function (scene) {
+        scene.classList.toggle('scene-paused', document.hidden || !visibleScenes.has(scene));
+      });
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) visibleScenes.add(entry.target);
+        else visibleScenes.delete(entry.target);
+      });
+      update();
+    });
+    scenes.forEach(function (scene) { observer.observe(scene); });
+    document.addEventListener('visibilitychange', update);
   }
 
   /* ----------------------------------------------------------------------
@@ -268,9 +296,12 @@
   function loadDeferred() {
     if (reduced.matches || matchMedia("(max-width: 700px)").matches) return;
     Array.prototype.forEach.call(document.querySelectorAll("[data-defer]"), function (el) {
+      if (el.dataset.loading === 'true') return;
+      el.dataset.loading = 'true';
       var src = new URL(el.getAttribute("data-defer"), location.href).href;
       var probe = new Image();
       probe.onload = function () { el.style.backgroundImage = 'url("' + src + '")'; };
+      probe.onerror = function () { delete el.dataset.loading; };
       probe.src = src;
     });
   }
@@ -490,12 +521,14 @@
     wireDragScroller(rail);
     wireDragScroller(document.querySelector(".marquee"));
     wireNav();
+    wireSceneVisibility();
     wirePhotos();
     wireYear();
     wireEnquiry();
 
     if (document.readyState === "complete") loadDeferred();
     else window.addEventListener("load", loadDeferred, { once: true });
+    window.matchMedia('(max-width: 700px)').addEventListener('change', loadDeferred);
 
     if (!reduced.matches) {
       window.addEventListener("scroll", onScroll, { passive: true });
@@ -509,9 +542,18 @@
     reduced.addEventListener("change", function () {
       if (reduced.matches) {
         window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+        if (rail) rail.removeEventListener("scroll", onScroll);
+        document.querySelectorAll('.pkg').forEach(function (card) {
+          card.style.setProperty('--mx', 0);
+          card.style.setProperty('--my', 0);
+        });
         root.style.setProperty("--scroll", 0);
       } else {
+        loadDeferred();
         window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
+        if (rail) rail.addEventListener("scroll", onScroll, { passive: true });
         frame();
       }
     });

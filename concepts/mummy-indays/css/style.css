@@ -1865,6 +1865,7 @@ a.v:hover { color: var(--brown); }
 .hero-layer--steam, .hero-layer--leaf, .film-grain { display: none; }
 .hero-slide:nth-child(1) { z-index: 1; }
 .hero-photo { width: 100%; height: 100%; object-fit: cover; object-position: center 45%; }
+.scene-paused .hero-slide, .scene-paused .lechon-slide, .scene-paused .scroll-cue { animation-play-state: paused; }
 html:not(.motion-ready) .hero-slide { animation: none; opacity: 0; }
 html:not(.motion-ready) .hero-slide:first-child { opacity: 1; }
 .hero-slide:nth-child(2) { z-index: 2; }
@@ -1874,6 +1875,8 @@ html:not(.motion-ready) .hero-slide:first-child { opacity: 1; }
 .hero h1 .line > span { animation: none; transform: none; }
 .hero h1 .gold { color: #67421e; }
 .hero-copy .hero-sub {
+  opacity: 1;
+  animation: none;
   padding: .7rem 1rem;
   font-weight: 600;
   color: #211a15;
