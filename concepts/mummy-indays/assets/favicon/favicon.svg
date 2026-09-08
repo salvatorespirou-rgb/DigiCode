@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Same mark as the PNG/ICO set, kept as vector for browsers that support
+       an SVG favicon (Chrome, Firefox, Edge): flat brown fill and a bold
+       letterform, matching the 16/32px PNGs rather than the more delicate
+       gradient-and-ring version used at icon sizes 48px and up, since a
+       favicon in a tab is read at a glance, not admired up close. -->
+  <circle cx="16" cy="16" r="16" fill="#7a5333" />
+  <text x="16" y="17.6" text-anchor="middle" dominant-baseline="middle"
+        font-family="Georgia, 'Times New Roman', serif" font-weight="700"
+        font-size="19" fill="#fbf8f3">M</text>
+</svg>
