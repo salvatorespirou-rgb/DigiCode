@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=44" />
+  <link rel="stylesheet" href="css/style.css?v=46" />
 </head>
 <body>
 
@@ -83,50 +83,57 @@
         <p class="eyebrow">Real Code. Real People. Real Quality.</p>
         <h1>Hand-Coded Websites Built for <span class="gradient-text">Australian Businesses.</span></h1>
         <p class="hero-sub">DigiCode hand-codes fast, modern websites from scratch — no page builders, no bloated templates.</p>
-        <div class="quick-links-row pearl-row">
-          <a href="/builds" class="pearl-btn">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">Builds</span>
-            </span>
-          </a>
-          <a href="/subscription" class="pearl-btn">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">Subscriptions</span>
-            </span>
-          </a>
-          <a href="/portfolio" class="pearl-btn">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">Portfolio</span>
-            </span>
-          </a>
-          <a href="/custom-projects" class="pearl-btn">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">Custom Projects</span>
-            </span>
-          </a>
-          <a href="/marketing" class="pearl-btn">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">Marketing</span>
-            </span>
-          </a>
-          <a href="/own-your-platform" class="pearl-btn pearl-btn--feature">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">Own Your Platform</span>
-            </span>
-          </a>
-          <a href="/digicode-gaming" class="pearl-btn">
-            <span class="pearl-wrap">
-              <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
-              <span class="pearl-label">DigiCode Gaming</span>
-            </span>
-          </a>
-        </div>
+      </div>
+
+      <!-- A sibling of .hero-content, not a child. Nested inside it the row
+           was capped at .hero-content's own 780px — a width chosen for a
+           short, punchy heading, not for seven buttons — so it sat as a
+           narrow island with several hundred px of empty hero on both
+           sides even once the buttons inside it stopped clumping together.
+           Out here it gets its own, much wider measure instead. -->
+      <div class="quick-links-row pearl-row">
+        <a href="/builds" class="pearl-btn">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">Builds</span>
+          </span>
+        </a>
+        <a href="/subscription" class="pearl-btn">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">Subscriptions</span>
+          </span>
+        </a>
+        <a href="/portfolio" class="pearl-btn">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">Portfolio</span>
+          </span>
+        </a>
+        <a href="/custom-projects" class="pearl-btn">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">Custom Projects</span>
+          </span>
+        </a>
+        <a href="/marketing" class="pearl-btn">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">Marketing</span>
+          </span>
+        </a>
+        <a href="/own-your-platform" class="pearl-btn pearl-btn--feature">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">Own Your Platform</span>
+          </span>
+        </a>
+        <a href="/digicode-gaming" class="pearl-btn">
+          <span class="pearl-wrap">
+            <span class="pearl-icon" aria-hidden="true"><span>✧</span><span>✦</span></span>
+            <span class="pearl-label">DigiCode Gaming</span>
+          </span>
+        </a>
       </div>
     </section>
 

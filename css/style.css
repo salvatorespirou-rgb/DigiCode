@@ -1231,13 +1231,32 @@ section { padding: 100px 0; }
    button stranded in the middle of its own row and left the two full rows
    above it looking clumped rather than spread. Grid's auto-fit stretches
    every row to the container's full width instead.
+
+   The row itself is a sibling of .hero-content in the markup, not nested
+   inside it — see the HTML comment there. Nested, it inherited
+   .hero-content's own 780px cap, sized for a short heading rather than
+   seven buttons, so the row read as one more clumped island even after the
+   buttons inside it stopped clumping with each other. Out here it takes
+   the site's normal --container-width (1100px) instead — the same measure
+   every other section on the page uses — which is wide enough that all
+   seven now fit on one row rather than wrapping to three.
+
+   Smaller than the first pass, and without the wrap::after panel that
+   version had: a semi-opaque rounded rectangle sitting inside the pill,
+   which read as a second box nested inside the button rather than a gloss
+   highlight. The soft blurred ellipse in ::before carries the glassy look
+   on its own.
    ===================================================================== */
 
 .quick-links-row.pearl-row {
+  position: relative;
+  z-index: 2;
+  max-width: var(--container-width);
+  margin: 32px auto 0;
+  padding: 0 24px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 16px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
 }
 
 .pearl-btn {
@@ -1248,14 +1267,14 @@ section { padding: 100px 0; }
   position: relative;
   display: block;
   text-decoration: none;
-  border-radius: 18px;
+  border-radius: 12px;
   background-color: var(--pearl-shell);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow:
-    inset 0 0.3rem 0.9rem color-mix(in oklab, var(--pearl-sheen) 22%, transparent),
-    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
-    inset 0 -0.4rem 0.9rem color-mix(in oklab, var(--pearl-glow) 30%, transparent),
-    0 1.5rem 2rem rgba(0, 0, 0, 0.35),
+    inset 0 0.25rem 0.6rem color-mix(in oklab, var(--pearl-sheen) 22%, transparent),
+    inset 0 -0.1rem 0.25rem rgba(0, 0, 0, 0.7),
+    inset 0 -0.3rem 0.6rem color-mix(in oklab, var(--pearl-glow) 30%, transparent),
+    0 1rem 1.4rem rgba(0, 0, 0, 0.35),
     0 0 0 1px color-mix(in oklab, var(--pearl-glow) 35%, transparent);
 }
 
@@ -1263,38 +1282,42 @@ section { padding: 100px 0; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  /* A fixed floor, not just padding, and this is the real fix rather than
-     the mask tuning below. Grid's default align-items:stretch means a
-     button's rendered height depends on which OTHER buttons land in its row
-     — and auto-fit regroups buttons into different rows at every viewport
-     width. "Own Your Platform" wraps to two lines and was stretching its
-     whole row to 92px, while a row of short single-line labels sat at 68px:
-     the same button could be either height depending on nothing but how the
-     grid happened to pack that week's screen width. Sizing every wrap to
-     fit the longest label up front makes the stretch a no-op instead of the
-     thing actually setting the height. */
-  min-height: 90px;
-  padding: 22px 20px;
+  gap: 6px;
+  /* A fixed floor, not just padding — this is what keeps a button's height
+     from depending on which OTHER buttons land in its row. Grid's default
+     align-items:stretch matches every button in a row to its tallest
+     neighbour, and auto-fit regroups buttons into different rows at every
+     viewport width, so without a floor whichever labels wrap could stretch
+     their row taller at one width and not another, for no reason a visitor
+     could see. Sized for the two-line case up front, so the stretch becomes
+     a no-op instead of the thing actually setting the height.
+
+     At this column width three labels wrap, not the one "Own Your Platform"
+     the previous, wider-columned pass had — Custom Projects and DigiCode
+     Gaming wrap here too. First pass at 58px only budgeted for a single
+     wrapping label and left just 1px before the fade line under all three;
+     64px is what two real lines of this font actually need with room to
+     spare, measured after rather than assumed. */
+  min-height: 64px;
+  padding: 12px 14px;
   border-radius: inherit;
   position: relative;
   overflow: hidden;
   font-family: "Chakra Petch", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 0.9375rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.06em;
   color: color-mix(in oklab, var(--silver) 85%, white 15%);
   transform: translateY(2%);
   /* Fixing the height above is also what makes this percentage trustworthy:
-     vertically-centered text drifts further from the fade line as its box
+     vertically-centred text drifts further from a fade line as its box
      grows, so with the box height pinned this only has to clear one known
-     worst case — "Own Your Platform" at 2 lines — rather than whatever the
-     grid happens to stretch a button to. Measured with that label real,
-     not estimated: fade starts ~7.5px below its lowest descender. */
-  -webkit-mask-image: linear-gradient(to bottom, white 85%, transparent 135%);
-          mask-image: linear-gradient(to bottom, white 85%, transparent 135%);
+     worst case rather than whatever the grid happens to stretch a button
+     to. Measured against the real two-line label, not estimated. */
+  -webkit-mask-image: linear-gradient(to bottom, white 90%, transparent 135%);
+          mask-image: linear-gradient(to bottom, white 90%, transparent 135%);
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
@@ -1303,13 +1326,10 @@ section { padding: 100px 0; }
 .pearl-btn:hover .pearl-icon span:nth-child(1) { display: none; }
 .pearl-btn:hover .pearl-icon span:nth-child(2) { display: inline-block; }
 
-.pearl-wrap::before,
-.pearl-wrap::after {
+.pearl-wrap::before {
   content: "";
   position: absolute;
   transition: all 0.3s ease;
-}
-.pearl-wrap::before {
   left: -15%;
   right: -15%;
   bottom: 30%;
@@ -1317,33 +1337,18 @@ section { padding: 100px 0; }
   border-radius: 50%;
   background-color: color-mix(in oklab, var(--pearl-sheen) 14%, transparent);
 }
-.pearl-wrap::after {
-  left: 6%;
-  right: 6%;
-  top: 10%;
-  bottom: 45%;
-  border-radius: 18px 18px 0 0;
-  box-shadow: inset 0 10px 8px -10px color-mix(in oklab, var(--pearl-sheen) 70%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--pearl-glow-2) 35%, transparent) 0%,
-    transparent 60%,
-    transparent 100%
-  );
-}
 
 .pearl-btn:hover {
   transform: translateY(-2px);
   box-shadow:
-    inset 0 0.3rem 0.5rem color-mix(in oklab, var(--pearl-sheen) 35%, transparent),
-    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
-    inset 0 -0.4rem 0.9rem color-mix(in oklab, var(--pearl-glow) 55%, transparent),
-    0 0 34px -4px color-mix(in oklab, var(--pearl-glow-2) 60%, transparent),
+    inset 0 0.25rem 0.4rem color-mix(in oklab, var(--pearl-sheen) 35%, transparent),
+    inset 0 -0.1rem 0.25rem rgba(0, 0, 0, 0.7),
+    inset 0 -0.3rem 0.6rem color-mix(in oklab, var(--pearl-glow) 55%, transparent),
+    0 0 26px -4px color-mix(in oklab, var(--pearl-glow-2) 60%, transparent),
     0 0 0 1px color-mix(in oklab, var(--pearl-glow) 75%, transparent);
 }
 .pearl-btn:hover .pearl-wrap { color: #fbfcff; transform: translateY(-2%); }
 .pearl-btn:hover .pearl-wrap::before { transform: translateY(-5%); }
-.pearl-btn:hover .pearl-wrap::after { opacity: 0.5; transform: translateY(5%); }
 
 .pearl-btn:active { transform: translateY(2px); }
 
@@ -1361,18 +1366,17 @@ section { padding: 100px 0; }
 
 @media (max-width: 620px) {
   .pearl-wrap {
-    padding: 16px 14px;
-    font-size: 0.8125rem;
-    letter-spacing: 0.07em;
+    padding: 10px 10px;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
   }
-  .quick-links-row.pearl-row { gap: 10px; }
+  .quick-links-row.pearl-row { gap: 8px; padding: 0 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .pearl-btn,
   .pearl-wrap,
-  .pearl-wrap::before,
-  .pearl-wrap::after { transition: none; }
+  .pearl-wrap::before { transition: none; }
 }
 
 @media (forced-colors: active) {
@@ -1386,8 +1390,7 @@ section { padding: 100px 0; }
     -webkit-mask-image: none;
             mask-image: none;
   }
-  .pearl-wrap::before,
-  .pearl-wrap::after { display: none; }
+  .pearl-wrap::before { display: none; }
 }
 
 /* ---------- Custom cursor (desktop with a mouse, motion allowed, marketing pages only) ---------- */
