@@ -1,4 +1,5 @@
 /* Progressive enhancement: without JavaScript the full form remains usable. */
+.breadcrumbs { text-align: center; font-size: 12px; line-height: 1.8; }
 .sf-step { scroll-margin-top: 90px; }
 .sf-contact-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
 .sf-question { min-width: 0; margin: 26px 0 0; padding: 0; border: 0; }
